@@ -1,4 +1,4 @@
-# demo
+# Godot 畢業製作
 
 Godot 4.6 project for the current playable demo.
 
@@ -15,3 +15,7 @@ Godot 4.6 project for the current playable demo.
 ## Version
 
 Current version: `0.1.0`
+
+## Description
+
+畢業製作 Godot 專案。
