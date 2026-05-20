@@ -6,5 +6,8 @@ func _ready() -> void:
 
 
 func _on_body_entered(body: Node) -> void:
+	if body.has_method("respawn_from_void"):
+		body.call("respawn_from_void")
+		return
 	if body.has_method("die"):
 		body.call("die")

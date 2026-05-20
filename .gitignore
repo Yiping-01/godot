@@ -1,3 +1,21 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+# Godot 4
+.godot/
+.import/
+export.cfg
+export_presets.cfg
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+*.tmp
+*.temp

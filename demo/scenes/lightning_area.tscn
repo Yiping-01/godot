@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://demo/scripts/LightningArea.gd" id="1_lightning_script"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/lei/lei1.png" id="2_lei1"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/lei/lei2.png" id="3_lei2"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/lei/lei3.png" id="4_lei3"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/lei/lei4.png" id="5_lei4"]
+[ext_resource type="Script" path="res://demo/scripts/LightningWarning.gd" id="6_warning_script"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lightning"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_lei1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_lei2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_lei3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_lei4")
+}],
+"loop": true,
+"name": &"strike",
+"speed": 16.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lightning"]
+size = Vector2(150, 900)
+
+[node name="LightningArea" type="Node2D" unique_id=1183958600]
+position = Vector2(547, 282)
+script = ExtResource("1_lightning_script")
+
+[node name="WarningVisual" type="Node2D" parent="." unique_id=2034536305]
+script = ExtResource("6_warning_script")
+
+[node name="LightningVisual" type="AnimatedSprite2D" parent="." unique_id=1709523551]
+visible = false
+scale = Vector2(0.38, 1.1)
+sprite_frames = SubResource("SpriteFrames_lightning")
+animation = &"strike"
+
+[node name="DamageArea" type="Area2D" parent="." unique_id=644187257]
+collision_layer = 32
+collision_mask = 16
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" unique_id=1323093597]
+shape = SubResource("RectangleShape2D_lightning")
+disabled = true

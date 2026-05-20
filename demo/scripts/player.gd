@@ -139,6 +139,8 @@ var hurt_animation_left := 0.0
 var is_hurt_animating := false
 var knockback_velocity := Vector2.ZERO
 var respawn_position := Vector2.ZERO
+var last_safe_position := Vector2.ZERO
+var void_respawning := false
 var camera_base_offset := Vector2.ZERO
 var default_camera_position := Vector2.ZERO
 var default_camera_offset := Vector2.ZERO
@@ -205,6 +207,7 @@ func _ready() -> void:
 		current_stamina = max_stamina
 	respawn_position = _get_spawn_position()
 	global_position = respawn_position
+	last_safe_position = respawn_position
 	camera_base_offset = camera.offset
 	default_camera_position = camera_follow_position
 	default_camera_offset = camera.offset
@@ -271,6 +274,7 @@ func _physics_process(delta: float) -> void:
 			_apply_gravity(delta)
 			velocity.x = move_toward(velocity.x, 0.0, speed * delta * 6.0)
 		move_and_slide()
+		_update_last_safe_position()
 		_update_animation()
 		_update_camera_shake(delta)
 		return
@@ -288,6 +292,7 @@ func _physics_process(delta: float) -> void:
 		_update_dash(delta)
 		_update_attack(delta)
 		move_and_slide()
+		_update_last_safe_position()
 		_update_animation()
 		_update_camera_shake(delta)
 		return
@@ -301,6 +306,7 @@ func _physics_process(delta: float) -> void:
 	_update_attack(delta)
 
 	move_and_slide()
+	_update_last_safe_position()
 	_update_animation()
 	_update_camera_shake(delta)
 
@@ -1125,6 +1131,7 @@ func sit_on_bench(seat_position: Vector2, facing: int = 1) -> void:
 
 func stand_from_bench(stand_position: Vector2) -> void:
 	global_position = stand_position
+	last_safe_position = stand_position
 	velocity = Vector2.ZERO
 	z_index = normal_z_index
 	hurt_lock_left = 0.0
@@ -1181,6 +1188,38 @@ func die() -> void:
 	_respawn()
 
 
+func respawn_from_void() -> void:
+	if is_dead or void_respawning:
+		return
+
+	void_respawning = true
+	velocity = Vector2.ZERO
+	is_underwater = false
+	has_water_surface_y = false
+	hurt_lock_left = 0.0
+	wall_jump_lock_left = 0.0
+	jump_count = 0
+	is_hurt_animating = false
+	hurt_animation_left = 0.0
+	_cancel_attack_state()
+	_end_dash(false)
+	_cancel_attack_charge()
+	_set_all_attack_areas_enabled(false)
+	global_position = last_safe_position
+	animated_sprite.visible = true
+	animated_sprite.modulate = Color.WHITE
+	animated_sprite.play("wait")
+	reset_camera_limits()
+	reset_camera_profile()
+	_snap_camera_to_player()
+	respawned.emit()
+	_start_camera_shake(0.18, 5.0)
+	_start_invincibility()
+
+	await get_tree().process_frame
+	void_respawning = false
+
+
 func _apply_hurt_knockback(from_position: Vector2) -> void:
 	var push_direction := signf(global_position.x - from_position.x)
 	if is_zero_approx(push_direction):
@@ -1208,6 +1247,7 @@ func _finish_invincibility() -> void:
 
 func _respawn() -> void:
 	global_position = respawn_position
+	last_safe_position = respawn_position
 	velocity = Vector2.ZERO
 	is_underwater = false
 	has_water_surface_y = false
@@ -1398,12 +1438,23 @@ func _apply_scene_camera_limits() -> void:
 	if map_floor is Node2D:
 		camera.limit_bottom = mini(camera.limit_bottom, ceili(_get_node_world_rect(map_floor).end.y))
 
+	var map_ceiling := scene.find_child("MapCeiling", true, false)
+	if map_ceiling is Node2D:
+		camera.limit_top = maxi(camera.limit_top, floori(_get_node_world_rect(map_ceiling).position.y))
+
 
 func _snap_camera_to_player() -> void:
 	if camera == null:
 		return
 	camera.reset_smoothing()
 	camera.force_update_scroll()
+
+
+func _update_last_safe_position() -> void:
+	if is_dead or void_respawning or is_underwater or is_resting:
+		return
+	if is_on_floor() and velocity.y >= 0.0:
+		last_safe_position = global_position
 
 
 func _get_node_world_rect(node: Node2D) -> Rect2:

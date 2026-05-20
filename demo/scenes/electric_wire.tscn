@@ -1,0 +1,69 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://demo/scripts/ElectricWire.gd" id="1_wire_script"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dian1.png" id="2_dian_1"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dian2.png" id="3_dian_2"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dian3.png" id="4_dian_3"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dian4.png" id="5_dian_4"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dian5.png" id="6_dian_5"]
+[ext_resource type="Texture2D" path="res://demo/assets/other/dian/dianxin/dianxin.png" id="7_weak_point"]
+[ext_resource type="Script" path="res://demo/scripts/wire_weak_point.gd" id="8_weak_point_script"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wire"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_dian_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_dian_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_dian_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_dian_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_dian_5")
+}],
+"loop": false,
+"name": &"build",
+"speed": 7.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wire"]
+size = Vector2(44, 620)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_weak_point"]
+radius = 44.0
+
+[node name="ElectricWire" type="Area2D" unique_id=1357571767]
+z_index = -10
+collision_layer = 0
+collision_mask = 0
+script = ExtResource("1_wire_script")
+
+[node name="Visual" type="AnimatedSprite2D" parent="." unique_id=1252517254]
+position = Vector2(0, -250)
+scale = Vector2(0.404, 0.404)
+sprite_frames = SubResource("SpriteFrames_wire")
+animation = &"build"
+autoplay = "build"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1173889152]
+position = Vector2(0, -250)
+shape = SubResource("RectangleShape2D_wire")
+
+[node name="WeakPoint" type="Area2D" parent="." unique_id=1730094824]
+position = Vector2(0, 10)
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("8_weak_point_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="WeakPoint" unique_id=985292697]
+scale = Vector2(0.065, 0.065)
+texture = ExtResource("7_weak_point")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WeakPoint" unique_id=1201253965]
+shape = SubResource("CircleShape2D_weak_point")
