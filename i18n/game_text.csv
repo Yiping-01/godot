@@ -1,0 +1,9 @@
+keys,en,zh
+PROMPT_INTERACT,Press E,按 E
+PROMPT_REST,Rest,休息
+PROMPT_TELEPORT,Teleport,傳送
+PROMPT_NEXT_WATER,Next area: Water Room,下個地點：海水房
+PROMPT_NEXT_BOSS,Next area: Boss Room,下個地點：Boss 房
+BOSS_PHASE_DEEP_WAKES,The Deep Wakes,深海甦醒
+BOSS_PHASE_BREAK_ARMS,Break the arms,破壞觸手
+AREA_TILE_WORKSPACE,Tile Paint Workspace,地圖繪製空間

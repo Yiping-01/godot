@@ -1,0 +1,126 @@
+[gd_scene format=3 uid="uid://bauy8vti8kers"]
+
+[ext_resource type="Script" uid="uid://chfreawbsdwu" path="res://hulobOuO/scripts/hulob_main_menu.gd" id="1_menu_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+content_margin_left = 18.0
+content_margin_right = 18.0
+bg_color = Color(0.02, 0.035, 0.045, 0.68)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.78, 0.8, 0.32)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="HulobMainMenu" type="Control" unique_id=1602326581]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu_script")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1794890210]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.025, 0.029, 0.033, 1)
+
+[node name="Dim" type="ColorRect" parent="." unique_id=439989730]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.42)
+
+[node name="TitleLabel" type="Label" parent="." unique_id=2140594686]
+layout_mode = 0
+offset_left = 420.0
+offset_top = 250.0
+offset_right = 1500.0
+offset_bottom = 342.0
+theme_override_colors/font_color = Color(0.86, 0.98, 1, 0.96)
+theme_override_font_sizes/font_size = 72
+text = "妳看起來很好吃"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="." unique_id=1056269251]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 350.0
+offset_right = 1450.0
+offset_bottom = 392.0
+theme_override_colors/font_color = Color(0.62, 0.84, 0.86, 0.82)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Menu" type="VBoxContainer" parent="." unique_id=1406113518]
+layout_mode = 0
+offset_left = 780.0
+offset_top = 506.0
+offset_right = 1140.0
+offset_bottom = 746.0
+theme_override_constants/separation = 14
+
+[node name="StartButton" type="Button" parent="Menu" unique_id=1327960854]
+custom_minimum_size = Vector2(360, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Start"
+
+[node name="ContinueButton" type="Button" parent="Menu" unique_id=1080290122]
+custom_minimum_size = Vector2(360, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Continue"
+
+[node name="QuitButton" type="Button" parent="Menu" unique_id=918924553]
+custom_minimum_size = Vector2(360, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Quit"
+
+[node name="LanguagePanel" type="HBoxContainer" parent="." unique_id=329969532]
+layout_mode = 0
+offset_left = 780.0
+offset_top = 790.0
+offset_right = 1140.0
+offset_bottom = 840.0
+theme_override_constants/separation = 12
+
+[node name="ChineseButton" type="Button" parent="LanguagePanel" unique_id=1806260245]
+custom_minimum_size = Vector2(174, 44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "中文"
+
+[node name="EnglishButton" type="Button" parent="LanguagePanel" unique_id=1669549528]
+custom_minimum_size = Vector2(174, 44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "English"
+
+[node name="FadeRect" type="ColorRect" parent="." unique_id=1783674024]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

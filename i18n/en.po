@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgid "PROMPT_INTERACT"
+msgstr "Press E"
+
+msgid "PROMPT_REST"
+msgstr "Rest"
+
+msgid "PROMPT_TELEPORT"
+msgstr "Teleport"
+
+msgid "PROMPT_NEXT_WATER"
+msgstr "Next area: Water Room"
+
+msgid "PROMPT_NEXT_BOSS"
+msgstr "Next area: Boss Room"
+
+msgid "BOSS_PHASE_DEEP_WAKES"
+msgstr "The Deep Wakes"
+
+msgid "BOSS_PHASE_BREAK_ARMS"
+msgstr "Break the arms"
+
+msgid "AREA_TILE_WORKSPACE"
+msgstr "Tile Paint Workspace"

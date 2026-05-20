@@ -1,0 +1,52 @@
+[gd_scene format=4 uid="uid://dri438ont2e1a"]
+
+[ext_resource type="Script" path="res://hulobOuO/scripts/tile_workspace.gd" id="1_3b3e4"]
+[ext_resource type="Script" uid="uid://do5l6pdvb5aji" path="res://hulobOuO/scripts/hulob_atmosphere.gd" id="2_et02t"]
+[ext_resource type="TileSet" path="res://hulobOuO/assets/tiles/ocean_rock_modular_tileset.tres" id="3_a7uem"]
+[ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://scenes/player.tscn" id="4_53b4a"]
+[ext_resource type="Script" uid="uid://kga12lvq78rr" path="res://scripts/health_ui.gd" id="6_eukpd"]
+[ext_resource type="Script" uid="uid://cnimtrmkiocnm" path="res://hulobOuO/scripts/hulob_exit_menu.gd" id="7_ttbc5"]
+[ext_resource type="PackedScene" uid="uid://dgcm5rlgbtx5k" path="res://scenes/game_ui.tscn" id="8_xy5fe"]
+
+[node name="TilePaintWorkspace" type="Node2D" unique_id=1495601386]
+script = ExtResource("1_3b3e4")
+
+[node name="Atmosphere" type="Node2D" parent="." unique_id=1385170231]
+script = ExtResource("2_et02t")
+environment_tint = Color(0.18, 0.27, 0.3, 1)
+player_glow_radius = 420.0
+level_width = 5200.0
+floor_y = 880.0
+
+[node name="HulobCanvasModulate" type="CanvasModulate" parent="Atmosphere" unique_id=1153947657]
+color = Color(0.18, 0.27, 0.3, 1)
+
+[node name="DeepSeaBackdrop" type="Polygon2D" parent="." unique_id=421092429]
+z_index = -60
+color = Color(0.035, 0.09, 0.12, 1)
+polygon = PackedVector2Array(-900, -600, 5600, -600, 5600, 1500, -900, 1500)
+
+[node name="PaintHere_TileMapLayer" type="TileMapLayer" parent="." unique_id=651731821]
+tile_map_data = PackedByteArray("AAD+/wUAAAAAAAAAAAD//wUAAAAAAAAAAAAAAAUAAAAAAAAAAAABAAUAAAAAAAAAAAACAAUAAAAAAAAAAAADAAUAAAAAAAAAAAAEAAUAAAAAAAAAAAAFAAUAAAAAAAAAAAAGAAUAAAAAAAAAAAAHAAUAAAAAAAAAAAAIAAUAAAAAAAAAAAAJAAUAAAAAAAAAAAAKAAUAAAAAAAAAAAALAAUAAAAAAAAAAAAMAAUAAAAAAAAAAAANAAUAAAAAAAAAAAAOAAUAAAAAAAAAAAAPAAUAAAAAAAAAAAAQAAUAAAAAAAAAAAARAAUAAAAAAAAAAAASAAUAAAAAAAAAAAATAAUAAAAAAAAAAAAUAAUAAAAAAAAAAAAVAAUAAAAAAAAAAAAEAAIAAAAAAAMAAAAFAAIAAAAAAAMAAAAGAAIAAAAAAAMAAAAHAAIAAAAAAAMAAAAIAAIAAAAAAAMAAAAJAAIAAAAAAAMAAAANAAEAAAAGAAMAAAAOAAEAAAAGAAMAAAAPAAEAAAAGAAMAAAAQAAEAAAAGAAMAAAARAAEAAAAGAAMAAAACAAQAAAAFAAAAAAADAAQAAAAGAAAAAAAKAAQAAAABAAQAAAALAAQAAAADAAQAAAARAAQAAAAHAAUAAAASAAQAAAAEAAUAAAA=")
+tile_set = ExtResource("3_a7uem")
+
+[node name="Player" parent="." unique_id=499235982 instance=ExtResource("4_53b4a")]
+position = Vector2(360, 610)
+camera_follow_position = Vector2(20, 96)
+camera_follow_zoom = Vector2(1.18, 1.18)
+camera_follow_smoothing_speed = 8.5
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1984401931]
+script = ExtResource("6_eukpd")
+
+[node name="ExitMenu" type="CanvasLayer" parent="." unique_id=551889677]
+process_mode = 3
+script = ExtResource("7_ttbc5")
+
+[node name="GameUI" parent="." unique_id=1166697026 instance=ExtResource("8_xy5fe")]
+visible = false
+
+[node name="EditorPreviewCamera" type="Camera2D" parent="." unique_id=1840125001]
+position = Vector2(840, 420)
+enabled = false
+zoom = Vector2(0.78, 0.78)

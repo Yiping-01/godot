@@ -1,0 +1,301 @@
+[gd_scene format=3 uid="uid://c0x5ngewehoo2"]
+
+[ext_resource type="Script" uid="uid://3slhk5qbj5nm" path="res://hulobOuO/scripts/hulob_boss_scene.gd" id="1_scene_script"]
+[ext_resource type="Script" uid="uid://kga12lvq78rr" path="res://scripts/health_ui.gd" id="2_health_ui"]
+[ext_resource type="PackedScene" uid="uid://dgcm5rlgbtx5k" path="res://scenes/game_ui.tscn" id="3_game_ui"]
+[ext_resource type="Script" uid="uid://cnimtrmkiocnm" path="res://hulobOuO/scripts/hulob_exit_menu.gd" id="4_exit_menu"]
+[ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://scenes/player.tscn" id="5_player"]
+[ext_resource type="PackedScene" path="res://scenes/map_floor.tscn" id="6_floor"]
+[ext_resource type="PackedScene" path="res://scenes/map_wall.tscn" id="7_wall"]
+[ext_resource type="PackedScene" path="res://scenes/map_platform.tscn" id="8_platform"]
+[ext_resource type="Script" uid="uid://bb3fwl1h3i07o" path="res://scripts/boss.gd" id="9_boss_script"]
+[ext_resource type="Texture2D" path="res://hulobOuO/assets/boss/octopus_actions/idle_1.png" id="10_boss_texture"]
+[ext_resource type="Script" uid="uid://da10xppur5liq" path="res://scripts/map_room_marker.gd" id="11_map_room"]
+[ext_resource type="Script" uid="uid://c848mbgvk0g81" path="res://hulobOuO/scripts/hulob_boss_intro.gd" id="12_intro"]
+[ext_resource type="Script" uid="uid://cxg250go8p8y7" path="res://hulobOuO/scripts/hulob_scene_transition.gd" id="13_transition"]
+[ext_resource type="Script" uid="uid://hid4uidnrebp" path="res://scripts/respawn_point.gd" id="14_respawn"]
+[ext_resource type="Script" uid="uid://do5l6pdvb5aji" path="res://hulobOuO/scripts/hulob_atmosphere.gd" id="15_atmosphere"]
+[ext_resource type="AudioStream" uid="uid://ckrtit3vqcd03" path="res://hulobOuO/assets/hollow_import/audio/cave_wind_loop.wav" id="18_wind"]
+[ext_resource type="Script" uid="uid://byewjrqi0yxp" path="res://hulobOuO/scripts/debug_hitbox_overlay.gd" id="19_debug_overlay"]
+[ext_resource type="Texture2D" uid="uid://du06660eg8qo2" path="res://hulobOuO/assets/hollow_import/effects/white_hit_particle.png" id="20_spark"]
+[ext_resource type="Texture2D" uid="uid://d0pc0gh2ttad2" path="res://hulobOuO/assets/hollow_import/effects/dust_stream.png" id="21_dust"]
+[ext_resource type="Texture2D" uid="uid://ydkvy3p0thg4" path="res://hulobOuO/assets/hollow_import/effects/orange_puff_animated.png" id="22_smoke"]
+[ext_resource type="PackedScene" path="res://scenes/map_passage_marker.tscn" id="23_passage"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss"]
+size = Vector2(177, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_damage"]
+size = Vector2(132, 46)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_quake_damage"]
+size = Vector2(980, 134)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_intro"]
+size = Vector2(250, 330)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_marker"]
+size = Vector2(2200, 380)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_return"]
+size = Vector2(130, 240)
+
+[node name="HulobBoss" type="Node2D" unique_id=129407497]
+script = ExtResource("1_scene_script")
+
+[node name="Atmosphere" type="Node2D" parent="." unique_id=1381228424]
+script = ExtResource("15_atmosphere")
+environment_tint = Color(0.26, 0.31, 0.35, 1)
+player_glow_radius = 400.0
+level_width = 2300.0
+floor_y = 700.0
+
+[node name="HulobCanvasModulate" type="CanvasModulate" parent="Atmosphere" unique_id=1113335643]
+color = Color(0.26, 0.31, 0.35, 1)
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1564506640]
+script = ExtResource("2_health_ui")
+
+[node name="HealthPips" type="HBoxContainer" parent="HUD" unique_id=755975430]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 360.0
+offset_bottom = 70.0
+theme_override_constants/separation = 2
+
+[node name="HealthLabel" type="Label" parent="HUD" unique_id=1120800902]
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 270.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 18
+
+[node name="ExitMenu" type="CanvasLayer" parent="." unique_id=300144761]
+process_mode = 3
+script = ExtResource("4_exit_menu")
+
+[node name="GameUI" parent="." unique_id=1978401946 instance=ExtResource("3_game_ui")]
+
+[node name="DebugHitboxes" type="Node2D" parent="." unique_id=2060438688]
+script = ExtResource("19_debug_overlay")
+
+[node name="Markers" type="Node2D" parent="." unique_id=1589653588]
+
+[node name="boss_entry" type="Marker2D" parent="Markers" unique_id=359213349 groups=["spawn_marker"]]
+position = Vector2(172, 540)
+script = ExtResource("14_respawn")
+
+[node name="Player" parent="." unique_id=705929938 instance=ExtResource("5_player")]
+position = Vector2(172, 540)
+camera_follow_position = Vector2(34, 120)
+camera_follow_zoom = Vector2(1.58, 1.58)
+camera_follow_smoothing_speed = 8.5
+
+[node name="MapPieces" type="Node2D" parent="." unique_id=1374939041]
+
+[node name="map_floor" parent="MapPieces" unique_id=298143166 instance=ExtResource("6_floor")]
+modulate = Color(0.16, 0.28, 0.3, 0.92)
+position = Vector2(1115, 708)
+scale = Vector2(8.9, 1.55)
+
+[node name="map_left" parent="MapPieces" unique_id=1415636971 instance=ExtResource("7_wall")]
+modulate = Color(0.02, 0.045, 0.065, 0.78)
+position = Vector2(-30, 492)
+scale = Vector2(1.25, 3.5)
+
+[node name="map_right" parent="MapPieces" unique_id=1129028082 instance=ExtResource("7_wall")]
+modulate = Color(0.02, 0.045, 0.065, 0.78)
+position = Vector2(2252, 492)
+scale = Vector2(1.25, 3.5)
+
+[node name="Boss" type="CharacterBody2D" parent="." unique_id=337623331]
+position = Vector2(1660, 592)
+collision_layer = 4
+script = ExtResource("9_boss_script")
+max_health = 18
+dash_speed = 620.0
+dash_time = 0.52
+windup_time = 0.78
+recover_time = 0.68
+attack_switch_pause_time = 0.42
+idle_decision_time = 0.42
+rest_time = 1.25
+attack_range = 940.0
+close_attack_range = 330.0
+body_contact_damage_enabled = false
+quake_windup_time = 0.72
+quake_damage_width = 980.0
+quake_damage_hitbox_height = 134.0
+ink_attack_windup_time = 0.62
+ink_projectile_min_batch = 1
+ink_projectile_max_batch = 2
+intro_effect_enabled = false
+start_inactive = true
+intro_effect_duration = 2.6
+
+[node name="Sprite2D" type="Sprite2D" parent="Boss" unique_id=944904452]
+modulate = Color(0.88, 0.98, 1, 1)
+scale = Vector2(0.23, 0.23)
+texture = ExtResource("10_boss_texture")
+
+[node name="WindupParticles" type="CPUParticles2D" parent="Boss" unique_id=1500290661]
+position = Vector2(0, -12)
+emitting = false
+amount = 24
+texture = ExtResource("20_spark")
+lifetime = 0.55
+randomness = 0.62
+emission_shape = 1
+emission_sphere_radius = 74.0
+direction = Vector2(0, -1)
+spread = 180.0
+gravity = Vector2(0, -18)
+initial_velocity_min = 16.0
+initial_velocity_max = 70.0
+scale_amount_min = 0.018
+scale_amount_max = 0.052
+color = Color(1, 0.92, 0.62, 0.78)
+
+[node name="RestBreathParticles" type="CPUParticles2D" parent="Boss" unique_id=17346931]
+position = Vector2(0, 42)
+emitting = false
+amount = 12
+texture = ExtResource("22_smoke")
+lifetime = 0.9
+randomness = 0.72
+emission_shape = 1
+emission_sphere_radius = 44.0
+direction = Vector2(0, -1)
+spread = 96.0
+gravity = Vector2(0, -42)
+initial_velocity_min = 10.0
+initial_velocity_max = 46.0
+scale_amount_min = 0.034
+scale_amount_max = 0.09
+color = Color(0.64, 0.9, 1, 0.38)
+
+[node name="QuakeImpactParticles" type="CPUParticles2D" parent="Boss" unique_id=1190323623]
+top_level = true
+position = Vector2(1660, 666)
+emitting = false
+amount = 54
+texture = ExtResource("21_dust")
+lifetime = 0.48
+one_shot = true
+explosiveness = 1.0
+randomness = 0.78
+emission_shape = 2
+emission_sphere_radius = 1.0
+direction = Vector2(0, -1)
+spread = 135.0
+gravity = Vector2(0, 220)
+initial_velocity_min = 90.0
+initial_velocity_max = 250.0
+scale_amount_min = 0.025
+scale_amount_max = 0.075
+color = Color(0.8, 0.98, 1, 0.52)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss" unique_id=154871719]
+scale = Vector2(1, 1.2)
+shape = SubResource("RectangleShape2D_boss")
+
+[node name="DamageArea" type="Area2D" parent="Boss" unique_id=1646172298]
+position = Vector2(-90, 42)
+collision_layer = 32
+collision_mask = 16
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/DamageArea" unique_id=822050555]
+shape = SubResource("RectangleShape2D_boss_damage")
+disabled = true
+
+[node name="QuakeDamageArea" type="Area2D" parent="Boss" unique_id=641915625]
+top_level = true
+position = Vector2(1660, 662)
+collision_layer = 32
+collision_mask = 16
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/QuakeDamageArea" unique_id=425791251]
+shape = SubResource("RectangleShape2D_quake_damage")
+disabled = true
+
+[node name="BossIntroTrigger" type="Area2D" parent="." unique_id=970122753]
+position = Vector2(1150, 544)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("12_intro")
+boss_path = NodePath("../Boss")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BossIntroTrigger" unique_id=657594338]
+shape = SubResource("RectangleShape2D_intro")
+
+[node name="MapRoom_boss" type="Area2D" parent="." unique_id=1079745113]
+position = Vector2(1100, 566)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("11_map_room")
+room_id = "boss"
+display_name = "Boss Chamber"
+map_rect = Rect2(0, 0, 180, 100)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapRoom_boss" unique_id=1661651348]
+shape = SubResource("RectangleShape2D_marker")
+
+[node name="ReturnDoor" type="Area2D" parent="." unique_id=1149553702]
+position = Vector2(62, 572)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_transition")
+target_scene = "res://hulobOuO/hulob_water.tscn"
+target_spawn_marker_name = "water_boss_return"
+transition_label = "海水房"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ReturnDoor" unique_id=626499573]
+shape = SubResource("RectangleShape2D_return")
+
+[node name="ReturnDoorVisual" parent="ReturnDoor" unique_id=874411219 instance=ExtResource("23_passage")]
+modulate = Color(0.58, 0.92, 1, 0.9)
+position = Vector2(0, 6)
+scale = Vector2(0.88, 1.22)
+
+[node name="ReturnDoorPromptLabel" type="Label" parent="ReturnDoor" unique_id=465891494]
+z_index = 8
+offset_left = -88.0
+offset_top = -152.0
+offset_right = 88.0
+offset_bottom = -122.0
+theme_override_colors/font_color = Color(0.78, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.01, 0.03, 0.04, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "傳送"
+horizontal_alignment = 1
+
+[node name="LockedShade" type="Polygon2D" parent="ReturnDoor" unique_id=65447452]
+visible = false
+z_index = 12
+color = Color(0.04, 0.01, 0.01, 0.72)
+polygon = PackedVector2Array(-74, -102, 74, -102, 74, 102, -74, 102)
+
+[node name="LockedLabel" type="Label" parent="ReturnDoor" unique_id=2032166954]
+visible = false
+z_index = 14
+offset_left = -78.0
+offset_top = -42.0
+offset_right = 78.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(1, 0.62, 0.42, 1)
+theme_override_colors/font_shadow_color = Color(0.08, 0.01, 0, 0.95)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "封鎖中"
+horizontal_alignment = 1
+
+[node name="BossRoomWind" type="AudioStreamPlayer" parent="." unique_id=1934494637]
+stream = ExtResource("18_wind")
+volume_db = -17.0

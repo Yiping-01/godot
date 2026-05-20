@@ -1,0 +1,28 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: zh\n"
+
+msgid "PROMPT_INTERACT"
+msgstr "按 E"
+
+msgid "PROMPT_REST"
+msgstr "休息"
+
+msgid "PROMPT_TELEPORT"
+msgstr "傳送"
+
+msgid "PROMPT_NEXT_WATER"
+msgstr "下個地點：海水房"
+
+msgid "PROMPT_NEXT_BOSS"
+msgstr "下個地點：Boss 房"
+
+msgid "BOSS_PHASE_DEEP_WAKES"
+msgstr "深海甦醒"
+
+msgid "BOSS_PHASE_BREAK_ARMS"
+msgstr "破壞觸手"
+
+msgid "AREA_TILE_WORKSPACE"
+msgstr "地圖繪製空間"
