@@ -12,7 +12,7 @@ signal installation_completed(shader_path: String)
 signal installation_failed(error: String)
 
 const SETTING_SHADERS_PATH = "shader_library/general/shaders_folder"
-const DEFAULT_SHADERS_PATH = "res://shaders/shaderlib/"
+const DEFAULT_SHADERS_PATH = "res://demo/shaders/shaderlib/"
 
 var http_request: HTTPRequest
 var current_shader: Dictionary = {}

@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://b6handjfvgy6c"
+
+[deps]
+
+files=["res://demo/i18n/legacy_translations/game_text.zh.translation", "res://demo/i18n/legacy_translations/game_text.en.translation"]
+
+source_file="res://demo/i18n/legacy_translations/game_text.csv"
+dest_files=["res://demo/i18n/legacy_translations/game_text.zh.translation", "res://demo/i18n/legacy_translations/game_text.en.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

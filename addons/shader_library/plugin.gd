@@ -6,7 +6,7 @@ var shader_applier_inspector: EditorInspectorPlugin
 
 const SETTING_SHADERS_PATH = "shader_library/general/shaders_folder"
 const SETTING_PREVIOUS_PATH = "shader_library/internal/previous_shaders_folder"
-const DEFAULT_SHADERS_PATH = "res://shaders/shaderlib/"
+const DEFAULT_SHADERS_PATH = "res://demo/shaders/shaderlib/"
 
 func _enter_tree() -> void:
 	# Register project settings

@@ -1,0 +1,257 @@
+[gd_scene load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://demo/scripts/demo_level1.gd" id="1_level_script"]
+[ext_resource type="Script" path="res://demo/scripts/health_ui.gd" id="2_health_ui"]
+[ext_resource type="PackedScene" path="res://demo/scenes/game_ui.tscn" id="3_game_ui"]
+[ext_resource type="Script" path="res://demo/scripts/demo_exit_menu.gd" id="4_exit_menu"]
+[ext_resource type="PackedScene" path="res://demo/scenes/player.tscn" id="5_player"]
+[ext_resource type="PackedScene" path="res://demo/scenes/enemy2.tscn" id="6_enemy2"]
+[ext_resource type="PackedScene" path="res://demo/scenes/squid_monster.tscn" id="7_squid"]
+[ext_resource type="PackedScene" path="res://demo/scenes/blue_bounce_split_enemy.tscn" id="8_blue_bounce"]
+[ext_resource type="PackedScene" path="res://demo/scenes/map_floor.tscn" id="9_floor"]
+[ext_resource type="PackedScene" path="res://demo/scenes/map_wall.tscn" id="10_wall"]
+[ext_resource type="PackedScene" path="res://demo/scenes/map_wall_jump.tscn" id="11_wall_jump"]
+[ext_resource type="Script" path="res://demo/scripts/water_zone.gd" id="12_water_zone"]
+[ext_resource type="Script" path="res://demo/scripts/demo_scene_transition.gd" id="13_transition"]
+[ext_resource type="Script" path="res://demo/scripts/respawn_point.gd" id="14_respawn"]
+[ext_resource type="Script" path="res://demo/scripts/demo_atmosphere.gd" id="15_atmosphere"]
+[ext_resource type="PackedScene" path="res://demo/scenes/bench.tscn" id="16_bench"]
+[ext_resource type="PackedScene" path="res://demo/scenes/map_passage_marker.tscn" id="17_passage"]
+[ext_resource type="Script" path="res://demo/scripts/debug_hitbox_overlay.gd" id="18_debug_overlay"]
+[ext_resource type="Texture2D" path="res://demo/assets/art/backgrounds/deepsea_prop_plant.png" id="19_plant"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_water"]
+size = Vector2(2300, 645)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bottom_wall"]
+size = Vector2(2700, 110)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_side_wall"]
+size = Vector2(120, 980)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_top_wall"]
+size = Vector2(2700, 110)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(150, 250)
+
+[node name="DemoWater" type="Node2D"]
+script = ExtResource("1_level_script")
+
+[node name="Atmosphere" type="Node2D" parent="."]
+script = ExtResource("15_atmosphere")
+environment_tint = Color(0.2, 0.34, 0.42, 1)
+player_glow_radius = 520.0
+level_width = 2500.0
+floor_y = 720.0
+
+[node name="DemoCanvasModulate" type="CanvasModulate" parent="Atmosphere"]
+color = Color(0.24, 0.36, 0.42, 1)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("2_health_ui")
+
+[node name="HealthPips" type="HBoxContainer" parent="HUD"]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 360.0
+offset_bottom = 70.0
+theme_override_constants/separation = 2
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 270.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 18
+
+[node name="ExitMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+script = ExtResource("4_exit_menu")
+
+[node name="GameUI" parent="." instance=ExtResource("3_game_ui")]
+
+[node name="DebugHitboxes" type="Node2D" parent="."]
+script = ExtResource("18_debug_overlay")
+
+[node name="Markers" type="Node2D" parent="."]
+
+[node name="water_entry" type="Marker2D" parent="Markers" groups=["spawn_marker"]]
+position = Vector2(260, 560)
+script = ExtResource("14_respawn")
+
+[node name="water_boss_return" type="Marker2D" parent="Markers" groups=["spawn_marker"]]
+position = Vector2(2170, 560)
+script = ExtResource("14_respawn")
+
+[node name="Player" parent="." instance=ExtResource("5_player")]
+position = Vector2(260, 560)
+camera_follow_position = Vector2(38, 120)
+camera_follow_zoom = Vector2(1.62, 1.62)
+camera_follow_smoothing_speed = 8.5
+
+[node name="WaterZone" type="Area2D" parent="."]
+position = Vector2(1250, 655)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("12_water_zone")
+camera_limit_left = -80
+camera_limit_top = 80
+camera_limit_right = 2580
+camera_limit_bottom = 980
+
+[node name="WaterVisual" type="Polygon2D" parent="WaterZone"]
+z_index = -8
+color = Color(0.045, 0.34, 0.55, 0.45)
+polygon = PackedVector2Array(-1150, -322.5, 1150, -322.5, 1150, 322.5, -1150, 322.5)
+
+[node name="OceanDepthTint" type="Polygon2D" parent="WaterZone"]
+z_index = -7
+color = Color(0.015, 0.08, 0.18, 0.46)
+polygon = PackedVector2Array(-1150, -70, 1150, -70, 1150, 322.5, -1150, 322.5)
+
+[node name="OceanSurfaceGlow" type="Polygon2D" parent="WaterZone"]
+z_index = -1
+color = Color(0.55, 0.95, 1, 0.18)
+polygon = PackedVector2Array(-1150, -322.5, 1150, -322.5, 1150, -286, -1150, -286)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="WaterZone"]
+shape = SubResource("RectangleShape2D_water")
+
+[node name="MapPieces" type="Node2D" parent="."]
+
+[node name="LeftSeal" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(-80, 545)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/LeftSeal"]
+shape = SubResource("RectangleShape2D_side_wall")
+
+[node name="RightSeal" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(2580, 545)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/RightSeal"]
+shape = SubResource("RectangleShape2D_side_wall")
+
+[node name="TopSeal" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(1250, 70)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/TopSeal"]
+shape = SubResource("RectangleShape2D_top_wall")
+
+[node name="LeftBoundaryWall" parent="MapPieces" instance=ExtResource("10_wall")]
+modulate = Color(0.02, 0.08, 0.12, 0.82)
+position = Vector2(-35, 505)
+scale = Vector2(1.05, 3.45)
+
+[node name="RightBoundaryWall" parent="MapPieces" instance=ExtResource("10_wall")]
+modulate = Color(0.02, 0.08, 0.12, 0.82)
+position = Vector2(2535, 505)
+scale = Vector2(1.05, 3.45)
+
+[node name="BottomBoundary" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(1250, 1020)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/BottomBoundary"]
+shape = SubResource("RectangleShape2D_bottom_wall")
+
+[node name="WaterWallLeft" parent="MapPieces" instance=ExtResource("11_wall_jump")]
+modulate = Color(0.035, 0.18, 0.24, 0.86)
+position = Vector2(760, 535)
+scale = Vector2(0.9, 2.15)
+
+[node name="WaterWallRight" parent="MapPieces" instance=ExtResource("11_wall_jump")]
+modulate = Color(0.035, 0.18, 0.24, 0.86)
+position = Vector2(1380, 445)
+scale = Vector2(0.9, 1.75)
+
+[node name="WaterPillarLow" parent="MapPieces" instance=ExtResource("10_wall")]
+modulate = Color(0.025, 0.12, 0.18, 0.78)
+position = Vector2(1780, 650)
+scale = Vector2(0.72, 1.15)
+
+[node name="BackgroundPlants" type="Node2D" parent="."]
+z_index = -4
+
+[node name="PlantA" type="Sprite2D" parent="BackgroundPlants"]
+modulate = Color(0.11, 0.32, 0.29, 0.38)
+position = Vector2(520, 700)
+scale = Vector2(0.18, 0.18)
+texture = ExtResource("19_plant")
+
+[node name="PlantB" type="Sprite2D" parent="BackgroundPlants"]
+modulate = Color(0.1, 0.28, 0.27, 0.34)
+position = Vector2(1990, 706)
+scale = Vector2(-0.22, 0.22)
+texture = ExtResource("19_plant")
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="WaterBlueBounceOctopus" parent="Enemies" instance=ExtResource("8_blue_bounce")]
+position = Vector2(1070, 610)
+scale = Vector2(0.22, 0.22)
+bounce_velocity = Vector2(190, -135)
+bounce_min = Vector2(560, 380)
+bounce_max = Vector2(1700, 900)
+
+[node name="BackDoor" type="Area2D" parent="."]
+position = Vector2(70, 568)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_transition")
+target_scene = "res://demo/scenes/levels/demo_level_1.tscn"
+target_spawn_marker_name = "level1_boss_return"
+transition_label = "傳送"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BackDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="BackDoorVisual" parent="BackDoor" instance=ExtResource("17_passage")]
+position = Vector2(0, 10)
+scale = Vector2(0.86, 1.22)
+modulate = Color(0.58, 0.92, 1, 0.9)
+
+[node name="BackDoorPromptLabel" type="Label" parent="BackDoor"]
+z_index = 8
+offset_left = -66.0
+offset_top = -158.0
+offset_right = 66.0
+offset_bottom = -126.0
+theme_override_colors/font_color = Color(0.78, 0.96, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.01, 0.03, 0.04, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "傳送"
+horizontal_alignment = 1
+
+[node name="BossDoor" type="Area2D" parent="."]
+position = Vector2(2385, 568)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_transition")
+target_scene = "res://demo/scenes/levels/demo_boss.tscn"
+target_spawn_marker_name = "boss_entry"
+transition_label = "下個地點（Boss房）"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BossDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="BossDoorVisual" parent="BossDoor" instance=ExtResource("17_passage")]
+position = Vector2(0, 10)
+scale = Vector2(0.92, 1.3)
+modulate = Color(0.85, 0.72, 1, 0.92)
+
+[node name="BossDoorPromptLabel" type="Label" parent="BossDoor"]
+z_index = 8
+offset_left = -66.0
+offset_top = -158.0
+offset_right = 66.0
+offset_bottom = -126.0
+theme_override_colors/font_color = Color(0.92, 0.82, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.03, 0.02, 0.04, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 18
+text = "下個地點（Boss房）"
+horizontal_alignment = 1
+

@@ -8,23 +8,23 @@
 
 config_version=5
 
-"ï»¿config_version"=5
 
 [application]
 
-config/name="new_godtgame"
-run/main_scene="res://hulobOuO/hulob_main_menu.tscn"
+config/name="demo"
+config/version="0.1.0"
+run/main_scene="res://demo/scenes/levels/demo_main_menu.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="res://demo/assets/project/icon.svg"
 
 [autoload]
 
-GameState="*res://scripts/game_state.gd"
-MusicPlayer="*res://scripts/music_player.gd"
-AudioSettings="*res://scripts/audio_settings.gd"
-Localization="*res://scripts/localization.gd"
+GameState="*res://demo/scripts/game_state.gd"
+MusicPlayer="*res://demo/scripts/music_player.gd"
+AudioSettings="*res://demo/scripts/audio_settings.gd"
+Localization="*res://demo/scripts/localization.gd"
 InputHelper="*uid://cholww48njaeh"
-InputSettings="*res://scripts/input_settings.gd"
+InputSettings="*res://demo/scripts/input_settings.gd"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 BetterTerrain="*uid://cut8newgywffy"
 
@@ -122,7 +122,7 @@ debug_hitboxes={
 
 [internationalization]
 
-locale/translations=PackedStringArray("res://i18n/en.po", "res://i18n/zh.po")
+locale/translations=PackedStringArray("res://demo/i18n/en.po", "res://demo/i18n/zh.po")
 
 [layer_names]
 
@@ -144,4 +144,4 @@ rendering_device/driver.windows="d3d12"
 
 [shader_library]
 
-internal/previous_shaders_folder="res://shaders/shaderlib/"
+internal/previous_shaders_folder="res://demo/shaders/shaderlib/"

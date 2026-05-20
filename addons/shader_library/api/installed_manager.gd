@@ -7,7 +7,7 @@ extends Node
 signal shaders_scanned(shaders: Array)
 
 const SETTING_SHADERS_PATH = "shader_library/general/shaders_folder"
-const DEFAULT_SHADERS_PATH = "res://shaders/shaderlib/"
+const DEFAULT_SHADERS_PATH = "res://demo/shaders/shaderlib/"
 
 var installed_shaders: Array = []
 
