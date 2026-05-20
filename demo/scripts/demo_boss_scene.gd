@@ -2,9 +2,12 @@ extends Node2D
 
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 
+@export_file("*.tscn") var phase_two_scene := "res://demo/scenes/levels/demo_boss_phase_2.tscn"
+
 var boss_active := false
 var boss_ref: Node2D
 var return_door: Area2D
+var phase_two_transitioning := false
 
 
 func _ready() -> void:
@@ -38,18 +41,24 @@ func _on_demo_boss_intro_started(boss: Node) -> void:
 
 
 func _complete_boss_fight() -> void:
+	if phase_two_transitioning:
+		return
 	boss_active = false
 	boss_ref = null
-	_finish_boss_encounter()
+	_start_phase_two_transition()
 
 
-func _finish_boss_encounter() -> void:
+func _start_phase_two_transition() -> void:
+	phase_two_transitioning = true
 	_set_return_door_locked(false)
 	_focus_arena_audio(false)
-	DEMO_COMBAT_JUICE.shake_camera(self, 0.28, 4.0)
+	DEMO_COMBAT_JUICE.shake_camera(self, 1.05, 14.0)
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null and ui.has_method("show_area_title"):
-		ui.show_area_title("Seal Broken", "Return path opened")
+		ui.show_area_title("Boss Phase 2", "The arena opens")
+	await get_tree().create_timer(1.15).timeout
+	GameState.set_input_locked(false)
+	get_tree().change_scene_to_file(phase_two_scene)
 
 
 func _set_return_door_locked(locked: bool) -> void:

@@ -28,6 +28,8 @@ func _ready() -> void:
 	if attack_area != null:
 		attack_area.body_entered.connect(_on_attack_body_entered)
 		attack_area.area_entered.connect(_on_attack_area_entered)
+	if sprite is AnimatedSprite2D:
+		(sprite as AnimatedSprite2D).play(&"walk")
 	_set_attack_enabled(false)
 	_set_hurtbox_enabled(false)
 	visible = false
@@ -73,6 +75,11 @@ func _attack(direction: int) -> void:
 	attacking = true
 	cooldown = attack_cooldown
 	var dir := 1 if direction >= 0 else -1
+	if sprite is AnimatedSprite2D:
+		var animated := sprite as AnimatedSprite2D
+		animated.flip_h = dir < 0
+		if animated.sprite_frames != null and animated.sprite_frames.has_animation(&"attack"):
+			animated.play(&"attack")
 	if telegraph != null:
 		telegraph.visible = true
 		telegraph.scale.x = absf(telegraph.scale.x) * dir
@@ -96,6 +103,10 @@ func _attack(direction: int) -> void:
 		telegraph.visible = false
 	if debug_attack != null:
 		debug_attack.visible = true
+	if sprite is AnimatedSprite2D:
+		var animated := sprite as AnimatedSprite2D
+		if animated.sprite_frames != null and animated.sprite_frames.has_animation(&"walk"):
+			animated.play(&"walk")
 	attacking = false
 
 

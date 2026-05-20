@@ -17,8 +17,8 @@ signal respawned
 @export var health_potion_heal_amount: float = 0.5
 
 @export_category("Movement")
-@export var speed: float = 320.0
-@export var jump_velocity: float = -555.0
+@export var speed: float = 390.0
+@export var jump_velocity: float = -575.0
 @export var jump_cut_multiplier: float = 0.55
 @export var jump_gravity: float = 1200.0
 @export var fall_gravity: float = 1700.0
@@ -31,14 +31,14 @@ signal respawned
 @export var wall_jump_surface_group := "wall_jump_surface"
 @export var dash_speed: float = 860.0
 @export var dash_duration: float = 0.18
-@export var dash_cooldown: float = 0.45
+@export var dash_cooldown: float = 0.34
 @export var dash_trail_interval: float = 0.045
 @export var max_stamina: float = 100.0
 @export var dash_stamina_cost: float = 22.0
-@export var stamina_recovery_rate: float = 34.0
+@export var stamina_recovery_rate: float = 44.0
 @export var stamina_recovery_delay: float = 2.0
-@export var underwater_swim_speed: float = 285.0
-@export var underwater_swim_acceleration: float = 1350.0
+@export var underwater_swim_speed: float = 335.0
+@export var underwater_swim_acceleration: float = 1700.0
 @export var underwater_drag: float = 1050.0
 @export var underwater_dash_speed: float = 720.0
 @export var underwater_dash_duration: float = 0.24
