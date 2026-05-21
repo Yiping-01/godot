@@ -10,10 +10,6 @@ uniform float shine_width = 18.0;
 
 void fragment() {
 	vec4 tex = texture(TEXTURE, UV);
-	if (tex.a <= 0.01) {
-		COLOR = vec4(0.0);
-		return;
-	}
 
 	vec2 coord = SCREEN_UV / SCREEN_PIXEL_SIZE;
 	float dist = abs(
@@ -22,10 +18,11 @@ void fragment() {
 		mod(TIME * shine_speed, shine_duration * shine_speed) - shine_duration * shine_speed * 0.5
 	);
 
-	vec3 tinted = tex.rgb * base_color.rgb;
+	vec3 tinted = mix(tex.rgb, base_color.rgb, base_color.a);
 	if (dist <= shine_width) {
 		tinted = mix(tinted, shine_color, shine_alpha);
 	}
 
-	COLOR = vec4(tinted, tex.a * base_color.a);
+	float alpha = tex.a * base_color.a;
+	COLOR = vec4(tinted, alpha);
 }

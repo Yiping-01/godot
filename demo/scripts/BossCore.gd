@@ -3,7 +3,8 @@ extends Area2D
 @export var damage_to_boss := 10
 @export var fade_time := 0.35
 @export var core_dark_color := Color(0.82, 0.15, 0.20, 1.0)
-@export var core_hit_color := Color(1.0, 0.96, 0.86, 1.0)
+@export var core_hit_color := Color(1.0, 1.0, 0.96, 1.0)
+@export var hit_light_energy := 1.75
 @export var highlight_color := Color(1.0, 0.30, 0.34, 1.0)
 @export var highlight_dim_color := Color(0.88, 0.12, 0.18, 1.0)
 @export var light_energy_vulnerable := 0.68
@@ -107,11 +108,20 @@ func flash_hit() -> void:
 		return
 	if _flash_tween != null:
 		_flash_tween.kill()
-	_set_highlight_color(Color(1.0, 0.96, 0.86, 1.0))
+	_set_core_base_color(Color(1.0, 1.0, 0.96, 1.0))
+	_set_highlight_color(highlight_color)
+	_set_highlight_strength(0.58)
 	visual.modulate = core_hit_color
+	if core_light != null and _open:
+		core_light.color = Color(1.0, 0.22, 0.28, 1.0)
+		core_light.energy = hit_light_energy
 	_flash_tween = create_tween()
 	_flash_tween.tween_property(visual, "modulate", core_dark_color, 0.16)
-	_flash_tween.parallel().tween_method(Callable(self, "_set_highlight_color"), Color(1.0, 0.96, 0.86, 1.0), highlight_color, 0.16)
+	_flash_tween.parallel().tween_method(Callable(self, "_set_core_base_color"), Color(1.0, 1.0, 0.96, 1.0), core_dark_color, 0.16)
+	_flash_tween.parallel().tween_method(Callable(self, "_set_highlight_strength"), 0.62, 0.22, 0.16)
+	if core_light != null and _open:
+		_flash_tween.parallel().tween_property(core_light, "color", Color(0.95, 0.12, 0.16, 1.0), 0.18)
+		_flash_tween.parallel().tween_property(core_light, "energy", light_energy_vulnerable, 0.18)
 
 
 func open_core() -> void:
@@ -216,7 +226,8 @@ func _kill_fade_tween() -> void:
 func _set_highlight_alpha(alpha: float) -> void:
 	if _highlight_material == null:
 		return
-	_highlight_material.set_shader_parameter("base_color", Color(core_dark_color.r, core_dark_color.g, core_dark_color.b, alpha))
+	var color: Color = _highlight_material.get_shader_parameter("base_color")
+	_highlight_material.set_shader_parameter("base_color", Color(color.r, color.g, color.b, alpha))
 
 
 func _get_highlight_alpha() -> float:
@@ -230,4 +241,17 @@ func _set_highlight_color(color: Color) -> void:
 	if _highlight_material == null:
 		return
 	_highlight_material.set_shader_parameter("shine_color", Vector3(color.r, color.g, color.b))
+
+
+func _set_core_base_color(color: Color) -> void:
+	if _highlight_material == null:
+		return
+	var current: Color = _highlight_material.get_shader_parameter("base_color")
+	_highlight_material.set_shader_parameter("base_color", Color(color.r, color.g, color.b, current.a))
+
+
+func _set_highlight_strength(strength: float) -> void:
+	if _highlight_material == null:
+		return
+	_highlight_material.set_shader_parameter("shine_alpha", strength)
 
