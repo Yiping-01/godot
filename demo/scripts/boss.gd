@@ -2,25 +2,25 @@ extends CharacterBody2D
 
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 const DASH_FRAME_PATHS: Array[String] = [
-	"res://demo/assets/boss/octopus_actions/dash_1.png",
-	"res://demo/assets/boss/octopus_actions/dash_2.png",
-	"res://demo/assets/boss/octopus_actions/dash_3.png",
-	"res://demo/assets/boss/octopus_actions/dash_4.png",
+	"res://demo/assets/boss/boss_go/bossgo_1.png",
+	"res://demo/assets/boss/boss_go/bossgo_2.png",
+	"res://demo/assets/boss/boss_go/bossgo_3.png",
+	"res://demo/assets/boss/boss_go/bossgo_4.png",
 ]
 
 const JUMP_FRAME_PATHS: Array[String] = [
-	"res://demo/assets/boss/octopus_actions/jump_1.png",
-	"res://demo/assets/boss/octopus_actions/jump_2.png",
-	"res://demo/assets/boss/octopus_actions/jump_3.png",
-	"res://demo/assets/boss/octopus_actions/jump_4.png",
-	"res://demo/assets/boss/octopus_actions/jump_5.png",
+	"res://demo/assets/boss/boss_jump/boss_jump1.png",
+	"res://demo/assets/boss/boss_jump/boss_jump2.png",
+	"res://demo/assets/boss/boss_jump/boss_jump3.png",
+	"res://demo/assets/boss/boss_jump/boss_jump4.png",
+	"res://demo/assets/boss/boss_jump/boss_jump5.png",
 ]
 
 const THROW_FRAME_PATHS: Array[String] = [
-	"res://demo/assets/boss/octopus_actions/throw_1.png",
-	"res://demo/assets/boss/octopus_actions/throw_2.png",
-	"res://demo/assets/boss/octopus_actions/throw_3.png",
-	"res://demo/assets/boss/octopus_actions/throw_4.png",
+	"res://demo/assets/boss/boss_throw/boss_throw1.png",
+	"res://demo/assets/boss/boss_throw/boss_throw2.png",
+	"res://demo/assets/boss/boss_throw/boss_throw3.png",
+	"res://demo/assets/boss/boss_throw/boss_throw4.png",
 ]
 
 @export var max_health: int = 10

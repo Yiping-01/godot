@@ -7,9 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://demo/scenes/player.tscn" id="5_player"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_floor.tscn" id="6_floor"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_wall.tscn" id="7_wall"]
-[ext_resource type="PackedScene" path="res://demo/scenes/map_platform.tscn" id="8_platform"]
 [ext_resource type="Script" uid="uid://bb3fwl1h3i07o" path="res://demo/scripts/boss.gd" id="9_boss_script"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/octopus_actions/idle_1.png" id="10_boss_texture"]
+[ext_resource type="Texture2D" uid="uid://bno7kbpoqu12v" path="res://demo/assets/boss/octopus_actions/idle_1.png" id="10_boss_texture"]
 [ext_resource type="Script" uid="uid://da10xppur5liq" path="res://demo/scripts/map_room_marker.gd" id="11_map_room"]
 [ext_resource type="Script" uid="uid://c848mbgvk0g81" path="res://demo/scripts/demo_boss_intro.gd" id="12_intro"]
 [ext_resource type="Script" uid="uid://cxg250go8p8y7" path="res://demo/scripts/demo_scene_transition.gd" id="13_transition"]
@@ -75,6 +74,7 @@ process_mode = 3
 script = ExtResource("4_exit_menu")
 
 [node name="GameUI" parent="." unique_id=1978401946 instance=ExtResource("3_game_ui")]
+visible = false
 
 [node name="DebugHitboxes" type="Node2D" parent="." unique_id=2060438688]
 script = ExtResource("19_debug_overlay")
@@ -127,8 +127,6 @@ quake_windup_time = 0.72
 quake_damage_width = 980.0
 quake_damage_hitbox_height = 134.0
 ink_attack_windup_time = 0.62
-ink_projectile_min_batch = 1
-ink_projectile_max_batch = 2
 intro_effect_enabled = false
 start_inactive = true
 intro_effect_duration = 2.6
@@ -242,6 +240,7 @@ display_name = "Boss Chamber"
 map_rect = Rect2(0, 0, 180, 100)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="MapRoom_boss" unique_id=1661651348]
+position = Vector2(1, 0)
 shape = SubResource("RectangleShape2D_marker")
 
 [node name="ReturnDoor" type="Area2D" parent="." unique_id=1149553702]
