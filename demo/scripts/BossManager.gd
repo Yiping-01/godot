@@ -31,6 +31,7 @@ var core_open := false
 var active_wires: Array[Node] = []
 var wire_round_running := false
 var phase_two_started := false
+var active_attacking_tentacle: Node
 
 @onready var tentacles_root: Node = get_node_or_null(tentacles_path)
 @onready var boss_core: Node = get_node_or_null(boss_core_path)
@@ -54,12 +55,30 @@ func _ready() -> void:
 
 
 func on_tentacle_died(_tentacle: Node) -> void:
+	if active_attacking_tentacle == _tentacle:
+		active_attacking_tentacle = null
 	if boss_dead or core_open:
 		return
 	if _all_tentacles_dead():
 		await get_tree().create_timer(tentacle_respawn_delay).timeout
 		if not boss_dead:
 			_open_core()
+
+
+func can_tentacle_attack(tentacle: Node) -> bool:
+	if boss_dead or core_open:
+		return false
+	if active_attacking_tentacle != null and not is_instance_valid(active_attacking_tentacle):
+		active_attacking_tentacle = null
+	if active_attacking_tentacle == null or active_attacking_tentacle == tentacle:
+		active_attacking_tentacle = tentacle
+		return true
+	return false
+
+
+func on_tentacle_attack_finished(tentacle: Node) -> void:
+	if active_attacking_tentacle == tentacle:
+		active_attacking_tentacle = null
 
 
 func damage_boss(amount: int) -> void:
@@ -92,6 +111,7 @@ func trigger_lightning(strike_position: Variant = null) -> void:
 
 func _open_core() -> void:
 	core_open = true
+	active_attacking_tentacle = null
 	_set_tentacles_active(false)
 	_set_boss_body_core_open(true)
 	if boss_core != null and boss_core.has_method("open_core"):
@@ -295,6 +315,7 @@ func _die() -> void:
 	phase_two_started = false
 	wire_round_running = false
 	core_open = false
+	active_attacking_tentacle = null
 	for wire in active_wires:
 		if is_instance_valid(wire):
 			wire.queue_free()

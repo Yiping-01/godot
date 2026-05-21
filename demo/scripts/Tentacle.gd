@@ -24,6 +24,21 @@ extends Area2D
 @export var align_attack_visual_to_visual := false
 @export var hide_visual_during_attack := false
 @export var show_fan_warning := false
+@export var corner_prep_enabled := true
+@export var corner_prep_sequence_index := -1
+@export var corner_prep_frame_time := 0.07
+@export var corner_prep_random_delay_min := 0.0
+@export var corner_prep_random_delay_max := 0.22
+@export var corner_prep_attack_link_frame := 4
+@export var attack_retry_wait_min := 0.3
+@export var attack_retry_wait_max := 0.8
+
+const CORNER_PREP_SEQUENCES := [
+	[4, 5, 6, 7, 6, 5, 4],
+	[6, 7, 8, 9, 8, 7, 6, 5, 4],
+	[3, 4, 5, 6, 7, 6, 5, 4],
+	[8, 7, 6, 5, 4],
+]
 
 var health := 0
 var manager: Node
@@ -142,11 +157,37 @@ func _die() -> void:
 func _attack_loop() -> void:
 	while is_inside_tree():
 		await get_tree().create_timer(randf_range(attack_interval_min, attack_interval_max)).timeout
-		if _active and not _dead and visible and not _spawn_warning_active:
-			if corner_attack_visual != null:
-				await _corner_attack_once()
-			else:
-				await _attack_once()
+		if not _active or _dead or not visible or _spawn_warning_active:
+			continue
+		if corner_attack_visual != null:
+			await _corner_attack_once()
+		else:
+			await _attack_once()
+
+
+func _wait_for_tentacle_attack_slot() -> bool:
+	if manager == null or not manager.has_method("can_tentacle_attack"):
+		return true
+
+	while is_inside_tree():
+		if _dead or not _active or not visible:
+			return false
+		if bool(manager.call("can_tentacle_attack", self)):
+			return true
+		await get_tree().create_timer(randf_range(attack_retry_wait_min, attack_retry_wait_max)).timeout
+
+	return false
+
+
+func _notify_tentacle_attack_finished(attack_slot_claimed: bool) -> void:
+	if not attack_slot_claimed:
+		return
+	if manager != null and manager.has_method("on_tentacle_attack_finished"):
+		manager.call("on_tentacle_attack_finished", self)
+
+
+func _can_continue_corner_attack() -> bool:
+	return is_inside_tree() and _active and not _dead and visible
 
 
 func _attack_once() -> void:
@@ -463,6 +504,9 @@ func _align_attack_visual() -> void:
 func _corner_attack_once() -> void:
 	if corner_attack_visual == null:
 		return
+	var attack_slot_claimed := await _wait_for_tentacle_attack_slot()
+	if not attack_slot_claimed:
+		return
 	_align_corner_attack_visual()
 	if visual != null:
 		visual.visible = true
@@ -471,9 +515,13 @@ func _corner_attack_once() -> void:
 	if show_fan_warning and fan_warning_visual != null:
 		fan_warning_visual.visible = true
 		fan_warning_visual.modulate = warning_color
-	await get_tree().create_timer(attack_warning_time).timeout
-	if _dead or not _active or not visible:
+	var warning_elapsed := await _play_corner_prep_animation()
+	var remaining_warning: float = maxf(0.0, attack_warning_time - warning_elapsed)
+	if remaining_warning > 0.0:
+		await get_tree().create_timer(remaining_warning).timeout
+	if not _can_continue_corner_attack():
 		_hide_corner_attack_visual()
+		_notify_tentacle_attack_finished(attack_slot_claimed)
 		return
 	if visual != null:
 		visual.visible = false
@@ -494,6 +542,95 @@ func _corner_attack_once() -> void:
 	await get_tree().create_timer(attack_active_time).timeout
 	_set_attack_enabled(false)
 	_hide_corner_attack_visual()
+	_notify_tentacle_attack_finished(attack_slot_claimed)
+
+
+func _play_corner_prep_animation() -> float:
+	if not corner_prep_enabled or not (visual is AnimatedSprite2D):
+		return 0.0
+
+	var elapsed := 0.0
+	var random_delay := randf_range(corner_prep_random_delay_min, corner_prep_random_delay_max)
+	if random_delay > 0.0:
+		await get_tree().create_timer(random_delay).timeout
+		elapsed += random_delay
+		if not _can_continue_corner_attack():
+			return elapsed
+
+	var idle_sprite := visual as AnimatedSprite2D
+	var idle_animation := _get_corner_idle_animation(idle_sprite)
+	var frame_count := _get_corner_idle_frame_count(idle_sprite, idle_animation)
+	if frame_count <= 0:
+		return elapsed
+
+	var prep_frame_time := corner_prep_frame_time
+	if idle_sprite.sprite_frames != null and idle_sprite.sprite_frames.has_animation(idle_animation):
+		var idle_fps := idle_sprite.sprite_frames.get_animation_speed(idle_animation)
+		if idle_fps > 0.0:
+			prep_frame_time = 1.0 / idle_fps
+
+	idle_sprite.visible = true
+	idle_sprite.stop()
+	idle_sprite.animation = idle_animation
+
+	var sequence := _pick_corner_prep_sequence()
+	var last_frame_number := -1
+	for frame_number in sequence:
+		if not _can_continue_corner_attack():
+			return elapsed
+		_set_corner_idle_frame(idle_sprite, frame_number, frame_count)
+		last_frame_number = frame_number
+		await get_tree().create_timer(prep_frame_time).timeout
+		elapsed += prep_frame_time
+
+	if last_frame_number != corner_prep_attack_link_frame:
+		if not _can_continue_corner_attack():
+			return elapsed
+		_set_corner_idle_frame(idle_sprite, corner_prep_attack_link_frame, frame_count)
+		await get_tree().create_timer(prep_frame_time).timeout
+		elapsed += prep_frame_time
+
+	return elapsed
+
+
+func _pick_corner_prep_sequence() -> Array:
+	var sequence_count := CORNER_PREP_SEQUENCES.size()
+	if sequence_count <= 0:
+		return [corner_prep_attack_link_frame]
+
+	var sequence_index := corner_prep_sequence_index
+	if sequence_index < 0 or sequence_index >= sequence_count:
+		sequence_index = randi() % sequence_count
+	return CORNER_PREP_SEQUENCES[sequence_index]
+
+
+func _get_corner_idle_animation(idle_sprite: AnimatedSprite2D) -> StringName:
+	if idle_sprite.sprite_frames != null and idle_sprite.sprite_frames.has_animation(&"idle"):
+		return &"idle"
+	return idle_sprite.animation
+
+
+func _get_corner_idle_frame_count(idle_sprite: AnimatedSprite2D, animation_name: StringName) -> int:
+	if idle_sprite.sprite_frames == null:
+		return 0
+	if not idle_sprite.sprite_frames.has_animation(animation_name):
+		return 0
+	return idle_sprite.sprite_frames.get_frame_count(animation_name)
+
+
+func _set_corner_idle_frame(idle_sprite: AnimatedSprite2D, frame_number: int, frame_count: int) -> void:
+	var zero_based_frame: int = clampi(frame_number - 1, 0, frame_count - 1)
+	idle_sprite.frame = zero_based_frame
+
+
+func _resume_corner_idle_visual() -> void:
+	if not (visual is AnimatedSprite2D):
+		return
+	var idle_sprite := visual as AnimatedSprite2D
+	var idle_animation := _get_corner_idle_animation(idle_sprite)
+	if idle_sprite.sprite_frames != null and idle_sprite.sprite_frames.has_animation(idle_animation):
+		idle_sprite.animation = idle_animation
+		idle_sprite.play()
 
 
 func _hide_corner_attack_visual() -> void:
@@ -506,6 +643,9 @@ func _hide_corner_attack_visual() -> void:
 		fan_warning_visual.visible = false
 	if visual != null and visible and not _dead:
 		visual.visible = true
+		visual.modulate = Color.WHITE
+		_resume_corner_idle_visual()
+
 
 
 func _align_corner_attack_visual() -> void:
@@ -518,4 +658,3 @@ func _align_corner_attack_visual() -> void:
 		var corner_node := corner_attack_visual as Node2D
 		corner_node.position = visual_node.position
 		corner_node.rotation = visual_node.rotation
-
