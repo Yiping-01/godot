@@ -28,6 +28,9 @@
 [ext_resource type="Texture2D" uid="uid://ddexjtmr3nvmm" path="res://demo/assets/other/hexin/hexin.png" id="31_hexin"]
 [ext_resource type="Script" path="res://demo/scripts/boss_maplevel2_intro.gd" id="32_intro"]
 [ext_resource type="Script" path="res://demo/scripts/demo_phase_death_pit.gd" id="33_death_pit"]
+[ext_resource type="Script" uid="uid://kga12lvq78rr" path="res://demo/scripts/health_ui.gd" id="34_health_ui"]
+[ext_resource type="PackedScene" uid="uid://dgcm5rlgbtx5k" path="res://demo/scenes/game_ui.tscn" id="35_game_ui"]
+[ext_resource type="Script" uid="uid://cnimtrmkiocnm" path="res://demo/scripts/demo_exit_menu.gd" id="36_exit_menu"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_68waa"]
 texture = ExtResource("2_rock_tiles")
@@ -36274,6 +36277,29 @@ size = Vector2(2400, 180)
 
 [node name="DemoBossPhase2" type="Node2D" unique_id=1873841094]
 script = ExtResource("32_intro")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("34_health_ui")
+
+[node name="HealthPips" type="HBoxContainer" parent="HUD"]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 360.0
+offset_bottom = 70.0
+theme_override_constants/separation = 2
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 270.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 18
+
+[node name="ExitMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+script = ExtResource("36_exit_menu")
+
+[node name="GameUI" parent="." instance=ExtResource("35_game_ui")]
 
 [node name="Bosslevel2Bg" type="Sprite2D" parent="." unique_id=999257590]
 z_index = -100

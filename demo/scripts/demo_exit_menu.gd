@@ -87,7 +87,7 @@ func _capture_rebind_input(event: InputEvent) -> void:
 	var settings := _get_input_settings()
 	var result := ERR_UNAVAILABLE
 	if settings != null:
-		result = int(settings.call("rebind_keyboard_action", action, event))
+		result = settings.call("rebind_keyboard_action", action, event) as Error
 	waiting_label.text = _tr("Key changed.", "按鍵已更新。") if result == OK else _tr("This key cannot be used.", "這個按鍵無法使用。")
 	_refresh_key_labels()
 
