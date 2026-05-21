@@ -35,6 +35,7 @@
 [ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_01.png" id="38_attack_1"]
 [ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_02.png" id="39_attack_2"]
 [ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_03.png" id="40_attack_3"]
+[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/background/radial_warm_light.png" id="41_core_light"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_68waa"]
 texture = ExtResource("2_rock_tiles")
@@ -36775,6 +36776,14 @@ texture = ExtResource("31_hexin")
 [node name="Visual" type="Sprite2D" parent="BossCore" unique_id=846993642]
 scale = Vector2(0.09, 0.09)
 texture = ExtResource("31_hexin")
+
+[node name="CoreLight" type="PointLight2D" parent="BossCore"]
+visible = false
+enabled = false
+color = Color(0.72, 0.02, 0.07, 1)
+energy = 0.0
+texture = ExtResource("41_core_light")
+texture_scale = 2.6
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BossCore" unique_id=63730386]
 shape = SubResource("CircleShape2D_boss_core")

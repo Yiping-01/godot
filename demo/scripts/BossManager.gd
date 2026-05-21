@@ -3,6 +3,8 @@ extends Node2D
 signal boss_health_changed(current: int, maximum: int)
 signal boss_defeated
 
+const BOSS_NORMAL_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgtitle/bosslevel2bg.png")
+const BOSS_CORE_OPEN_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgtitle/bosslevel2_habg.png")
 const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgtitle/boss_end_bg.png")
 
 @export var max_health := 100
@@ -114,8 +116,11 @@ func _open_core() -> void:
 	active_attacking_tentacle = null
 	_set_tentacles_active(false)
 	_set_boss_body_core_open(true)
-	if boss_core != null and boss_core.has_method("open_core"):
-		boss_core.call("open_core")
+	if boss_core != null:
+		if boss_core.has_method("show_core"):
+			boss_core.call("show_core")
+		elif boss_core.has_method("open_core"):
+			boss_core.call("open_core")
 
 	await get_tree().create_timer(core_open_duration).timeout
 	if not boss_dead:
@@ -125,8 +130,11 @@ func _open_core() -> void:
 func _close_core_and_respawn() -> void:
 	core_open = false
 	_set_boss_body_core_open(false)
-	if boss_core != null and boss_core.has_method("close_core"):
-		boss_core.call("close_core")
+	if boss_core != null:
+		if boss_core.has_method("hide_core"):
+			boss_core.call("hide_core")
+		elif boss_core.has_method("close_core"):
+			boss_core.call("close_core")
 	_respawn_tentacles()
 
 
@@ -150,8 +158,11 @@ func _set_tentacles_active(active: bool) -> void:
 
 func _set_boss_body_core_open(is_core_open: bool) -> void:
 	if core_open_background != null:
+		if core_open_background is Sprite2D:
+			var background := core_open_background as Sprite2D
+			background.texture = BOSS_CORE_OPEN_BACKGROUND if is_core_open else BOSS_NORMAL_BACKGROUND
 		if is_core_open:
-			core_open_background.modulate = Color(0.42, 0.42, 0.58, 1.0)
+			core_open_background.modulate = Color(0.52, 0.52, 0.58, 1.0)
 		else:
 			core_open_background.modulate = Color.WHITE
 	if boss_body != null:
