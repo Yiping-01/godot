@@ -3,11 +3,16 @@ extends Node2D
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 
 @export_file("*.tscn") var phase_two_scene := "res://demo/scenes/levels/demo_boss_phase_2.tscn"
+@export var phase_two_transition_delay := 0.16
+@export var phase_two_transition_shake_duration := 0.95
+@export var phase_two_transition_shake_strength := 42.0
+@export var phase_two_entry_shake_min_duration := 0.58
 
 var boss_active := false
 var boss_ref: Node2D
 var return_door: Area2D
 var phase_two_transitioning := false
+var phase_two_packed_scene: PackedScene
 
 
 func _ready() -> void:
@@ -17,6 +22,7 @@ func _ready() -> void:
 	var wind := get_node_or_null("BossRoomWind") as AudioStreamPlayer
 	if wind != null and wind.stream != null:
 		wind.play()
+	phase_two_packed_scene = load(phase_two_scene) as PackedScene
 	set_process(true)
 
 
@@ -48,17 +54,38 @@ func _complete_boss_fight() -> void:
 	_start_phase_two_transition()
 
 
+func _on_demo_boss_defeated_started(_boss: Node) -> void:
+	if phase_two_transitioning:
+		return
+	boss_active = false
+	boss_ref = null
+	_start_phase_two_transition()
+
+
 func _start_phase_two_transition() -> void:
 	phase_two_transitioning = true
 	_set_return_door_locked(false)
 	_focus_arena_audio(false)
-	DEMO_COMBAT_JUICE.shake_camera(self, 1.05, 14.0)
+	_shake_player_camera(phase_two_transition_shake_duration, phase_two_transition_shake_strength)
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null and ui.has_method("show_area_title"):
 		ui.show_area_title("Boss Phase 2", "The arena opens")
-	await get_tree().create_timer(1.15).timeout
+	await get_tree().create_timer(phase_two_transition_delay, true, false, true).timeout
+	var remaining_shake := maxf(phase_two_transition_shake_duration - phase_two_transition_delay, phase_two_entry_shake_min_duration)
+	GameState.set_pending_transition_shake(remaining_shake, phase_two_transition_shake_strength)
 	GameState.set_input_locked(false)
-	get_tree().change_scene_to_file(phase_two_scene)
+	if phase_two_packed_scene != null:
+		get_tree().change_scene_to_packed(phase_two_packed_scene)
+	else:
+		get_tree().change_scene_to_file(phase_two_scene)
+
+
+func _shake_player_camera(duration: float, strength: float) -> void:
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("_start_camera_shake"):
+		player.call("_start_camera_shake", duration, strength)
+	else:
+		DEMO_COMBAT_JUICE.shake_camera(self, duration, strength)
 
 
 func _set_return_door_locked(locked: bool) -> void:

@@ -308,6 +308,7 @@ func _begin_death_sequence() -> void:
 		body_contact_area.set_deferred("monitoring", false)
 		body_contact_area.set_deferred("monitorable", false)
 	DEMO_COMBAT_JUICE.shake_camera(self, 1.15, 18.0)
+	_notify_boss_defeat_started()
 	_play_demo_defeat_sfx()
 	var tween := create_tween()
 	tween.set_parallel(true)
@@ -316,6 +317,17 @@ func _begin_death_sequence() -> void:
 	tween.chain().tween_interval(0.55)
 	tween.chain().tween_property(sprite, "modulate:a", 0.0, 0.36)
 	tween.tween_callback(Callable(self, "queue_free"))
+
+
+func _notify_boss_defeat_started() -> void:
+	var scene := get_tree().current_scene
+	if scene != null and scene.has_method("_on_demo_boss_defeated_started"):
+		scene.call("_on_demo_boss_defeated_started", self)
+		return
+
+	var parent := get_parent()
+	if parent != null and parent.has_method("_on_demo_boss_defeated_started"):
+		parent.call("_on_demo_boss_defeated_started", self)
 
 
 func _play_demo_defeat_sfx() -> void:

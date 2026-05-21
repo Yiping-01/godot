@@ -80,6 +80,8 @@ var continue_player_position := Vector2.ZERO
 var has_continue_player_position := false
 var continue_spawn_marker_name := ""
 var has_continue_spawn_marker := false
+var pending_transition_shake_duration := 0.0
+var pending_transition_shake_strength := 0.0
 
 
 func _ready() -> void:
@@ -118,6 +120,7 @@ func reset_demo_state() -> void:
 	visited_rooms.clear()
 	scene_health_potion_purchases.clear()
 	scene_rough_charm_purchases.clear()
+	clear_pending_transition_shake()
 	clear_player_runtime_status()
 	inventory_changed.emit(inventory)
 	health_potions_changed.emit(get_health_potion_count())
@@ -132,6 +135,25 @@ func set_input_locked(locked: bool) -> void:
 
 	input_locked = locked
 	input_lock_changed.emit(input_locked)
+
+
+func set_pending_transition_shake(duration: float, strength: float) -> void:
+	pending_transition_shake_duration = maxf(duration, 0.0)
+	pending_transition_shake_strength = maxf(strength, 0.0)
+
+
+func consume_pending_transition_shake() -> Dictionary:
+	var shake := {
+		"duration": pending_transition_shake_duration,
+		"strength": pending_transition_shake_strength,
+	}
+	clear_pending_transition_shake()
+	return shake
+
+
+func clear_pending_transition_shake() -> void:
+	pending_transition_shake_duration = 0.0
+	pending_transition_shake_strength = 0.0
 
 
 func has_player_runtime_status() -> bool:
