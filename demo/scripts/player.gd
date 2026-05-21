@@ -57,6 +57,7 @@ signal respawned
 @export var attack_cooldown: float = 0.3
 @export var combo_reset_time: float = 0.5
 @export var attack_active_time: float = 0.14
+@export var attack_state_recovery_grace: float = 0.16
 @export var recoil_velocity: float = 180.0
 @export var down_recoil_velocity: float = 560.0
 @export var charge_hold_time: float = 0.65
@@ -157,6 +158,7 @@ var shake_strength := 0.0
 var facing_direction := -1
 var jump_count := 0
 var attack_time_left := 0.0
+var attack_state_recovery_left := 0.0
 var last_attack_time := -999.0
 var last_attack_cooldown := 0.0
 var combo_count := 0
@@ -255,6 +257,7 @@ func _physics_process(delta: float) -> void:
 		far_attack_cooldown_left = maxf(far_attack_cooldown_left - delta, 0.0)
 	_update_hurt_animation_state(delta)
 	_update_motion_animation_timers(delta)
+	_update_attack_state_recovery(delta)
 
 	if is_resting:
 		_cancel_attack_charge()
@@ -519,7 +522,7 @@ func _handle_attack_input(delta: float) -> void:
 	elif charge_ready:
 		_update_charge_ready_effect()
 
-	if Input.is_action_just_released("attack"):
+	if Input.is_action_just_released("attack") or not Input.is_action_pressed("attack"):
 		if charge_ready:
 			_try_charge_attack()
 		else:
@@ -585,6 +588,7 @@ func _try_attack() -> void:
 	current_attack_damage = attack_damage
 	hit_targets.clear()
 	is_attacking = true
+	_start_attack_state_recovery(_attack_animation_name_for_type(active_attack_type), attack_time_left)
 	_select_attack_area(active_attack_type)
 	_set_active_attack_enabled(true)
 	_play_attack_effect(active_attack_type)
@@ -605,6 +609,7 @@ func _try_far_attack() -> void:
 	is_attacking = true
 	far_attack_cooldown_left = far_attack_cooldown
 	active_attack_type = &"far"
+	_start_attack_state_recovery(&"attack", 0.0)
 	_spawn_far_attack_projectile()
 	_play_audio(far_attack_audio)
 	_play_player_attack_animation(&"side")
@@ -730,6 +735,7 @@ func _try_charge_attack() -> void:
 	current_attack_damage = charge_attack_damage
 	hit_targets.clear()
 	is_attacking = true
+	_start_attack_state_recovery(_attack_animation_name_for_type(active_attack_type), attack_time_left)
 	_select_attack_area(active_attack_type)
 	_set_active_attack_enabled(true)
 	_play_attack_effect(active_attack_type)
@@ -746,6 +752,41 @@ func _update_attack(delta: float) -> void:
 	attack_time_left -= delta
 	if attack_time_left <= 0.0:
 		_set_active_attack_enabled(false)
+
+
+func _update_attack_state_recovery(delta: float) -> void:
+	if not is_attacking:
+		attack_state_recovery_left = 0.0
+		return
+
+	attack_state_recovery_left -= delta
+	if attack_state_recovery_left > 0.0:
+		return
+
+	_finish_attack_state()
+	_update_animation()
+
+
+func _start_attack_state_recovery(animation_name: StringName, minimum_duration: float) -> void:
+	var animation_duration := _get_sprite_animation_duration(animation_name)
+	attack_state_recovery_left = maxf(animation_duration, minimum_duration) + attack_state_recovery_grace
+
+
+func _get_sprite_animation_duration(animation_name: StringName) -> float:
+	if animated_sprite == null or animated_sprite.sprite_frames == null:
+		return 0.0
+	if not animated_sprite.sprite_frames.has_animation(animation_name):
+		return 0.0
+
+	var frame_count := animated_sprite.sprite_frames.get_frame_count(animation_name)
+	var animation_speed := animated_sprite.sprite_frames.get_animation_speed(animation_name)
+	if frame_count <= 0 or animation_speed <= 0.0:
+		return 0.0
+
+	var duration := 0.0
+	for i in range(frame_count):
+		duration += animated_sprite.sprite_frames.get_frame_duration(animation_name, i) / animation_speed
+	return duration
 
 
 func _apply_attack_hits() -> void:
@@ -1502,10 +1543,13 @@ func _play_attack_effect(attack_type: StringName) -> void:
 
 
 func _play_player_attack_animation(attack_type: StringName) -> void:
+	animated_sprite.play(_attack_animation_name_for_type(attack_type))
+
+
+func _attack_animation_name_for_type(attack_type: StringName) -> StringName:
 	if attack_type == &"up" and animated_sprite.sprite_frames.has_animation(&"attack_up"):
-		animated_sprite.play(&"attack_up")
-	else:
-		animated_sprite.play(&"attack")
+		return &"attack_up"
+	return &"attack"
 
 
 func _play_hurt_animation() -> void:
@@ -1529,13 +1573,18 @@ func _update_hurt_animation_state(delta: float) -> void:
 
 
 func _cancel_attack_state() -> void:
-	is_attacking = false
-	attack_time_left = 0.0
+	_finish_attack_state()
 	hit_targets.clear()
 	_cancel_far_attack_hold()
-	_set_all_attack_areas_enabled(false)
 	attack_effect.visible = false
 	charge_effect.visible = false
+
+
+func _finish_attack_state() -> void:
+	is_attacking = false
+	attack_time_left = 0.0
+	attack_state_recovery_left = 0.0
+	_set_all_attack_areas_enabled(false)
 
 
 func _begin_attack_charge() -> void:
@@ -1854,7 +1903,7 @@ func _on_animated_sprite_animation_finished() -> void:
 	if animated_sprite.animation != "attack" and animated_sprite.animation != "attack_up":
 		return
 
-	is_attacking = false
+	_finish_attack_state()
 	_update_animation()
 
 

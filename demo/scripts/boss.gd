@@ -809,6 +809,7 @@ func _update_intro_effect(delta: float) -> void:
 
 	var progress := clampf(intro_elapsed / maxf(intro_effect_duration, 0.001), 0.0, 1.0)
 	if intro_next_ring_time <= 0.0:
+		_spawn_intro_ring()
 		intro_next_ring_time = lerpf(intro_ring_start_interval, intro_ring_end_interval, progress)
 	var shake_strength := lerpf(intro_min_shake_strength, intro_max_shake_strength, progress)
 	var player := target
