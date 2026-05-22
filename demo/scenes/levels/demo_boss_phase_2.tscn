@@ -36584,18 +36584,18 @@ scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_left")
 animation = &"idle"
 autoplay = "idle"
-frame = 8
+frame = 3
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1852209610]
-visible = false
-position = Vector2(-45.000008, 47.000008)
+position = Vector2(-55.000008, 38.66666)
 rotation = 3.1415927
-scale = Vector2(0.3, 0.3)
+scale = Vector2(0.3, 0.35333365)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_attack")
 animation = &"attack"
+frame = 6
+frame_progress = 1.0
 
 [node name="AttackArea" type="Area2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1037504343]
-visible = false
 monitoring = false
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1838099157]
@@ -36606,13 +36606,13 @@ disabled = true
 
 [node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1320675859]
 visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(16, 8, 94, 62, 270, 104, 312, 210, 202, 212, 76, 130)
+position = Vector2(-40, -95.333336)
+polygon = PackedVector2Array(18, -2, 94, -2, 99, 32, 84, 67.333336, 71, 83.333336, 43, 111.333336, 2, 144.66667, -31, 177.33334, -51, 210.66667, -58, 233.33334, -60, 248.66667, -62, 264.66666, -63, 282, -69, 286.66666, -86, 248.00002, -83, 203.33334, -79, 182.00002, -66, 157.33334, -53, 139.33334, -26, 115.333336, 0, 87.333336, 21, 46.000004, 26, 23.333334)
 disabled = true
 
 [node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1137660462]
 visible = false
-position = Vector2(-35, 54)
+position = Vector2(-49, -54.000004)
 polygon = PackedVector2Array(18, 8, 92, 54, 158, 92, 168, 150, 94, 136, 34, 86)
 disabled = true
 
@@ -36721,6 +36721,7 @@ polygon = PackedVector2Array(50, -67.7778, 70, -212.22226, 39.999878, -318.88895
 disabled = true
 
 [node name="IdleHitboxFrame9" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1560603806]
+visible = false
 position = Vector2(-57, 57)
 rotation = 3.1415927
 scale = Vector2(0.3, 0.3)
