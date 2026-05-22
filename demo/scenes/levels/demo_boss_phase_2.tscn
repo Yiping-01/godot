@@ -36578,6 +36578,7 @@ hide_visual_during_attack = true
 corner_prep_sequence_index = 0
 
 [node name="Visual" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=2031802879]
+visible = false
 position = Vector2(-57.000008, 57.000008)
 rotation = 3.1415927
 scale = Vector2(0.3, 0.3)
@@ -36593,7 +36594,6 @@ scale = Vector2(0.3, 0.35333365)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_attack")
 animation = &"attack"
 frame = 6
-frame_progress = 1.0
 
 [node name="AttackArea" type="Area2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1037504343]
 monitoring = false
@@ -36607,43 +36607,44 @@ disabled = true
 [node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1320675859]
 visible = false
 position = Vector2(-40, -95.333336)
-polygon = PackedVector2Array(18, -2, 94, -2, 99, 32, 84, 67.333336, 71, 83.333336, 43, 111.333336, 2, 144.66667, -31, 177.33334, -51, 210.66667, -58, 233.33334, -60, 248.66667, -62, 264.66666, -63, 282, -69, 286.66666, -86, 248.00002, -83, 203.33334, -79, 182.00002, -66, 157.33334, -53, 139.33334, -26, 115.333336, 0, 87.333336, 21, 46.000004, 26, 23.333334)
+polygon = PackedVector2Array(9, -38, 82, -38, 89, -5.333333, 81, 29.333336, 72, 48.000004, 63, 60.666668, 50, 80.666664, 31, 99.333336, 7, 120.666664, -22, 150.00002, -45, 176.00002, -58, 205.33334, -69, 237.33334, -70, 260, -75, 292.66666, -80, 304, -92, 272.66666, -95, 242.00002, -93, 216.66667, -88, 183.33334, -78, 154.66667, -65, 134.66667, -54, 124, -31, 95.333336, -2, 50.666668, 12, 20, 16, -11.333333)
 disabled = true
 
 [node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1137660462]
 visible = false
 position = Vector2(-49, -54.000004)
-polygon = PackedVector2Array(18, 8, 92, 54, 158, 92, 168, 150, 94, 136, 34, 86)
+polygon = PackedVector2Array(29, -37.999996, 97, -37.333332, 95, -21.999996, 67, 31.333336, -4, 99.333336, -40, 131.33334, -86, 170.66669, -147, 260.6667, -149, 228.66669, -142, 204.66669, -120, 162.66669, -86, 122.00001, -63, 100.66668, -8, 37.333336, 21, -7.33333)
 disabled = true
 
 [node name="HitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1597970363]
 visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(16, 6, 96, 58, 202, 98, 230, 164, 144, 166, 58, 106)
+position = Vector2(-47, -101.33334)
+polygon = PackedVector2Array(16, 6, 89, 6.6666775, 67, 65.33334, 36, 116.000015, 1, 152.00002, -7, 162.66667, -47, 196.66667, -72, 208.66667, -95, 212.66667, -125, 206.00002, -144, 186.00002, -151, 158.00002, -138, 121.33335, -110, 100.000015, -125, 139.33334, -121, 164.00002, -106, 176.66667, -81, 172.66667, -62, 159.33334, -31, 125.33335, -14, 103.33335, 14, 53.333344, 19, 27.333344)
 disabled = true
 
 [node name="HitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=2092733142]
 visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(14, 4, 96, 60, 248, 100, 286, 184, 186, 188, 70, 120)
+position = Vector2(-107.9631, -87.47255)
+scale = Vector2(0.4702381, 0.7993881)
+polygon = PackedVector2Array(129.64307, -59.87177, 312.52917, -59.037796, 276.37732, 45.208603, 214.70642, 144.45119, 165.79492, 203.66313, 93.49121, 275.38464, 6.3012695, 332.0947, -40.48352, 360.4497, -89.3949, 373.79324, 42.453247, 249.53156, 84.98486, 189.48563, 114.75696, 127.77176, 140.276, 60.220085, 142.40259, 6.011958)
 disabled = true
 
 [node name="HitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1735998193]
 visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(20, 10, 74, 45, 116, 84, 108, 130, 52, 104, 12, 54)
+position = Vector2(-111, -123.33334)
+polygon = PackedVector2Array(8, 26.66668, 84, 26.000011, 97, 89.33334, 140, 186.00003, 149, 218.66669, 150, 247.33334, 146, 280.6667, 137, 306.00003, 127, 323.33337, 114, 334.6667, 122, 273.33334, 107, 219.33334, 96, 186.00003, 69, 143.33334, 35, 106.66668, 22, 81.33334, 12, 54)
 disabled = true
 
 [node name="HitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1290311160]
 visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(22, 18, 92, 72, 250, 120, 296, 220, 188, 218, 80, 144)
+position = Vector2(-124.000015, -104.666664)
+scale = Vector2(0.7030109, 0.6846122)
+polygon = PackedVector2Array(-35.56134, -38.951515, 75.38995, -39.925274, 88.19208, 14.606809, 113.7962, 61.348595, 189.18622, 126.59235, 263.15375, 220.07591, 278.80078, 274.608, 291.60284, 327.19254, 283.0681, 354.45856, 248.92926, 271.68665, 226.16998, 241.49924, 159.3147, 183.07199, 80, 144, 51.208252, 120.74962, 21.336792, 93.48358, -17.069458, 33.108765)
 disabled = true
 
 [node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=62653295]
-visible = false
-position = Vector2(-35, 54)
-polygon = PackedVector2Array(30, 30, 88, 82, 218, 130, 260, 220, 158, 210, 76, 154)
+position = Vector2(-168, -164.66667)
+polygon = PackedVector2Array(30, 30, 54, 53.333332, 81, 58.666664, 121, 56.666664, 158, 60.666664, 206, 89.333336, 236, 116.66667, 252, 140.66667, 254, 164.66667, 203, 124, 162, 104.66667, 107, 105.333336, 39, 118, 14, 112, -18, 90.666664, -32, 74.666664)
 disabled = true
 
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1217864189]
@@ -36750,6 +36751,7 @@ scale = Vector2(-0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_right")
 animation = &"idle"
 autoplay = "idle"
+frame = 8
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1669556620]
 visible = false
@@ -36758,13 +36760,60 @@ rotation = 3.1415927
 scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_attack")
 animation = &"attack"
+frame = 6
 
 [node name="AttackArea" type="Area2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=985943000]
+visible = false
 monitoring = false
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=1148427734]
+visible = false
 position = Vector2(83, 54)
 polygon = PackedVector2Array(0, 0, -85, 65, -275, 95, -305, 205, -80, 185)
+disabled = true
+
+[node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=214280628]
+visible = false
+position = Vector2(45.38462, -49.444454)
+polygon = PackedVector2Array(9, -38, 82, -38, 89, -5.333333, 81.53845, 24.444443, 71.53845, 47.222218, 40.769287, 73.33333, 15.384644, 96.66666, -21.538452, 124.999985, -49.99994, 161.1111, -63.84613, 192.22221, -69.99994, 218.33331, -73.84613, 245.55554, -83.076904, 258.3333, -93.076904, 237.2222, -93, 216.66667, -95.38458, 184.99998, -91.53845, 162.77777, -83.076904, 134.99998, -69.99994, 119.44443, -45.384583, 94.44444, -7.6922607, 52.222218, 12, 20, 16, -11.333333)
+disabled = true
+
+[node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=672748276]
+visible = false
+position = Vector2(31.538422, -43.8889)
+polygon = PackedVector2Array(23.076904, -35.55555, 97, -37.333332, 99.23071, -9.444441, 94.61536, 16.66667, 77.69226, 50, 23.84607, 98.888885, -12.307739, 124.444435, -45.384644, 150.55556, -66.923096, 159.44444, -90.76929, 183.88889, -118.46161, 216.66666, -147, 260.6667, -145.38464, 230, -138.46161, 205, -115.38464, 165.55556, -74.61542, 127.22222, -43.076965, 99.99999, 10, 50, 30, -2.7777739)
+disabled = true
+
+[node name="HitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=649485534]
+visible = false
+position = Vector2(28.461517, -83.33334)
+polygon = PackedVector2Array(16, 6, 104.61542, 6.666666, 91.53839, 65, 66.923035, 105.55555, 35.384583, 146.1111, 2.3076782, 173.33331, -39.230774, 203.33331, -71.53851, 214.99998, -95, 212.66667, -125, 206.00002, -131.53851, 192.77776, -142.30774, 171.1111, -133.84619, 146.1111, -97.69232, 119.44444, -106.15387, 138.33333, -114.61542, 160.55554, -106, 176.66667, -86.923096, 184.99998, -58.461548, 175.55554, -28.461548, 148.88889, 0.7692261, 118.888885, 20.769226, 74.44444, 27.692322, 41.111107)
+disabled = true
+
+[node name="HitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=601749032]
+visible = false
+position = Vector2(-24.615364, -36.11111)
+scale = Vector2(0.4702381, 0.7993881)
+polygon = PackedVector2Array(129.64307, -59.87177, 312.52917, -59.037796, 271.54834, 45.173428, 238.83154, 88.95691, 150.49658, 177.21887, 112.87256, 214.74757, 50.710938, 259.22604, -34.352417, 294.6698, -88.33496, 307.17938, -8.179199, 250.19135, 57.25415, 187.64351, 99.78589, 129.26552, 139.0459, 59.767925, 142.40259, 6.011958)
+disabled = true
+
+[node name="HitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=1632787577]
+visible = false
+position = Vector2(-26.923035, -108.33334)
+polygon = PackedVector2Array(8, 26.66668, 91.53851, 26.666664, 88.46161, 78.33333, 96.15387, 112.22221, 140, 186.00003, 149, 218.66669, 151.53851, 247.2222, 142.30768, 280, 132.30768, 304.99997, 120.00006, 316.11108, 112.30768, 318.3333, 120.769226, 293.8889, 122, 273.33334, 117.69232, 242.77776, 110.00006, 218.88887, 96, 186.00003, 50.769226, 139.99998, 25.384644, 110.55555, 12.307739, 80.55555, 9.230774, 53.33333)
+disabled = true
+
+[node name="HitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=578719386]
+visible = false
+position = Vector2(-42.307747, -53.33334)
+scale = Vector2(0.7030109, 0.6846122)
+polygon = PackedVector2Array(-35.56134, -38.951515, 75.38995, -39.925274, 90.81824, 12.983825, 129.11511, 55.181274, 173.97705, 90.07532, 208.99133, 120.100426, 227.59265, 140.38766, 257.13586, 171.22426, 269.172, 193.13448, 283.3966, 227.21703, 291.0559, 264.54553, 293.24426, 282.3983, 288.86755, 291.32468, 263.70105, 248.31575, 245.09973, 220.72511, 208.99133, 180.96214, 142.24548, 139.57617, 84.253174, 120.100426, 37.20276, 89.263824, -8.753418, 34.894035)
+disabled = true
+
+[node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight/AttackArea" unique_id=234267890]
+visible = false
+position = Vector2(-97.69229, -123.33335)
+polygon = PackedVector2Array(47.69232, 38.888893, 54, 53.333332, 81, 58.666664, 121, 56.666664, 158, 60.666664, 213.84619, 85.55556, 246.15381, 109.44444, 264.61536, 136.66667, 269.23083, 157.77777, 220.76929, 123.888885, 162, 104.66667, 112.30774, 109.44444, 50, 116.66667, 22.30774, 110, -10, 89.44444, -18.461548, 78.88889, -17.692322, 66.66667, 5.3846436, 46.111115)
 disabled = true
 
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=999608466]
@@ -36775,6 +36824,77 @@ polygon = PackedVector2Array(0, 0, -85, 65, -275, 95, -305, 205, -80, 185)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1355178764]
 position = Vector2(48, 91)
 shape = SubResource("RectangleShape2D_corner_tentacle")
+
+[node name="IdleHitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1815338566]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-291.53833, 242.59258, -163.33325, 90.74072, 60, -96.66672, 90, -201.11118, 46.666504, -314.4445, -63.333496, -398.8889, -91.53833, -427.77774, -35.128174, -442.59256, 13.589844, -435.18515, 95.64111, -396.2963, 129.99988, -367.7778, 213.33325, -276.66672, 228.97437, -187.03702, 213.58984, -125.925934, 141.79492, -14.814789, -90, 274.44446, -116.666626, 392.22226, -66.666626, 490.00003, -310, 490.00006, -336.66675, 365.5556)
+disabled = true
+
+[node name="IdleHitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=860303658]
+visible = false
+position = Vector2(39.230804, 67.77777)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-13.333496, -442.2223, 106.666504, -364.44452, 156.41016, -248.14813, 153.33325, -71.111145, 74.35889, 92.59259, -42.46277, 220.8656, -133.33337, 362.22226, -93.333374, 488.88892, -320, 493.33337, -333.33337, 333.33337, -266.66675, 207.40738, -23.333374, 0, 33.333252, -140.00006, 28.205078, -233.33331, -13.333496, -360.00006, -60.000122, -415.55554, -80.00012, -448.88885)
+disabled = true
+
+[node name="IdleHitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1861383569]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-53.333374, -77.07062, -40.256348, -257.40738, -56.666748, -390.94647, -58.20508, -487.03702, 3.333496, -412.96292, 39.999878, -327.2934, 57.646362, -106.5412, 53.333374, -1.1111145, -36.666626, 274.44446, -30, 485.55557, -291.53833, 494.44443, -309.48706, 414.8148, -273.5896, 312.96295, -235.12817, 244.44443, -201.79468, 179.62961, -145.38452, 112.96295, -103.333374, 37.06601)
+disabled = true
+
+[node name="IdleHitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=200118599]
+visible = false
+position = Vector2(10.000034, 63.333324)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-226.48291, -81.11105, -176.9231, -294.44446, -141.02563, -411.11108, -61.53833, -488.88885, -43.5896, -479.62964, -46.15381, -451.85187, -89.74365, -264.81482, -102.563965, -103.703735, -58.974365, 72.2222, -2.5639648, 172.2222, 43.589844, 237.03702, 48.718018, 366.66666, 51.281982, 485.18518, -244.68237, 490, -176.9231, 309.25922, -215.38452, 120.37033)
+disabled = true
+
+[node name="IdleHitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=69383733]
+visible = false
+position = Vector2(1.5384941, -33.333344)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-200.00037, -673.3334, -150.00012, -744.44446, -64.10254, -814.8148, -64.10254, -790.7407, -73.333496, -746.6667, -110.00012, -631.11115, -103.333496, -495.55554, 9.999878, -262.22223, 50, -197.77779, 93.33325, -137.77779, 106.666626, -73.33336, 72, 148, -42, 150, -203.33337, 157.77782, -190, 84.44448, -140, -28.888855, -125.64111, -174.0741, -194.87183, -379.62964, -228.20508, -451.8519, -241.02563, -527.77783, -230.76929, -605.55554)
+disabled = true
+
+[node name="IdleHitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=731401351]
+visible = false
+position = Vector2(-24.615353, 61.66666)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-106.66675, -82.22223, -93.333496, -242.22223, -46.66687, -368.88892, -0.00012207031, -446.6667, 66.666504, -495.5556, 5.128174, -211.11105, 20, -40.00006, 55.506836, 79.921234, 140, 235.55553, 173.33325, 364.4444, 163.33325, 479.99997, -110, 471.1111, -63.333374, 297.77777, -106.66675, 48.888885)
+disabled = true
+
+[node name="IdleHitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1931898679]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-70, -47.77774, -50, -183.33328, -46.666748, -381.1111, -70.00012, -505.55557, 16.666504, -396.66672, 56.666504, -283.33334, 63.333374, -190.00003, 38, 42, -33.333374, 258.88892, -20, 492.22226, -290, 483.33337, -310, 432.2223, -283.33337, 352.22226, -190, 158.88895, -96.666626, 36.666687)
+disabled = true
+
+[node name="IdleHitboxFrame8" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=488403103]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(50, -67.7778, 70, -212.22226, 39.999878, -318.88895, -50.000122, -445.5555, 66.666504, -432.22226, 116.666504, -396.66672, 176.6665, -325.55557, 196.6665, -247.7778, 186.66663, -83.33334, 140, 30, 76.666626, 110, 13.333374, 165.55557, -90, 341.11115, -66.666626, 490.00003, -300, 485.5556, -296.66675, 312.2223, -260, 223.33337, -96.666626, 81.111115)
+disabled = true
+
+[node name="IdleHitboxFrame9" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=561481960]
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+polygon = PackedVector2Array(-30, -34, 53.333374, -94.44449, 96.666626, -174.44449, 86.666504, -263.33334, -43.333496, -378.8889, -86.66675, -409.99997, -83.333496, -443.33334, 19.999878, -432.22226, 116.666504, -387.7778, 186.6665, -332.22226, 206.6665, -285.55557, 233.33325, -238.88895, 230, -170.00003, 173.33337, -52.22226, 46.666626, 81.111115, -66.666626, 221.11111, -116.666626, 363.33337, -56.666626, 485.5556, -323.33325, 498.88895, -343.33325, 370.00006, -273.33337, 241.11116, -216.66663, 145.5556)
+disabled = true
 
 [node name="Tentacle_BottomLeft" type="Area2D" parent="CornerTentacles" unique_id=1368196984]
 position = Vector2(413, 725)
@@ -36815,6 +36935,50 @@ position = Vector2(-58, 154)
 polygon = PackedVector2Array(0, 0, 90, -65, 285, -95, 310, -205, 80, -185)
 disabled = true
 
+[node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=628291442]
+visible = false
+position = Vector2(-63, 303.33334)
+polygon = PackedVector2Array(9, 38, 82, 38, 89, 5.333333, 81, -29.333336, 72, -48.000004, 63, -60.666668, 50, -80.666664, 31, -99.333336, 7, -120.666664, -22, -150.00002, -45, -176.00002, -58, -205.33334, -69, -237.33334, -70, -260, -75, -292.66666, -80, -304, -92, -272.66666, -95, -242.00002, -93, -216.66667, -88, -183.33334, -78, -154.66667, -65, -134.66667, -54, -124, -31, -95.333336, -2, -50.666668, 12, -20, 16, 11.333333)
+disabled = true
+
+[node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=214373039]
+visible = false
+position = Vector2(-72, 262)
+polygon = PackedVector2Array(29, 37.999996, 97, 37.333332, 95, 21.999996, 67, -31.333336, -4, -99.333336, -40, -131.33334, -86, -170.66669, -147, -260.6667, -149, -228.66669, -142, -204.66669, -120, -162.66669, -86, -122.00001, -63, -100.66668, -8, -37.333336, 21, 7.33333)
+disabled = true
+
+[node name="HitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=164516351]
+visible = false
+position = Vector2(-70, 309.33334)
+polygon = PackedVector2Array(16, -6, 89, -6.666678, 67, -65.33334, 36, -116.000015, 1, -152.00002, -7, -162.66667, -47, -196.66667, -72, -208.66667, -95, -212.66667, -125, -206.00002, -144, -186.00002, -151, -158.00002, -138, -121.33335, -110, -100.000015, -125, -139.33334, -121, -164.00002, -106, -176.66667, -81, -172.66667, -62, -159.33334, -31, -125.33335, -14, -103.33335, 14, -53.333344, 19, -27.333344)
+disabled = true
+
+[node name="HitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=593757649]
+visible = false
+position = Vector2(-130.9631, 295.47256)
+scale = Vector2(0.4702381, 0.7993881)
+polygon = PackedVector2Array(129.64307, 59.87177, 312.52917, 59.037796, 276.37732, -45.208603, 214.70642, -144.45119, 165.79492, -203.66313, 93.49121, -275.38464, 6.30127, -332.0947, -40.48352, -360.4497, -89.3949, -373.79324, 42.453247, -249.53156, 84.98486, -189.48563, 114.75696, -127.77176, 140.276, -60.220085, 142.40259, -6.011958)
+disabled = true
+
+[node name="HitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=1850104781]
+visible = false
+position = Vector2(-134, 331.33334)
+polygon = PackedVector2Array(8, -26.66668, 84, -26.000011, 97, -89.33334, 140, -186.00003, 149, -218.66669, 150, -247.33334, 146, -280.6667, 137, -306.00003, 127, -323.33337, 114, -334.6667, 122, -273.33334, 107, -219.33334, 96, -186.00003, 69, -143.33334, 35, -106.66668, 22, -81.33334, 12, -54)
+disabled = true
+
+[node name="HitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=1845286794]
+visible = false
+position = Vector2(-147.00002, 312.66666)
+scale = Vector2(0.7030109, 0.6846122)
+polygon = PackedVector2Array(-35.56134, 38.951515, 75.38995, 39.925274, 88.19208, -14.606809, 113.7962, -61.348595, 189.18622, -126.59235, 263.15375, -220.07591, 278.80078, -274.608, 291.60284, -327.19254, 283.0681, -354.45856, 248.92926, -271.68665, 226.16998, -241.49924, 159.3147, -183.07199, 80, -144, 51.208252, -120.74962, 21.336792, -93.48358, -17.069458, -33.108765)
+disabled = true
+
+[node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft/AttackArea" unique_id=50381371]
+visible = false
+position = Vector2(-191, 372.66666)
+polygon = PackedVector2Array(30, -30, 54, -53.333332, 81, -58.666664, 121, -56.666664, 158, -60.666664, 206, -89.333336, 236, -116.66667, 252, -140.66667, 254, -164.66667, 203, -124, 162, -104.66667, 107, -105.333336, 39, -118, 14, -112, -18, -90.666664, -32, -74.666664)
+disabled = true
+
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1511666427]
 visible = false
 color = Color(1, 0.25, 0.15, 0.45)
@@ -36822,6 +36986,69 @@ polygon = PackedVector2Array(0, 0, 90, -65, 285, -95, 310, -205, 80, -185)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=213503184]
 shape = SubResource("RectangleShape2D_corner_tentacle")
+
+[node name="IdleHitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=849707622]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-273.33337, 230.00005, 60, -96.66672, 90, -201.11118, 46.666504, -314.4445, -63.333496, -398.8889, -60.000122, -447.77774, 129.99988, -367.7778, 213.33325, -276.66672, 246.66663, -176.66672, -90, 274.44446, -116.666626, 392.22226, -66.666626, 490.00003, -310, 490.00006, -336.66675, 365.5556)
+disabled = true
+
+[node name="IdleHitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1178422391]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-13.333496, -442.2223, 106.666504, -364.44452, 166.6665, -251.11115, 153.33325, -71.111145, -42.46277, 220.8656, -133.33337, 362.22226, -93.333374, 488.88892, -320, 493.33337, -333.33337, 333.33337, -283.33337, 211.11115, -23.333374, 0, 33.333252, -140.00006, 39.999878, -233.33337, -13.333496, -360.00006, -60.000122, -415.55554, -80.00012, -448.88885)
+disabled = true
+
+[node name="IdleHitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=251335342]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-53.333374, -77.07062, -40.000122, -250.47058, -56.666748, -390.94647, -53.333496, -481.1111, -3.333496, -415.09082, 39.999878, -327.2934, 57.646362, -106.5412, 53.333374, -1.1111145, -36.666626, 274.44446, -30, 485.55557, -283.33337, 492.2223, -296.66675, 427.76465, -261.5166, 328.6764, -236.66663, 276.31406, -213.33325, 217.05081, -126.666626, 109.4989, -103.333374, 37.06601)
+disabled = true
+
+[node name="IdleHitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1585555917]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-226.48291, -81.11105, -153.68506, -281.11105, -93.02075, -383.33328, 88.97363, -478.88882, -32.355713, -141.11105, 64.70801, 67.77777, 136.30615, 153.95264, 216.36987, 238.88887, 277.03467, 345.55554, 277.03467, 487.77774, -244.68237, 490, -147.61865, 305.55554, -184.01758, 130.00003)
+disabled = true
+
+[node name="IdleHitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1677236701]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-200.00037, -673.3334, -150.00012, -744.44446, -50.000122, -826.6667, -73.333496, -746.6667, -110.00012, -631.11115, -103.333496, -495.55554, 9.999878, -262.22223, 50, -197.77779, 93.33325, -137.77779, 106.666626, -73.33336, 72, 148, -42, 150, -203.33337, 157.77782, -190, 84.44448, -140, -28.888855, -103.333374, -173.3333, -186.66687, -382.22223, -233.33337, -533.3334, -223.33337, -606.6667)
+disabled = true
+
+[node name="IdleHitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=181239419]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-106.66675, -82.22223, -93.333496, -242.22223, -46.66687, -368.88892, -0.00012207031, -446.6667, 66.666504, -495.5556, 0, -211.11115, 20, -40.00006, 55.506836, 79.921234, 140, 235.55553, 173.33325, 364.4444, 163.33325, 479.99997, -110, 471.1111, -63.333374, 297.77777, -106.66675, 48.888885)
+disabled = true
+
+[node name="IdleHitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1919792302]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-70, -47.77774, -50, -183.33328, -46.666748, -381.1111, -70.00012, -505.55557, 16.666504, -396.66672, 56.666504, -283.33334, 63.333374, -190.00003, 38, 42, -33.333374, 258.88892, -20, 492.22226, -290, 483.33337, -310, 432.2223, -283.33337, 352.22226, -190, 158.88895, -96.666626, 36.666687)
+disabled = true
+
+[node name="IdleHitboxFrame8" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=870545766]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(50, -67.7778, 70, -212.22226, 39.999878, -318.88895, -50.000122, -445.5555, 66.666504, -432.22226, 116.666504, -396.66672, 176.6665, -325.55557, 196.6665, -247.7778, 186.66663, -83.33334, 140, 30, 76.666626, 110, 13.333374, 165.55557, -90, 341.11115, -66.666626, 490.00003, -300, 485.5556, -296.66675, 312.2223, -260, 223.33337, -96.666626, 81.111115)
+disabled = true
+
+[node name="IdleHitboxFrame9" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=260716121]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-30, -34, 53.333374, -94.44449, 96.666626, -174.44449, 86.666504, -263.33334, -43.333496, -378.8889, -86.66675, -409.99997, -83.333496, -443.33334, 19.999878, -432.22226, 116.666504, -387.7778, 186.6665, -332.22226, 206.6665, -285.55557, 233.33325, -238.88895, 230, -170.00003, 173.33337, -52.22226, 46.666626, 81.111115, -66.666626, 221.11111, -116.666626, 363.33337, -56.666626, 485.5556, -323.33325, 498.88895, -343.33325, 370.00006, -273.33337, 241.11116, -216.66663, 145.5556)
+disabled = true
 
 [node name="Tentacle_BottomRight" type="Area2D" parent="CornerTentacles" unique_id=946454870]
 position = Vector2(1812, 613)
@@ -36868,6 +37095,50 @@ position = Vector2(-2, 120)
 polygon = PackedVector2Array(0, 0, -90, -65, -285, -95, -310, -205, -80, -185)
 disabled = true
 
+[node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=437269313]
+visible = false
+position = Vector2(3, 269.33334)
+polygon = PackedVector2Array(-9, 38, -82, 38, -89, 5.333333, -81, -29.333336, -72, -48.000004, -63, -60.666668, -50, -80.666664, -31, -99.333336, -7, -120.666664, 22, -150.00002, 45, -176.00002, 58, -205.33334, 69, -237.33334, 70, -260, 75, -292.66666, 80, -304, 92, -272.66666, 95, -242.00002, 93, -216.66667, 88, -183.33334, 78, -154.66667, 65, -134.66667, 54, -124, 31, -95.333336, 2, -50.666668, -12, -20, -16, 11.333333)
+disabled = true
+
+[node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=200802192]
+visible = false
+position = Vector2(12, 228)
+polygon = PackedVector2Array(-29, 37.999996, -97, 37.333332, -95, 21.999996, -67, -31.333336, 4, -99.333336, 40, -131.33334, 86, -170.66669, 147, -260.6667, 149, -228.66669, 142, -204.66669, 120, -162.66669, 86, -122.00001, 63, -100.66668, 8, -37.333336, -21, 7.33333)
+disabled = true
+
+[node name="HitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=612956621]
+visible = false
+position = Vector2(10, 275.33334)
+polygon = PackedVector2Array(-16, -6, -89, -6.666678, -67, -65.33334, -36, -116.000015, -1, -152.00002, 7, -162.66667, 47, -196.66667, 72, -208.66667, 95, -212.66667, 125, -206.00002, 144, -186.00002, 151, -158.00002, 138, -121.33335, 110, -100.000015, 125, -139.33334, 121, -164.00002, 106, -176.66667, 81, -172.66667, 62, -159.33334, 31, -125.33335, 14, -103.33335, -14, -53.333344, -19, -27.333344)
+disabled = true
+
+[node name="HitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=1470184581]
+visible = false
+position = Vector2(70.9631, 261.47256)
+scale = Vector2(0.4702381, 0.7993881)
+polygon = PackedVector2Array(-129.64307, 59.87177, -312.52917, 59.037796, -276.37732, -45.208603, -214.70642, -144.45119, -165.79492, -203.66313, -93.49121, -275.38464, -6.30127, -332.0947, 40.48352, -360.4497, 89.3949, -373.79324, -42.453247, -249.53156, -84.98486, -189.48563, -114.75696, -127.77176, -140.276, -60.220085, -142.40259, -6.011958)
+disabled = true
+
+[node name="HitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=1870740812]
+visible = false
+position = Vector2(74, 297.33334)
+polygon = PackedVector2Array(-8, -26.66668, -84, -26.000011, -97, -89.33334, -140, -186.00003, -149, -218.66669, -150, -247.33334, -146, -280.6667, -137, -306.00003, -127, -323.33337, -114, -334.6667, -122, -273.33334, -107, -219.33334, -96, -186.00003, -69, -143.33334, -35, -106.66668, -22, -81.33334, -12, -54)
+disabled = true
+
+[node name="HitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=1771600377]
+visible = false
+position = Vector2(87.000015, 278.66666)
+scale = Vector2(0.7030109, 0.6846122)
+polygon = PackedVector2Array(35.56134, 38.951515, -75.38995, 39.925274, -88.19208, -14.606809, -113.7962, -61.348595, -189.18622, -126.59235, -263.15375, -220.07591, -278.80078, -274.608, -291.60284, -327.19254, -283.0681, -354.45856, -248.92926, -271.68665, -226.16998, -241.49924, -159.3147, -183.07199, -80, -144, -51.208252, -120.74962, -21.336792, -93.48358, 17.069458, -33.108765)
+disabled = true
+
+[node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight/AttackArea" unique_id=971147645]
+visible = false
+position = Vector2(131, 338.66666)
+polygon = PackedVector2Array(-30, -30, -54, -53.333332, -81, -58.666664, -121, -56.666664, -158, -60.666664, -206, -89.333336, -236, -116.66667, -252, -140.66667, -254, -164.66667, -203, -124, -162, -104.66667, -107, -105.333336, -39, -118, -14, -112, 18, -90.666664, 32, -74.666664)
+disabled = true
+
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1178555106]
 visible = false
 color = Color(1, 0.25, 0.15, 0.45)
@@ -36881,6 +37152,69 @@ shape = SubResource("RectangleShape2D_corner_tentacle")
 [node name="TouchCollisionShape2D" type="CollisionShape2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=2052467244]
 position = Vector2(-110, 5)
 shape = SubResource("RectangleShape2D_bottom_right_tentacle_touch")
+
+[node name="IdleHitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=496508706]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-273.33337, 230.00005, 60, -96.66672, 90, -201.11118, 46.666504, -314.4445, -63.333496, -398.8889, -60.000122, -447.77774, 129.99988, -367.7778, 213.33325, -276.66672, 246.66663, -176.66672, -90, 274.44446, -116.666626, 392.22226, -66.666626, 490.00003, -310, 490.00006, -336.66675, 365.5556)
+disabled = true
+
+[node name="IdleHitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1983028635]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-13.333496, -442.2223, 106.666504, -364.44452, 166.6665, -251.11115, 153.33325, -71.111145, -42.46277, 220.8656, -133.33337, 362.22226, -93.333374, 488.88892, -320, 493.33337, -333.33337, 333.33337, -283.33337, 211.11115, -23.333374, 0, 33.333252, -140.00006, 39.999878, -233.33337, -13.333496, -360.00006, -60.000122, -415.55554, -80.00012, -448.88885)
+disabled = true
+
+[node name="IdleHitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=717403301]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-53.333374, -77.07062, -40.000122, -250.47058, -56.666748, -390.94647, -53.333496, -481.1111, -3.333496, -415.09082, 39.999878, -327.2934, 57.646362, -106.5412, 53.333374, -1.1111145, -36.666626, 274.44446, -30, 485.55557, -283.33337, 492.2223, -296.66675, 427.76465, -261.5166, 328.6764, -236.66663, 276.31406, -213.33325, 217.05081, -126.666626, 109.4989, -103.333374, 37.06601)
+disabled = true
+
+[node name="IdleHitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1410787221]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-226.48291, -81.11105, -153.68506, -281.11105, -93.02075, -383.33328, 88.97363, -478.88882, -32.355713, -141.11105, 64.70801, 67.77777, 136.30615, 153.95264, 216.36987, 238.88887, 277.03467, 345.55554, 277.03467, 487.77774, -244.68237, 490, -147.61865, 305.55554, -184.01758, 130.00003)
+disabled = true
+
+[node name="IdleHitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1527379138]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-200.00037, -673.3334, -150.00012, -744.44446, -50.000122, -826.6667, -73.333496, -746.6667, -110.00012, -631.11115, -103.333496, -495.55554, 9.999878, -262.22223, 50, -197.77779, 93.33325, -137.77779, 106.666626, -73.33336, 72, 148, -42, 150, -203.33337, 157.77782, -190, 84.44448, -140, -28.888855, -103.333374, -173.3333, -186.66687, -382.22223, -233.33337, -533.3334, -223.33337, -606.6667)
+disabled = true
+
+[node name="IdleHitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=2027215647]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-106.66675, -82.22223, -93.333496, -242.22223, -46.66687, -368.88892, -0.00012207031, -446.6667, 66.666504, -495.5556, 0, -211.11115, 20, -40.00006, 55.506836, 79.921234, 140, 235.55553, 173.33325, 364.4444, 163.33325, 479.99997, -110, 471.1111, -63.333374, 297.77777, -106.66675, 48.888885)
+disabled = true
+
+[node name="IdleHitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=911037976]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-70, -47.77774, -50, -183.33328, -46.666748, -381.1111, -70.00012, -505.55557, 16.666504, -396.66672, 56.666504, -283.33334, 63.333374, -190.00003, 38, 42, -33.333374, 258.88892, -20, 492.22226, -290, 483.33337, -310, 432.2223, -283.33337, 352.22226, -190, 158.88895, -96.666626, 36.666687)
+disabled = true
+
+[node name="IdleHitboxFrame8" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=203804804]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(50, -67.7778, 70, -212.22226, 39.999878, -318.88895, -50.000122, -445.5555, 66.666504, -432.22226, 116.666504, -396.66672, 176.6665, -325.55557, 196.6665, -247.7778, 186.66663, -83.33334, 140, 30, 76.666626, 110, 13.333374, 165.55557, -90, 341.11115, -66.666626, 490.00003, -300, 485.5556, -296.66675, 312.2223, -260, 223.33337, -96.666626, 81.111115)
+disabled = true
+
+[node name="IdleHitboxFrame9" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1920643475]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+polygon = PackedVector2Array(-30, -34, 53.333374, -94.44449, 96.666626, -174.44449, 86.666504, -263.33334, -43.333496, -378.8889, -86.66675, -409.99997, -83.333496, -443.33334, 19.999878, -432.22226, 116.666504, -387.7778, 186.6665, -332.22226, 206.6665, -285.55557, 233.33325, -238.88895, 230, -170.00003, 173.33337, -52.22226, 46.666626, 81.111115, -66.666626, 221.11111, -116.666626, 363.33337, -56.666626, 485.5556, -323.33325, 498.88895, -343.33325, 370.00006, -273.33337, 241.11116, -216.66663, 145.5556)
+disabled = true
 
 [node name="BossCore" type="Area2D" parent="." unique_id=426302096]
 z_index = 35
