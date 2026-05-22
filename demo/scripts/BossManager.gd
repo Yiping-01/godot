@@ -264,6 +264,12 @@ func _spawn_wire_round() -> void:
 			(wire as Node2D).global_rotation = spawn_point.global_rotation
 		if wire.has_method("set_wire_length_scale") and spawn_point.has_meta("wire_length_scale"):
 			wire.call("set_wire_length_scale", float(spawn_point.get_meta("wire_length_scale")))
+		if wire.has_method("set_weak_point_y_range") and spawn_point.has_meta("weak_point_min_y") and spawn_point.has_meta("weak_point_max_y"):
+			wire.call(
+				"set_weak_point_y_range",
+				float(spawn_point.get_meta("weak_point_min_y")),
+				float(spawn_point.get_meta("weak_point_max_y"))
+			)
 
 
 func on_wire_destroyed(wire: Node) -> void:

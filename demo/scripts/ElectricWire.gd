@@ -20,6 +20,9 @@ var _base_visual_position := Vector2.ZERO
 var _base_visual_scale := Vector2.ONE
 var _base_collision_position := Vector2.ZERO
 var _base_collision_scale := Vector2.ONE
+var _custom_weak_point_range_enabled := false
+var _custom_weak_point_min_y := 0.0
+var _custom_weak_point_max_y := 0.0
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
 @onready var core_line: CanvasItem = get_node_or_null("CoreLine") as CanvasItem
@@ -54,6 +57,14 @@ func set_wire_length_scale(new_scale: float) -> void:
 		_apply_wire_length_scale()
 
 
+func set_weak_point_y_range(new_min_y: float, new_max_y: float) -> void:
+	_custom_weak_point_range_enabled = true
+	_custom_weak_point_min_y = minf(new_min_y, new_max_y)
+	_custom_weak_point_max_y = maxf(new_min_y, new_max_y)
+	if is_node_ready():
+		call_deferred("_randomize_weak_point_position")
+
+
 func _capture_base_wire_transform() -> void:
 	if visual is Node2D:
 		var visual_node := visual as Node2D
@@ -79,7 +90,10 @@ func _randomize_weak_point_position() -> void:
 		return
 	var min_y := weak_point_min_y
 	var max_y := weak_point_max_y
-	if global_position.x <= left_wire_global_x:
+	if _custom_weak_point_range_enabled:
+		min_y = _custom_weak_point_min_y
+		max_y = _custom_weak_point_max_y
+	elif global_position.x <= left_wire_global_x:
 		min_y = left_weak_point_min_y
 		max_y = left_weak_point_max_y
 	elif global_position.x >= right_wire_global_x:

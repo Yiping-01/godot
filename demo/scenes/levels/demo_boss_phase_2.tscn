@@ -1,7 +1,7 @@
 [gd_scene format=4 uid="uid://chbuylmcf84v4"]
 
-[ext_resource type="Texture2D" path="res://demo/assets/background/bosslevel_bgtitle/bosslevel2bg.png" id="1_26lsi"]
-[ext_resource type="Texture2D" path="res://demo/assets/background/bosslevel_bgtitle/bosslevel_title3.png" id="2_rock_tiles"]
+[ext_resource type="Texture2D" uid="uid://bd2c4ot77xkmc" path="res://demo/assets/background/bosslevel_bgtitle/bosslevel2bg.png" id="1_26lsi"]
+[ext_resource type="Texture2D" uid="uid://cleqg44hm8f6c" path="res://demo/assets/background/bosslevel_bgtitle/bosslevel_title3.png" id="2_rock_tiles"]
 [ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://demo/scenes/player.tscn" id="3_hg18j"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_floor.tscn" id="3_ilxtd"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_wall.tscn" id="4_wall"]
@@ -9,33 +9,33 @@
 [ext_resource type="PackedScene" path="res://demo/scenes/map_platform.tscn" id="5_ilxtd"]
 [ext_resource type="PackedScene" path="res://demo/scenes/jump_bubble.tscn" id="6_bubble"]
 [ext_resource type="Script" uid="uid://cjutctb5epuc" path="res://demo/scripts/Tentacle.gd" id="7_tentacle"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_1.png" id="15_walk_1"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_2.png" id="16_walk_2"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_3.png" id="17_walk_3"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_4.png" id="18_walk_4"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_5.png" id="19_walk_5"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_6.png" id="20_walk_6"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_7.png" id="21_walk_7"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_8.png" id="22_walk_8"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_04.png" id="23_attack_4"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_05.png" id="24_attack_5"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_06.png" id="25_attack_6"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_07.png" id="26_attack_7"]
+[ext_resource type="Texture2D" uid="uid://jw08aqv537pd" path="res://demo/assets/boss/tentacle/boss01_v2_walk_1.png" id="15_walk_1"]
+[ext_resource type="Texture2D" uid="uid://dactr2imebyua" path="res://demo/assets/boss/tentacle/boss01_v2_walk_2.png" id="16_walk_2"]
+[ext_resource type="Texture2D" uid="uid://qrqg3ctt5e48" path="res://demo/assets/boss/tentacle/boss01_v2_walk_3.png" id="17_walk_3"]
+[ext_resource type="Texture2D" uid="uid://c7ngen580uh6g" path="res://demo/assets/boss/tentacle/boss01_v2_walk_4.png" id="18_walk_4"]
+[ext_resource type="Texture2D" uid="uid://vuku75jkcbx0" path="res://demo/assets/boss/tentacle/boss01_v2_walk_5.png" id="19_walk_5"]
+[ext_resource type="Texture2D" uid="uid://c8j1enxehiir0" path="res://demo/assets/boss/tentacle/boss01_v2_walk_6.png" id="20_walk_6"]
+[ext_resource type="Texture2D" uid="uid://bk8t7scqdbpj1" path="res://demo/assets/boss/tentacle/boss01_v2_walk_7.png" id="21_walk_7"]
+[ext_resource type="Texture2D" uid="uid://dcqp6047sn5f5" path="res://demo/assets/boss/tentacle/boss01_v2_walk_8.png" id="22_walk_8"]
+[ext_resource type="Texture2D" uid="uid://b2nknm36ud7c8" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_04.png" id="23_attack_4"]
+[ext_resource type="Texture2D" uid="uid://dgo04c6fgjob8" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_05.png" id="24_attack_5"]
+[ext_resource type="Texture2D" uid="uid://l1cpnmrnloqc" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_06.png" id="25_attack_6"]
+[ext_resource type="Texture2D" uid="uid://b2rtspxrkr6s7" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_07.png" id="26_attack_7"]
 [ext_resource type="Script" uid="uid://b7qw80m64qqfl" path="res://demo/scripts/BossManager.gd" id="27_boss_manager"]
 [ext_resource type="Script" uid="uid://hl71tdjfsf3" path="res://demo/scripts/BossCore.gd" id="28_boss_core"]
 [ext_resource type="PackedScene" path="res://demo/scenes/electric_wire.tscn" id="29_wire_scene"]
 [ext_resource type="PackedScene" path="res://demo/scenes/lightning_area.tscn" id="30_lightning_scene"]
 [ext_resource type="Texture2D" uid="uid://ddexjtmr3nvmm" path="res://demo/assets/other/hexin/hexin.png" id="31_hexin"]
-[ext_resource type="Script" path="res://demo/scripts/boss_maplevel2_intro.gd" id="32_intro"]
-[ext_resource type="Script" path="res://demo/scripts/demo_phase_death_pit.gd" id="33_death_pit"]
+[ext_resource type="Script" uid="uid://5himxrs53jqb" path="res://demo/scripts/boss_maplevel2_intro.gd" id="32_intro"]
+[ext_resource type="Script" uid="uid://drd5ckik2kaby" path="res://demo/scripts/demo_phase_death_pit.gd" id="33_death_pit"]
 [ext_resource type="Script" uid="uid://kga12lvq78rr" path="res://demo/scripts/health_ui.gd" id="34_health_ui"]
 [ext_resource type="PackedScene" uid="uid://dgcm5rlgbtx5k" path="res://demo/scenes/game_ui.tscn" id="35_game_ui"]
 [ext_resource type="Script" uid="uid://cnimtrmkiocnm" path="res://demo/scripts/demo_exit_menu.gd" id="36_exit_menu"]
-[ext_resource type="Texture2D" path="res://demo/assets/boss/tentacle/boss01_v2_walk_9.png" id="37_walk_9"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_01.png" id="38_attack_1"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_02.png" id="39_attack_2"]
-[ext_resource type="Texture2D" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_03.png" id="40_attack_3"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/background/radial_warm_light.png" id="41_core_light"]
+[ext_resource type="Texture2D" uid="uid://cr7rwxl3bxuf1" path="res://demo/assets/boss/tentacle/boss01_v2_walk_9.png" id="37_walk_9"]
+[ext_resource type="Texture2D" uid="uid://c8k42o4l3m1a" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_01.png" id="38_attack_1"]
+[ext_resource type="Texture2D" uid="uid://dvc80j4biwb2k" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_02.png" id="39_attack_2"]
+[ext_resource type="Texture2D" uid="uid://10tor0eyid7a" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_03.png" id="40_attack_3"]
+[ext_resource type="Texture2D" uid="uid://df8fm05wvrlx0" path="res://demo/assets/art/legacy/background/radial_warm_light.png" id="41_core_light"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_68waa"]
 texture = ExtResource("2_rock_tiles")
@@ -36322,28 +36322,29 @@ size = Vector2(2400, 180)
 [node name="DemoBossPhase2" type="Node2D" unique_id=1873841094]
 script = ExtResource("32_intro")
 
-[node name="HUD" type="CanvasLayer" parent="."]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=983509608]
 script = ExtResource("34_health_ui")
 
-[node name="HealthPips" type="HBoxContainer" parent="HUD"]
+[node name="HealthPips" type="HBoxContainer" parent="HUD" unique_id=1870964709]
 offset_left = 24.0
 offset_top = 18.0
 offset_right = 360.0
 offset_bottom = 70.0
 theme_override_constants/separation = 2
 
-[node name="HealthLabel" type="Label" parent="HUD"]
+[node name="HealthLabel" type="Label" parent="HUD" unique_id=1287976325]
 offset_left = 28.0
 offset_top = 72.0
 offset_right = 270.0
 offset_bottom = 104.0
 theme_override_font_sizes/font_size = 18
 
-[node name="ExitMenu" type="CanvasLayer" parent="."]
+[node name="ExitMenu" type="CanvasLayer" parent="." unique_id=107347052]
 process_mode = 3
 script = ExtResource("36_exit_menu")
 
-[node name="GameUI" parent="." instance=ExtResource("35_game_ui")]
+[node name="GameUI" parent="." unique_id=1424178019 instance=ExtResource("35_game_ui")]
+visible = false
 
 [node name="Bosslevel2Bg" type="Sprite2D" parent="." unique_id=999257590]
 z_index = -100
@@ -36352,7 +36353,7 @@ scale = Vector2(1.2, 1.2)
 texture = ExtResource("1_26lsi")
 
 [node name="Player" parent="." unique_id=499235982 instance=ExtResource("3_hg18j")]
-position = Vector2(988, 833)
+position = Vector2(457, 168)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=622360063]
 position = Vector2(960, 384)
@@ -36401,6 +36402,8 @@ rotation = 2.9548423
 position = Vector2(1522.0001, 385.00003)
 rotation = 0.32
 metadata/wire_length_scale = 0.62
+metadata/weak_point_min_y = -245.0
+metadata/weak_point_max_y = -165.0
 
 [node name="platform2" type="Node2D" parent="." unique_id=28868228]
 
@@ -36581,6 +36584,7 @@ scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_left")
 animation = &"idle"
 autoplay = "idle"
+frame = 8
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1852209610]
 visible = false
@@ -36591,11 +36595,55 @@ sprite_frames = SubResource("SpriteFrames_corner_tentacle_attack")
 animation = &"attack"
 
 [node name="AttackArea" type="Area2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1037504343]
+visible = false
 monitoring = false
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1838099157]
+visible = false
 position = Vector2(-35, 54)
 polygon = PackedVector2Array(0, 0, 85, 65, 275, 95, 305, 205, 80, 185)
+disabled = true
+
+[node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1320675859]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(16, 8, 94, 62, 270, 104, 312, 210, 202, 212, 76, 130)
+disabled = true
+
+[node name="HitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1137660462]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(18, 8, 92, 54, 158, 92, 168, 150, 94, 136, 34, 86)
+disabled = true
+
+[node name="HitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1597970363]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(16, 6, 96, 58, 202, 98, 230, 164, 144, 166, 58, 106)
+disabled = true
+
+[node name="HitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=2092733142]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(14, 4, 96, 60, 248, 100, 286, 184, 186, 188, 70, 120)
+disabled = true
+
+[node name="HitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1735998193]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(20, 10, 74, 45, 116, 84, 108, 130, 52, 104, 12, 54)
+disabled = true
+
+[node name="HitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1290311160]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(22, 18, 92, 72, 250, 120, 296, 220, 188, 218, 80, 144)
+disabled = true
+
+[node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=62653295]
+visible = false
+position = Vector2(-35, 54)
+polygon = PackedVector2Array(30, 30, 88, 82, 218, 130, 260, 220, 158, 210, 76, 154)
 disabled = true
 
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1217864189]
@@ -36604,8 +36652,80 @@ color = Color(1, 0.25, 0.15, 0.45)
 polygon = PackedVector2Array(0, 0, 85, 65, 275, 95, 305, 205, 80, 185)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1452900084]
+visible = false
 position = Vector2(0.5, 42.5)
 shape = SubResource("RectangleShape2D_corner_tentacle")
+
+[node name="IdleHitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1868480695]
+visible = false
+position = Vector2(-57, 57)
+rotation = -3.1415925
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-273.33337, 230.00005, 60, -96.66672, 90, -201.11118, 46.666504, -314.4445, -63.333496, -398.8889, -60.000122, -447.77774, 129.99988, -367.7778, 213.33325, -276.66672, 246.66663, -176.66672, -90, 274.44446, -116.666626, 392.22226, -66.666626, 490.00003, -310, 490.00006, -336.66675, 365.5556)
+disabled = true
+
+[node name="IdleHitboxFrame2" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1665897864]
+visible = false
+position = Vector2(-67, 56.666668)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-13.333496, -442.2223, 106.666504, -364.44452, 166.6665, -251.11115, 153.33325, -71.111145, -42.46277, 220.8656, -133.33337, 362.22226, -93.333374, 488.88892, -320, 493.33337, -333.33337, 333.33337, -283.33337, 211.11115, -23.333374, 0, 33.333252, -140.00006, 39.999878, -233.33337, -13.333496, -360.00006, -60.000122, -415.55554, -80.00012, -448.88885)
+disabled = true
+
+[node name="IdleHitboxFrame3" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=74002630]
+visible = false
+position = Vector2(-56.999992, 59.924706)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.30372941)
+polygon = PackedVector2Array(-53.333374, -77.07062, -40.000122, -250.47058, -56.666748, -390.94647, -53.333496, -481.1111, -3.333496, -415.09082, 39.999878, -327.2934, 57.646362, -106.5412, 53.333374, -1.1111145, -36.666626, 274.44446, -30, 485.55557, -283.33337, 492.2223, -296.66675, 427.76465, -261.5166, 328.6764, -236.66663, 276.31406, -213.33325, 217.05081, -126.666626, 109.4989, -103.333374, 37.06601)
+disabled = true
+
+[node name="IdleHitboxFrame4" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=245096012]
+visible = false
+position = Vector2(-8.333515, 57.000004)
+rotation = 3.1415927
+scale = Vector2(0.16484034, 0.3)
+polygon = PackedVector2Array(-226.48291, -81.11105, -153.68506, -281.11105, -93.02075, -383.33328, 88.97363, -478.88882, -32.355713, -141.11105, 64.70801, 67.77777, 136.30615, 153.95264, 216.36987, 238.88887, 277.03467, 345.55554, 277.03467, 487.77774, -244.68237, 490, -147.61865, 305.55554, -184.01758, 130.00003)
+disabled = true
+
+[node name="IdleHitboxFrame5" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=951553850]
+visible = false
+position = Vector2(-27.999996, -42.666668)
+rotation = -3.1415925
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-200.00037, -673.3334, -150.00012, -744.44446, -50.000122, -826.6667, -73.333496, -746.6667, -110.00012, -631.11115, -103.333496, -495.55554, 9.999878, -262.22223, 50, -197.77779, 93.33325, -137.77779, 106.666626, -73.33336, 72, 148, -42, 150, -203.33337, 157.77782, -190, 84.44448, -140, -28.888855, -103.333374, -173.3333, -186.66687, -382.22223, -233.33337, -533.3334, -223.33337, -606.6667)
+disabled = true
+
+[node name="IdleHitboxFrame6" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=2022059951]
+visible = false
+position = Vector2(-3.9999924, 52)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-106.66675, -82.22223, -93.333496, -242.22223, -46.66687, -368.88892, -0.00012207031, -446.6667, 66.666504, -495.5556, 0, -211.11115, 20, -40.00006, 55.506836, 79.921234, 140, 235.55553, 173.33325, 364.4444, 163.33325, 479.99997, -110, 471.1111, -63.333374, 297.77777, -106.66675, 48.888885)
+disabled = true
+
+[node name="IdleHitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=379657201]
+visible = false
+position = Vector2(-57, 57)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-70, -47.77774, -50, -183.33328, -46.666748, -381.1111, -70.00012, -505.55557, 16.666504, -396.66672, 56.666504, -283.33334, 63.333374, -190.00003, 38, 42, -33.333374, 258.88892, -20, 492.22226, -290, 483.33337, -310, 432.2223, -283.33337, 352.22226, -190, 158.88895, -96.666626, 36.666687)
+disabled = true
+
+[node name="IdleHitboxFrame8" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1260530091]
+visible = false
+position = Vector2(-57, 57)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(50, -67.7778, 70, -212.22226, 39.999878, -318.88895, -50.000122, -445.5555, 66.666504, -432.22226, 116.666504, -396.66672, 176.6665, -325.55557, 196.6665, -247.7778, 186.66663, -83.33334, 140, 30, 76.666626, 110, 13.333374, 165.55557, -90, 341.11115, -66.666626, 490.00003, -300, 485.5556, -296.66675, 312.2223, -260, 223.33337, -96.666626, 81.111115)
+disabled = true
+
+[node name="IdleHitboxFrame9" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1560603806]
+position = Vector2(-57, 57)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+polygon = PackedVector2Array(-30, -34, 53.333374, -94.44449, 96.666626, -174.44449, 86.666504, -263.33334, -43.333496, -378.8889, -86.66675, -409.99997, -83.333496, -443.33334, 19.999878, -432.22226, 116.666504, -387.7778, 186.6665, -332.22226, 206.6665, -285.55557, 233.33325, -238.88895, 230, -170.00003, 173.33337, -52.22226, 46.666626, 81.111115, -66.666626, 221.11111, -116.666626, 363.33337, -56.666626, 485.5556, -323.33325, 498.88895, -343.33325, 370.00006, -273.33337, 241.11116, -216.66663, 145.5556)
+disabled = true
 
 [node name="Tentacle_TopRight" type="Area2D" parent="CornerTentacles" unique_id=1127991994]
 position = Vector2(1297, 109.000015)
@@ -36777,7 +36897,7 @@ texture = ExtResource("31_hexin")
 scale = Vector2(0.09, 0.09)
 texture = ExtResource("31_hexin")
 
-[node name="CoreLight" type="PointLight2D" parent="BossCore"]
+[node name="CoreLight" type="PointLight2D" parent="BossCore" unique_id=2062499720]
 visible = false
 enabled = false
 color = Color(0.72, 0.02, 0.07, 1)
@@ -36801,6 +36921,7 @@ position = Vector2(1460, 520)
 
 [node name="BossManager" type="Node2D" parent="." unique_id=696700648]
 script = ExtResource("27_boss_manager")
+debug_start_phase_two = true
 electric_wire_scene = ExtResource("29_wire_scene")
 lightning_area_scene = ExtResource("30_lightning_scene")
 tentacles_path = NodePath("../CornerTentacles")
@@ -36809,11 +36930,11 @@ core_open_background_path = NodePath("../Bosslevel2Bg")
 wire_spawn_points_path = NodePath("../WireSpawnPoints")
 lightning_spawn_points_path = NodePath("../LightningSpawnPoints")
 
-[node name="VoidRespawn" type="Area2D" parent="."]
+[node name="VoidRespawn" type="Area2D" parent="." unique_id=1378136573]
 position = Vector2(960, 1220)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("33_death_pit")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="VoidRespawn"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VoidRespawn" unique_id=1656963867]
 shape = SubResource("RectangleShape2D_void_respawn")

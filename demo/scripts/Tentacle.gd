@@ -49,6 +49,10 @@ var _touch_targets := {}
 var _flash_tween: Tween
 var _cycle_version := 0
 var _spawn_warning_active := false
+var attack_frame_hitboxes: Array[Node] = []
+var idle_frame_hitboxes: Array[Node] = []
+var idle_base_shape: CollisionShape2D
+var _last_idle_hitbox_frame := -1
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
 @onready var attack_area: Area2D = get_node_or_null("AttackArea") as Area2D
@@ -78,6 +82,11 @@ func _ready() -> void:
 		attack_area.body_entered.connect(_on_attack_body_entered)
 	if attack_shape != null:
 		attack_shape.set("disabled", true)
+	_collect_attack_frame_hitboxes()
+	_disable_attack_frame_hitboxes()
+	idle_base_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
+	_collect_idle_frame_hitboxes()
+	_update_idle_frame_hitbox()
 	if attack_visual != null:
 		attack_visual.visible = false
 	if corner_attack_visual != null:
@@ -88,6 +97,10 @@ func _ready() -> void:
 		_start_timed_cycle()
 	if top_tentacle and not timed_cycle_enabled:
 		call_deferred("_top_visibility_loop")
+
+
+func _physics_process(_delta: float) -> void:
+	_update_idle_frame_hitbox()
 
 
 func set_manager(new_manager: Node) -> void:
@@ -289,8 +302,37 @@ func _timed_cycle_loop(cycle_token: int) -> void:
 func _set_attack_enabled(enabled: bool) -> void:
 	if attack_area != null:
 		attack_area.set_deferred("monitoring", enabled)
-	if attack_shape != null:
+	if not attack_frame_hitboxes.is_empty():
+		if enabled:
+			_disable_attack_frame_hitboxes()
+		else:
+			_disable_attack_frame_hitboxes()
+	elif attack_shape != null:
 		attack_shape.set_deferred("disabled", not enabled)
+
+
+func _collect_attack_frame_hitboxes() -> void:
+	attack_frame_hitboxes.clear()
+	if attack_area == null:
+		return
+	for frame_number in range(1, 16):
+		var hitbox := attack_area.get_node_or_null("HitboxFrame%d" % frame_number)
+		if hitbox == null:
+			continue
+		attack_frame_hitboxes.append(hitbox)
+
+
+func _disable_attack_frame_hitboxes() -> void:
+	for hitbox in attack_frame_hitboxes:
+		hitbox.set_deferred("disabled", true)
+
+
+func _set_attack_frame_hitbox(frame_number: int) -> void:
+	if attack_frame_hitboxes.is_empty():
+		return
+	for i in range(attack_frame_hitboxes.size()):
+		var hitbox := attack_frame_hitboxes[i]
+		hitbox.set_deferred("disabled", i != frame_number - 1)
 
 
 func _set_body_visible(body_visible: bool) -> void:
@@ -298,6 +340,7 @@ func _set_body_visible(body_visible: bool) -> void:
 	visible = body_visible
 	monitorable = body_visible
 	monitoring = body_visible
+	_set_idle_hitboxes_enabled(body_visible)
 	if body_visible:
 		call_deferred("_damage_current_touch_overlaps")
 
@@ -324,6 +367,7 @@ func _hide_spawn_warning() -> void:
 	visible = false
 	monitorable = false
 	monitoring = false
+	_set_idle_hitboxes_enabled(false)
 
 
 func _can_show_timed_cycle_body() -> bool:
@@ -343,6 +387,48 @@ func _can_show_timed_cycle_body() -> bool:
 			visible_count += 1
 
 	return visible_count < max_visible_timed_cycle_siblings
+
+
+func _collect_idle_frame_hitboxes() -> void:
+	idle_frame_hitboxes.clear()
+	for frame_number in range(1, 16):
+		var hitbox := get_node_or_null("IdleHitboxFrame%d" % frame_number)
+		if hitbox == null:
+			continue
+		idle_frame_hitboxes.append(hitbox)
+	if not idle_frame_hitboxes.is_empty() and idle_base_shape != null:
+		idle_base_shape.disabled = true
+
+
+func _set_idle_hitboxes_enabled(enabled: bool) -> void:
+	if idle_frame_hitboxes.is_empty():
+		if idle_base_shape != null:
+			idle_base_shape.set_deferred("disabled", not enabled)
+		return
+	for hitbox in idle_frame_hitboxes:
+		hitbox.set_deferred("disabled", true)
+	if enabled:
+		_last_idle_hitbox_frame = -1
+		_update_idle_frame_hitbox()
+
+
+func _update_idle_frame_hitbox() -> void:
+	if idle_frame_hitboxes.is_empty():
+		return
+	if not visible or not monitorable or _dead or _spawn_warning_active:
+		for hitbox in idle_frame_hitboxes:
+			hitbox.set_deferred("disabled", true)
+		return
+	if not (visual is AnimatedSprite2D):
+		return
+	var idle_sprite := visual as AnimatedSprite2D
+	var frame_number := idle_sprite.frame + 1
+	if frame_number == _last_idle_hitbox_frame:
+		return
+	_last_idle_hitbox_frame = frame_number
+	for i in range(idle_frame_hitboxes.size()):
+		var hitbox := idle_frame_hitboxes[i]
+		hitbox.set_deferred("disabled", i != frame_number - 1)
 
 
 func _on_attack_area_entered(area: Area2D) -> void:
@@ -536,13 +622,38 @@ func _corner_attack_once() -> void:
 		corner_sprite.stop()
 		corner_sprite.frame = 0
 		corner_sprite.play("attack")
-	_set_attack_enabled(true)
-	await get_tree().physics_frame
-	_damage_current_overlaps()
-	await get_tree().create_timer(attack_active_time).timeout
-	_set_attack_enabled(false)
+		if attack_frame_hitboxes.is_empty():
+			_set_attack_enabled(true)
+			await get_tree().physics_frame
+			_damage_current_overlaps()
+			await get_tree().create_timer(attack_active_time).timeout
+			_set_attack_enabled(false)
+		else:
+			await _run_corner_attack_frame_hitboxes(corner_sprite)
+	else:
+		_set_attack_enabled(true)
+		await get_tree().physics_frame
+		_damage_current_overlaps()
+		await get_tree().create_timer(attack_active_time).timeout
+		_set_attack_enabled(false)
 	_hide_corner_attack_visual()
 	_notify_tentacle_attack_finished(attack_slot_claimed)
+
+
+func _run_corner_attack_frame_hitboxes(corner_sprite: AnimatedSprite2D) -> void:
+	_set_attack_enabled(true)
+	var elapsed := 0.0
+	var last_frame := -1
+	while elapsed < attack_active_time and _can_continue_corner_attack():
+		var frame_number := corner_sprite.frame + 1
+		if frame_number != last_frame:
+			_set_attack_frame_hitbox(frame_number)
+			await get_tree().physics_frame
+			_damage_current_overlaps()
+			last_frame = frame_number
+		await get_tree().physics_frame
+		elapsed += get_physics_process_delta_time()
+	_set_attack_enabled(false)
 
 
 func _play_corner_prep_animation() -> float:
