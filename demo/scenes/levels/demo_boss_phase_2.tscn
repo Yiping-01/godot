@@ -36,6 +36,20 @@
 [ext_resource type="Texture2D" uid="uid://dvc80j4biwb2k" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_02.png" id="39_attack_2"]
 [ext_resource type="Texture2D" uid="uid://10tor0eyid7a" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_03.png" id="40_attack_3"]
 [ext_resource type="Texture2D" uid="uid://df8fm05wvrlx0" path="res://demo/assets/art/legacy/background/radial_warm_light.png" id="41_core_light"]
+[ext_resource type="Texture2D" uid="uid://dwy7iyux88p44" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_01.png" id="42_out_1"]
+[ext_resource type="Texture2D" uid="uid://r0ny1l0mh7wc" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_02.png" id="43_out_2"]
+[ext_resource type="Texture2D" uid="uid://d2t28xlpeqfaa" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_03.png" id="44_out_3"]
+[ext_resource type="Texture2D" uid="uid://dotwavwuh74cm" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_04.png" id="45_out_4"]
+[ext_resource type="Texture2D" uid="uid://c7fcdw3tev3ji" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_05.png" id="46_out_5"]
+[ext_resource type="Texture2D" uid="uid://dykq2qfymwwuc" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_06.png" id="47_out_6"]
+[ext_resource type="Texture2D" uid="uid://bqdix6w14s8ir" path="res://demo/assets/boss/bosshand_out/boss01_v2_out_07.png" id="48_out_7"]
+[ext_resource type="Texture2D" uid="uid://bwfqi1511haqs" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_01.png" id="49_back_1"]
+[ext_resource type="Texture2D" uid="uid://bldyillpvxnxu" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_02.png" id="50_back_2"]
+[ext_resource type="Texture2D" uid="uid://b2sf8hvxabuty" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_03.png" id="51_back_3"]
+[ext_resource type="Texture2D" uid="uid://bxsl1mhx6f7m2" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_04.png" id="52_back_4"]
+[ext_resource type="Texture2D" uid="uid://di4mruogllpet" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_05.png" id="53_back_5"]
+[ext_resource type="Texture2D" uid="uid://drdlm2e1vs05s" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_06.png" id="54_back_6"]
+[ext_resource type="Texture2D" uid="uid://bq8n2cv0bol1m" path="res://demo/assets/boss/bosshand_back/boss01_v2_back_07.png" id="55_back_7"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_68waa"]
 texture = ExtResource("2_rock_tiles")
@@ -36240,6 +36254,64 @@ animations = [{
 "speed": 6.0
 }]
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_bosshand_out"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("42_out_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("43_out_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("44_out_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("45_out_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("46_out_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("47_out_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("48_out_7")
+}],
+"loop": false,
+"name": &"out",
+"speed": 8.0
+}]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_bosshand_back"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("49_back_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("50_back_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("51_back_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("52_back_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("53_back_5")
+}, {
+"duration": 1.0,
+"texture": ExtResource("54_back_6")
+}, {
+"duration": 1.0,
+"texture": ExtResource("55_back_7")
+}],
+"loop": false,
+"name": &"back",
+"speed": 12.0
+}]
+
 [sub_resource type="SpriteFrames" id="SpriteFrames_corner_tentacle_attack"]
 animations = [{
 "frames": [{
@@ -36353,7 +36425,7 @@ scale = Vector2(1.2, 1.2)
 texture = ExtResource("1_26lsi")
 
 [node name="Player" parent="." unique_id=499235982 instance=ExtResource("3_hg18j")]
-position = Vector2(457, 168)
+position = Vector2(1183, 965)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=622360063]
 position = Vector2(960, 384)
@@ -36570,7 +36642,7 @@ attack_active_time = 0.8
 top_tentacle = true
 timed_cycle_enabled = true
 timed_cycle_hidden_time = 3.0
-timed_cycle_spawn_warning_time = 1.0
+timed_cycle_attack_before_hide = true
 max_visible_timed_cycle_siblings = 3
 attack_visual_tint = false
 align_attack_visual_to_visual = true
@@ -36586,6 +36658,22 @@ sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_left")
 animation = &"idle"
 autoplay = "idle"
 frame = 3
+
+[node name="SpawnOut" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=279861159]
+visible = false
+position = Vector2(-57.000008, 57.000008)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_out")
+animation = &"out"
+
+[node name="SpawnBack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1061578553]
+visible = false
+position = Vector2(-57.000008, 57.000008)
+rotation = 3.1415927
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_back")
+animation = &"back"
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1852209610]
 position = Vector2(-55.000008, 38.66666)
@@ -36737,7 +36825,7 @@ attack_warning_time = 2.0
 attack_active_time = 0.8
 top_tentacle = true
 timed_cycle_enabled = true
-timed_cycle_spawn_warning_time = 1.0
+timed_cycle_attack_before_hide = true
 max_visible_timed_cycle_siblings = 3
 attack_visual_tint = false
 align_attack_visual_to_visual = true
@@ -36752,6 +36840,24 @@ sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_right")
 animation = &"idle"
 autoplay = "idle"
 frame = 8
+
+[node name="SpawnOut" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=924867064]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_out")
+animation = &"out"
+frame = 6
+frame_progress = 1.0
+
+[node name="SpawnBack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=341836505]
+visible = false
+position = Vector2(28.999996, 64.99999)
+rotation = 3.1415927
+scale = Vector2(-0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_back")
+animation = &"back"
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopRight" unique_id=1669556620]
 visible = false
@@ -36906,12 +37012,12 @@ attack_warning_time = 2.0
 attack_active_time = 0.8
 timed_cycle_enabled = true
 timed_cycle_attack_before_hide = true
-timed_cycle_spawn_warning_time = 1.0
 max_visible_timed_cycle_siblings = 3
 attack_visual_tint = false
 align_attack_visual_to_visual = true
 hide_visual_during_attack = true
 corner_prep_sequence_index = 2
+bottom_spawn_hint_offset = Vector2(20, 135)
 
 [node name="Visual" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=225720322]
 position = Vector2(4, 11.999998)
@@ -36920,6 +37026,20 @@ sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_right")
 animation = &"idle"
 autoplay = "idle"
 frame = 8
+
+[node name="SpawnOut" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1590304016]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_out")
+animation = &"out"
+
+[node name="SpawnBack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1391148515]
+visible = false
+position = Vector2(4, 11.999998)
+scale = Vector2(0.3, 0.3)
+sprite_frames = SubResource("SpriteFrames_bosshand_back")
+animation = &"back"
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomLeft" unique_id=1790497365]
 visible = false
@@ -37063,12 +37183,12 @@ attack_active_time = 0.8
 timed_cycle_enabled = true
 timed_cycle_hidden_time = 3.0
 timed_cycle_attack_before_hide = true
-timed_cycle_spawn_warning_time = 1.0
 max_visible_timed_cycle_siblings = 3
 attack_visual_tint = false
 align_attack_visual_to_visual = true
 hide_visual_during_attack = true
 corner_prep_sequence_index = 3
+bottom_spawn_hint_offset = Vector2(-50, 165)
 
 [node name="Visual" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1322127034]
 position = Vector2(0, -18)
@@ -37077,6 +37197,22 @@ sprite_frames = SubResource("SpriteFrames_corner_tentacle_walk_left")
 animation = &"idle"
 autoplay = "idle"
 frame = 8
+
+[node name="SpawnOut" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1013639927]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+sprite_frames = SubResource("SpriteFrames_bosshand_out")
+animation = &"out"
+
+[node name="SpawnBack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=45059243]
+visible = false
+position = Vector2(0, -18)
+scale = Vector2(0.34, 0.34)
+sprite_frames = SubResource("SpriteFrames_bosshand_back")
+animation = &"back"
+frame = 6
+frame_progress = 1.0
 
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_BottomRight" unique_id=1374141300]
 visible = false

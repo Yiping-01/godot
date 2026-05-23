@@ -30,8 +30,16 @@ extends Area2D
 @export var corner_prep_random_delay_min := 0.0
 @export var corner_prep_random_delay_max := 0.22
 @export var corner_prep_attack_link_frame := 4
+@export var post_attack_walk_frame_time_scale := 1.1
 @export var attack_retry_wait_min := 0.3
 @export var attack_retry_wait_max := 0.8
+@export var spawn_hint_enabled := true
+@export var spawn_hint_duration := 3.0
+@export var spawn_hint_color := Color(1.0, 0.28, 0.06, 0.42)
+@export var spawn_hint_particle_color := Color(1.0, 0.68, 0.22, 0.92)
+@export var spawn_hint_width := 120.0
+@export var top_spawn_hint_offset := Vector2(0.0, -150.0)
+@export var bottom_spawn_hint_offset := Vector2(0.0, 120.0)
 
 const CORNER_PREP_SEQUENCES := [
 	[4, 5, 6, 7, 6, 5, 4],
@@ -39,6 +47,7 @@ const CORNER_PREP_SEQUENCES := [
 	[3, 4, 5, 6, 7, 6, 5, 4],
 	[8, 7, 6, 5, 4],
 ]
+const CORNER_POST_ATTACK_WALK_SEQUENCE := [4, 5, 6, 7, 6, 5, 4, 3, 2, 1, 2, 3, 4]
 
 var health := 0
 var manager: Node
@@ -53,12 +62,16 @@ var attack_frame_hitboxes: Array[Node] = []
 var idle_frame_hitboxes: Array[Node] = []
 var idle_base_shapes: Array[Node] = []
 var _last_idle_hitbox_frame := -1
+var spawn_hint_particles: CPUParticles2D
+var spawn_hint_tween: Tween
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
 @onready var attack_area: Area2D = get_node_or_null("AttackArea") as Area2D
 @onready var attack_visual: CanvasItem = get_node_or_null("AttackWarning") as CanvasItem
 @onready var fan_warning_visual: CanvasItem = get_node_or_null("FanWarning") as CanvasItem
 @onready var corner_attack_visual: CanvasItem = get_node_or_null("CornerAttack") as CanvasItem
+@onready var spawn_out_visual: CanvasItem = get_node_or_null("SpawnOut") as CanvasItem
+@onready var spawn_back_visual: CanvasItem = get_node_or_null("SpawnBack") as CanvasItem
 @onready var attack_shape: Node = _get_attack_collision_node()
 
 
@@ -85,15 +98,21 @@ func _ready() -> void:
 	_collect_attack_frame_hitboxes()
 	_disable_attack_frame_hitboxes()
 	_collect_idle_frame_hitboxes()
+	_setup_spawn_hint_effect()
 	_update_idle_frame_hitbox()
 	if attack_visual != null:
 		attack_visual.visible = false
 	if corner_attack_visual != null:
 		corner_attack_visual.visible = false
-	call_deferred("_attack_loop")
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
+	if spawn_back_visual != null:
+		spawn_back_visual.visible = false
 	if timed_cycle_enabled:
 		_set_body_visible(false)
 		_start_timed_cycle()
+	else:
+		call_deferred("_attack_loop")
 	if top_tentacle and not timed_cycle_enabled:
 		call_deferred("_top_visibility_loop")
 
@@ -119,6 +138,10 @@ func respawn() -> void:
 		attack_visual.visible = false
 	if corner_attack_visual != null:
 		corner_attack_visual.visible = false
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
+	if spawn_back_visual != null:
+		spawn_back_visual.visible = false
 	_set_attack_enabled(false)
 	if timed_cycle_enabled:
 		_start_timed_cycle()
@@ -279,6 +302,18 @@ func _timed_cycle_loop(cycle_token: int) -> void:
 			if not _active:
 				continue
 
+		await _play_spawn_hint_effect()
+		if cycle_token != _cycle_version or _dead:
+			return
+		if not _active:
+			continue
+
+		await _play_spawn_out_animation()
+		if cycle_token != _cycle_version or _dead:
+			return
+		if not _active:
+			continue
+
 		_set_body_visible(true)
 		await get_tree().create_timer(timed_cycle_idle_time).timeout
 		if cycle_token != _cycle_version or _dead:
@@ -291,6 +326,12 @@ func _timed_cycle_loop(cycle_token: int) -> void:
 			if cycle_token != _cycle_version or _dead:
 				return
 
+		await _play_spawn_back_animation()
+		if cycle_token != _cycle_version or _dead:
+			return
+		if not _active:
+			continue
+
 		_set_attack_enabled(false)
 		_hide_attack_visual()
 		_hide_corner_attack_visual()
@@ -300,7 +341,7 @@ func _timed_cycle_loop(cycle_token: int) -> void:
 
 func _set_attack_enabled(enabled: bool) -> void:
 	if attack_area != null:
-		attack_area.set_deferred("monitoring", enabled)
+		attack_area.monitoring = enabled
 	if not attack_frame_hitboxes.is_empty():
 		if enabled:
 			_disable_attack_frame_hitboxes()
@@ -339,6 +380,12 @@ func _set_body_visible(body_visible: bool) -> void:
 	visible = body_visible
 	monitorable = body_visible
 	monitoring = body_visible
+	if not body_visible and spawn_out_visual != null:
+		spawn_out_visual.visible = false
+	if not body_visible and spawn_back_visual != null:
+		spawn_back_visual.visible = false
+	if not body_visible:
+		_hide_spawn_hint_effect()
 	_set_idle_hitboxes_enabled(body_visible)
 	if body_visible:
 		call_deferred("_damage_current_touch_overlaps")
@@ -354,6 +401,8 @@ func _show_spawn_warning() -> void:
 		visual.modulate = spawn_warning_color
 	if corner_attack_visual != null:
 		corner_attack_visual.visible = false
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
 	if fan_warning_visual != null:
 		fan_warning_visual.visible = false
 	_set_attack_enabled(false)
@@ -363,10 +412,159 @@ func _hide_spawn_warning() -> void:
 	_spawn_warning_active = false
 	if visual != null:
 		visual.modulate = Color.WHITE
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
+	if spawn_back_visual != null:
+		spawn_back_visual.visible = false
+	_hide_spawn_hint_effect()
 	visible = false
 	monitorable = false
 	monitoring = false
 	_set_idle_hitboxes_enabled(false)
+
+
+func _play_spawn_out_animation() -> void:
+	if spawn_out_visual == null:
+		return
+	visible = true
+	monitorable = false
+	monitoring = false
+	_set_idle_hitboxes_enabled(false)
+	if visual != null:
+		visual.visible = false
+	if corner_attack_visual != null:
+		corner_attack_visual.visible = false
+	spawn_out_visual.visible = true
+	if spawn_out_visual is AnimatedSprite2D:
+		var spawn_sprite := spawn_out_visual as AnimatedSprite2D
+		spawn_sprite.stop()
+		spawn_sprite.frame = 0
+		spawn_sprite.play("out")
+		await spawn_sprite.animation_finished
+	spawn_out_visual.visible = false
+	_show_corner_idle_visual()
+
+
+func _play_spawn_back_animation() -> void:
+	if spawn_back_visual == null:
+		return
+	visible = true
+	monitorable = false
+	monitoring = false
+	_set_idle_hitboxes_enabled(false)
+	_set_attack_enabled(false)
+	if visual != null:
+		visual.visible = false
+	if corner_attack_visual != null:
+		corner_attack_visual.visible = false
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
+	spawn_back_visual.visible = true
+	if spawn_back_visual is AnimatedSprite2D:
+		var back_sprite := spawn_back_visual as AnimatedSprite2D
+		back_sprite.stop()
+		back_sprite.frame = 0
+		back_sprite.play("back")
+		await back_sprite.animation_finished
+	spawn_back_visual.visible = false
+
+
+func _show_corner_idle_visual() -> void:
+	if visual == null:
+		return
+	visual.visible = true
+	visual.modulate = Color.WHITE
+	if visual is AnimatedSprite2D:
+		var idle_sprite := visual as AnimatedSprite2D
+		var idle_animation := _get_corner_idle_animation(idle_sprite)
+		if idle_sprite.sprite_frames != null and idle_sprite.sprite_frames.has_animation(idle_animation):
+			idle_sprite.play(idle_animation)
+
+
+func _setup_spawn_hint_effect() -> void:
+	spawn_hint_particles = CPUParticles2D.new()
+	spawn_hint_particles.name = "SpawnHintBubbles"
+	spawn_hint_particles.visible = false
+	spawn_hint_particles.emitting = false
+	spawn_hint_particles.one_shot = false
+	spawn_hint_particles.amount = 28
+	spawn_hint_particles.lifetime = 0.95
+	spawn_hint_particles.explosiveness = 0.0
+	spawn_hint_particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_POINTS
+	var hint_direction := Vector2(0.0, 1.0) if top_tentacle else Vector2(0.0, -1.0)
+	spawn_hint_particles.direction = hint_direction
+	spawn_hint_particles.spread = 10.0
+	spawn_hint_particles.gravity = hint_direction * 12.0
+	spawn_hint_particles.initial_velocity_min = 30.0
+	spawn_hint_particles.initial_velocity_max = 105.0
+	spawn_hint_particles.scale_amount_min = 2.4
+	spawn_hint_particles.scale_amount_max = 5.6
+	spawn_hint_particles.color = spawn_hint_particle_color
+	add_child(spawn_hint_particles)
+	_position_spawn_hint_effect()
+
+
+func _position_spawn_hint_effect() -> void:
+	var effect_position := Vector2.ZERO
+	if visual != null:
+		effect_position = visual.position
+	if top_tentacle:
+		effect_position += top_spawn_hint_offset
+	else:
+		effect_position += bottom_spawn_hint_offset
+	if spawn_hint_particles != null:
+		spawn_hint_particles.position = effect_position
+
+
+func _play_spawn_hint_effect() -> void:
+	if not spawn_hint_enabled or spawn_hint_particles == null:
+		return
+	_position_spawn_hint_effect()
+	visible = true
+	monitorable = false
+	monitoring = false
+	_set_idle_hitboxes_enabled(false)
+	if visual != null:
+		visual.visible = false
+	if corner_attack_visual != null:
+		corner_attack_visual.visible = false
+	if spawn_out_visual != null:
+		spawn_out_visual.visible = false
+
+	if spawn_hint_tween != null:
+		spawn_hint_tween.kill()
+	if spawn_hint_particles != null:
+		spawn_hint_particles.emission_points = _spawn_hint_emission_points()
+		spawn_hint_particles.visible = true
+		spawn_hint_particles.restart()
+		spawn_hint_particles.emitting = true
+
+	spawn_hint_tween = create_tween()
+	spawn_hint_tween.tween_interval(spawn_hint_duration)
+	await spawn_hint_tween.finished
+	if spawn_hint_particles != null:
+		spawn_hint_particles.emitting = false
+	await get_tree().create_timer(spawn_hint_particles.lifetime if spawn_hint_particles != null else 0.0).timeout
+	_hide_spawn_hint_effect()
+
+
+func _hide_spawn_hint_effect() -> void:
+	if spawn_hint_tween != null:
+		spawn_hint_tween.kill()
+		spawn_hint_tween = null
+	if spawn_hint_particles != null:
+		spawn_hint_particles.emitting = false
+		spawn_hint_particles.visible = false
+
+
+func _spawn_hint_emission_points() -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var count := 24
+	var step := spawn_hint_width / float(count - 1)
+	var start_x := -spawn_hint_width * 0.5
+	for i in range(count):
+		points.append(Vector2(start_x + step * float(i), 0.0))
+	return points
 
 
 func _can_show_timed_cycle_body() -> bool:
@@ -497,7 +695,7 @@ func _clear_touch_target(target: Node) -> void:
 
 
 func _damage_current_overlaps() -> void:
-	if attack_area == null:
+	if attack_area == null or not attack_area.monitoring:
 		return
 	for area in attack_area.get_overlapping_areas():
 		_damage_target(area)
@@ -634,15 +832,17 @@ func _corner_attack_once() -> void:
 			_damage_current_overlaps()
 			await get_tree().create_timer(attack_active_time).timeout
 			_set_attack_enabled(false)
+			await _play_corner_attack_recoil(corner_sprite)
 		else:
 			await _run_corner_attack_frame_hitboxes(corner_sprite)
+			await _play_corner_attack_recoil(corner_sprite)
 	else:
 		_set_attack_enabled(true)
 		await get_tree().physics_frame
 		_damage_current_overlaps()
 		await get_tree().create_timer(attack_active_time).timeout
 		_set_attack_enabled(false)
-	_hide_corner_attack_visual()
+	await _play_corner_post_attack_walk_sequence()
 	_notify_tentacle_attack_finished(attack_slot_claimed)
 
 
@@ -660,6 +860,59 @@ func _run_corner_attack_frame_hitboxes(corner_sprite: AnimatedSprite2D) -> void:
 		await get_tree().physics_frame
 		elapsed += get_physics_process_delta_time()
 	_set_attack_enabled(false)
+
+
+func _play_corner_attack_recoil(corner_sprite: AnimatedSprite2D) -> void:
+	if corner_sprite.sprite_frames == null or not corner_sprite.sprite_frames.has_animation("attack"):
+		return
+	var frame_count := corner_sprite.sprite_frames.get_frame_count("attack")
+	if frame_count <= 1:
+		return
+	var fps := corner_sprite.sprite_frames.get_animation_speed("attack")
+	var frame_time := 0.08
+	if fps > 0.0:
+		frame_time = 1.0 / fps
+	corner_sprite.stop()
+	for frame_index in range(frame_count - 2, -1, -1):
+		if not _can_continue_corner_attack():
+			return
+		corner_sprite.frame = frame_index
+		await get_tree().create_timer(frame_time).timeout
+
+
+func _play_corner_post_attack_walk_sequence() -> void:
+	if corner_attack_visual != null:
+		if corner_attack_visual is AnimatedSprite2D:
+			var corner_sprite := corner_attack_visual as AnimatedSprite2D
+			corner_sprite.stop()
+		corner_attack_visual.visible = false
+	if fan_warning_visual != null:
+		fan_warning_visual.visible = false
+	if not (visual is AnimatedSprite2D):
+		return
+
+	var idle_sprite := visual as AnimatedSprite2D
+	var idle_animation := _get_corner_idle_animation(idle_sprite)
+	var frame_count := _get_corner_idle_frame_count(idle_sprite, idle_animation)
+	if frame_count <= 0:
+		return
+
+	var frame_time := corner_prep_frame_time
+	if idle_sprite.sprite_frames != null and idle_sprite.sprite_frames.has_animation(idle_animation):
+		var idle_fps := idle_sprite.sprite_frames.get_animation_speed(idle_animation)
+		if idle_fps > 0.0:
+			frame_time = 1.0 / idle_fps
+	frame_time *= post_attack_walk_frame_time_scale
+
+	visual.visible = true
+	visual.modulate = Color.WHITE
+	idle_sprite.stop()
+	idle_sprite.animation = idle_animation
+	for frame_number in CORNER_POST_ATTACK_WALK_SEQUENCE:
+		if not _can_continue_corner_attack():
+			return
+		_set_corner_idle_frame(idle_sprite, frame_number, frame_count)
+		await get_tree().create_timer(frame_time).timeout
 
 
 func _play_corner_prep_animation() -> float:
