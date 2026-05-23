@@ -9,10 +9,17 @@ const HEALTH_BAR_POS := Vector2(190.0, 119.0)
 const HEALTH_BAR_SIZE := Vector2(686.0, 44.0)
 const HEALTH_FILL_POS := Vector2(199.0, 127.0)
 const HEALTH_FILL_SIZE := Vector2(668.0, 28.0)
+const LAST_HEALTH_SPIKE_START := 38.0
+const LAST_HEALTH_SPIKE_PEAK := 58.0
+const LAST_HEALTH_SPIKE_END := 82.0
+const LAST_HEALTH_SPIKE_INSET := 22.0
 const STAMINA_BAR_POS := Vector2(190.0, 165.0)
 const STAMINA_BAR_SIZE := Vector2(585.0, 17.0)
 const STAMINA_FILL_POS := Vector2(197.0, 169.0)
 const STAMINA_FILL_SIZE := Vector2(571.0, 9.0)
+const POTION_DIAMOND_HEIGHT_SCALE := 0.58
+const POTION_DIAMOND_OUTLINE_RADIUS := 24.0
+const POTION_DIAMOND_FILL_RADIUS := 15.0
 const POTION_POINTS := [
 	Vector2(278.0, 84.0),
 	Vector2(388.0, 84.0),
@@ -20,7 +27,7 @@ const POTION_POINTS := [
 ]
 
 var hud_root: Control
-var health_fill: ColorRect
+var health_fill: Polygon2D
 var stamina_fill: ColorRect
 var potion_fills: Array[Polygon2D] = []
 
@@ -64,12 +71,9 @@ func _build_top_hud() -> void:
 
 	_add_health_bar_frame()
 
-	health_fill = ColorRect.new()
+	health_fill = Polygon2D.new()
 	health_fill.name = "HealthFill"
-	health_fill.position = HEALTH_FILL_POS
-	health_fill.size = HEALTH_FILL_SIZE
 	health_fill.color = Color(0.96, 0.25, 0.42, 0.98)
-	health_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_root.add_child(health_fill)
 
 	_add_stamina_bar_frame()
@@ -84,7 +88,7 @@ func _build_top_hud() -> void:
 
 	for center in POTION_POINTS:
 		var outline := Line2D.new()
-		outline.points = _diamond_points(center, 19.0)
+		outline.points = _diamond_points(center, POTION_DIAMOND_OUTLINE_RADIUS)
 		outline.closed = true
 		outline.default_color = Color(1.0, 0.68, 0.38, 0.96)
 		outline.width = 5.0
@@ -92,7 +96,7 @@ func _build_top_hud() -> void:
 
 		var fill := Polygon2D.new()
 		fill.color = Color(0.95, 0.16, 0.32, 0.95)
-		fill.polygon = _diamond_points(center, 11.0)
+		fill.polygon = _diamond_points(center, POTION_DIAMOND_FILL_RADIUS)
 		hud_root.add_child(fill)
 		potion_fills.append(fill)
 
@@ -107,15 +111,12 @@ func _build_top_hud() -> void:
 	hud_root.add_child(emblem)
 
 func _add_health_bar_frame() -> void:
-	var frame := Panel.new()
+	var frame := Line2D.new()
 	frame.name = "HealthBarFrame"
-	frame.position = HEALTH_BAR_POS
-	frame.size = HEALTH_BAR_SIZE
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_theme_stylebox_override(
-		"panel",
-		_flat_style(Color(0.055, 0.018, 0.026, 0.82), Color(1.0, 0.68, 0.40, 0.98), 4)
-	)
+	frame.points = _health_bar_points(HEALTH_FILL_SIZE.x + 12.0, false)
+	frame.closed = true
+	frame.default_color = Color(1.0, 0.68, 0.40, 0.98)
+	frame.width = 5.0
 	hud_root.add_child(frame)
 
 
@@ -249,8 +250,11 @@ func _connect_player() -> void:
 
 func _on_health_changed(current_health: float, max_health: int) -> void:
 	var ratio := 1.0 if max_health <= 0 else clampf(current_health / float(max_health), 0.0, 1.0)
-	health_fill.size.x = HEALTH_FILL_SIZE.x * ratio
-	health_fill.color = Color(1.0, 0.16, 0.12, 0.98) if current_health <= 1.0 else Color(0.96, 0.27, 0.43, 0.95)
+	var fill_width := HEALTH_FILL_SIZE.x * ratio
+	var last_chance := current_health > 0.0 and current_health <= 1.0
+	health_fill.visible = current_health > 0.0
+	health_fill.color = Color(1.0, 0.16, 0.12, 0.98) if last_chance else Color(0.96, 0.27, 0.43, 0.95)
+	health_fill.polygon = _health_bar_points(fill_width, last_chance)
 
 
 func _on_stamina_changed(current_stamina: float, max_stamina: float) -> void:
@@ -356,11 +360,46 @@ func _back_skill_position(index: int) -> Vector2:
 
 
 func _diamond_points(center: Vector2, radius: float) -> PackedVector2Array:
+	var half_height := radius * POTION_DIAMOND_HEIGHT_SCALE
 	return PackedVector2Array([
-		center + Vector2(0.0, -radius),
+		center + Vector2(0.0, -half_height),
 		center + Vector2(radius, 0.0),
-		center + Vector2(0.0, radius),
+		center + Vector2(0.0, half_height),
 		center + Vector2(-radius, 0.0),
+	])
+
+
+func _health_bar_points(fill_width: float, last_chance: bool) -> PackedVector2Array:
+	var width := fill_width
+	width = clampf(width, 0.0, HEALTH_FILL_SIZE.x)
+	var left := HEALTH_FILL_POS.x
+	var right := HEALTH_FILL_POS.x + width
+	var top := HEALTH_FILL_POS.y
+	var bottom := HEALTH_FILL_POS.y + HEALTH_FILL_SIZE.y
+	if last_chance:
+		return PackedVector2Array([
+			Vector2(left, top),
+			Vector2(left + LAST_HEALTH_SPIKE_PEAK, bottom - LAST_HEALTH_SPIKE_INSET),
+			Vector2(left + LAST_HEALTH_SPIKE_START, bottom),
+			Vector2(left, bottom),
+		])
+	if width <= 0.0:
+		return PackedVector2Array()
+	if width <= LAST_HEALTH_SPIKE_START:
+		return PackedVector2Array([
+			Vector2(left, top),
+			Vector2(right, top),
+			Vector2(right, bottom),
+			Vector2(left, bottom),
+		])
+	return PackedVector2Array([
+		Vector2(left, top),
+		Vector2(right, top),
+		Vector2(right, bottom),
+		Vector2(left + LAST_HEALTH_SPIKE_END, bottom),
+		Vector2(left + LAST_HEALTH_SPIKE_PEAK, bottom - LAST_HEALTH_SPIKE_INSET),
+		Vector2(left + LAST_HEALTH_SPIKE_START, bottom),
+		Vector2(left, bottom),
 	])
 
 

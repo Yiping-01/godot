@@ -51,7 +51,7 @@ var _cycle_version := 0
 var _spawn_warning_active := false
 var attack_frame_hitboxes: Array[Node] = []
 var idle_frame_hitboxes: Array[Node] = []
-var idle_base_shape: CollisionShape2D
+var idle_base_shapes: Array[Node] = []
 var _last_idle_hitbox_frame := -1
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
@@ -84,7 +84,6 @@ func _ready() -> void:
 		attack_shape.set("disabled", true)
 	_collect_attack_frame_hitboxes()
 	_disable_attack_frame_hitboxes()
-	idle_base_shape = get_node_or_null("CollisionShape2D") as CollisionShape2D
 	_collect_idle_frame_hitboxes()
 	_update_idle_frame_hitbox()
 	if attack_visual != null:
@@ -391,20 +390,27 @@ func _can_show_timed_cycle_body() -> bool:
 
 func _collect_idle_frame_hitboxes() -> void:
 	idle_frame_hitboxes.clear()
+	idle_base_shapes.clear()
+	for child in get_children():
+		if child is CollisionShape2D:
+			idle_base_shapes.append(child)
 	for frame_number in range(1, 16):
 		var hitbox := get_node_or_null("IdleHitboxFrame%d" % frame_number)
 		if hitbox == null:
 			continue
 		idle_frame_hitboxes.append(hitbox)
-	if not idle_frame_hitboxes.is_empty() and idle_base_shape != null:
-		idle_base_shape.disabled = true
+	if not idle_frame_hitboxes.is_empty():
+		for base_shape in idle_base_shapes:
+			base_shape.set_deferred("disabled", true)
 
 
 func _set_idle_hitboxes_enabled(enabled: bool) -> void:
 	if idle_frame_hitboxes.is_empty():
-		if idle_base_shape != null:
-			idle_base_shape.set_deferred("disabled", not enabled)
+		for base_shape in idle_base_shapes:
+			base_shape.set_deferred("disabled", not enabled)
 		return
+	for base_shape in idle_base_shapes:
+		base_shape.set_deferred("disabled", true)
 	for hitbox in idle_frame_hitboxes:
 		hitbox.set_deferred("disabled", true)
 	if enabled:
