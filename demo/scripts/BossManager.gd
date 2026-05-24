@@ -17,6 +17,10 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var lightning_strike_count := 3
 @export var lightning_strike_interval := 0.8
 @export var debug_start_phase_two := false
+@export var phase_two_hint_duration := 0.65
+@export var phase_two_hint_hold_time := 0.22
+@export var phase_two_hint_shake_duration := 0.35
+@export var phase_two_hint_shake_strength := 10.0
 @export var electric_wire_scene: PackedScene
 @export var lightning_area_scene: PackedScene
 @export var tentacles_path: NodePath
@@ -34,6 +38,8 @@ var active_wires: Array[Node] = []
 var wire_round_running := false
 var phase_two_started := false
 var active_attacking_tentacle: Node
+var phase_two_hint_canvas_modulate: CanvasModulate
+var phase_two_hint_tween: Tween
 
 @onready var tentacles_root: Node = get_node_or_null(tentacles_path)
 @onready var boss_core: Node = get_node_or_null(boss_core_path)
@@ -45,6 +51,7 @@ var active_attacking_tentacle: Node
 
 func _ready() -> void:
 	health = max_health
+	_setup_phase_two_hint_canvas_modulate()
 	_connect_tentacles()
 	if boss_core != null and boss_core.has_method("set_manager"):
 		boss_core.call("set_manager", self)
@@ -201,7 +208,64 @@ func _enter_phase_two() -> void:
 	phase = 2
 	phase_two_started = true
 	print("Boss phase 2 started")
+	_play_phase_two_transition_hint()
 	call_deferred("_start_wire_round_loop")
+
+
+func _setup_phase_two_hint_canvas_modulate() -> void:
+	phase_two_hint_canvas_modulate = CanvasModulate.new()
+	phase_two_hint_canvas_modulate.name = "PhaseTwoHintCanvasModulate"
+	phase_two_hint_canvas_modulate.color = Color.WHITE
+	add_child(phase_two_hint_canvas_modulate)
+
+
+func _play_phase_two_transition_hint() -> void:
+	if phase_two_hint_canvas_modulate == null:
+		return
+	if phase_two_hint_tween != null:
+		phase_two_hint_tween.kill()
+
+	var deep_blue := Color(0.043, 0.063, 0.125, 1.0) # #0B1020
+	var dark_red := Color(0.133, 0.024, 0.039, 1.0) # #22060A
+	phase_two_hint_canvas_modulate.color = deep_blue
+	_flash_boss_core_for_phase_two()
+	_shake_phase_two_camera()
+
+	phase_two_hint_tween = create_tween()
+	phase_two_hint_tween.tween_property(
+		phase_two_hint_canvas_modulate,
+		"color",
+		dark_red,
+		phase_two_hint_duration
+	)
+	phase_two_hint_tween.tween_interval(phase_two_hint_hold_time)
+	phase_two_hint_tween.tween_property(
+		phase_two_hint_canvas_modulate,
+		"color",
+		Color.WHITE,
+		0.35
+	)
+
+
+func _flash_boss_core_for_phase_two() -> void:
+	if boss_core == null:
+		return
+	if boss_core.has_method("flash_hit"):
+		boss_core.call("flash_hit")
+
+
+func _shake_phase_two_camera() -> void:
+	var camera := get_viewport().get_camera_2d()
+	if camera == null:
+		camera = get_node_or_null("../Camera2D") as Camera2D
+	if camera == null:
+		return
+	if camera.has_method("shake"):
+		camera.call("shake", phase_two_hint_shake_duration, phase_two_hint_shake_strength)
+	elif camera.has_method("start_shake"):
+		camera.call("start_shake", phase_two_hint_shake_duration, phase_two_hint_shake_strength)
+	else:
+		pass # TODO: Add a Camera2D shake method for the phase-two transition hint.
 
 
 func _start_wire_round_loop() -> void:
