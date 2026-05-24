@@ -23,6 +23,11 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var phase_two_hint_hold_time := 0.22
 @export var phase_two_hint_shake_duration := 0.35
 @export var phase_two_hint_shake_strength := 10.0
+@export var low_health_hint_threshold := 30
+@export var low_health_hint_duration := 0.22
+@export var low_health_hint_hold_time := 0.12
+@export var low_health_hint_shake_duration := 0.28
+@export var low_health_hint_shake_strength := 8.0
 @export var electric_wire_scene: PackedScene
 @export var lightning_area_scene: PackedScene
 @export var tentacles_path: NodePath
@@ -39,6 +44,7 @@ var core_open := false
 var active_wires: Array[Node] = []
 var wire_round_running := false
 var phase_two_started := false
+var low_health_hint_started := false
 var active_attacking_tentacle: Node
 var phase_two_hint_canvas_modulate: CanvasModulate
 var phase_two_hint_tween: Tween
@@ -102,6 +108,9 @@ func damage_boss(amount: int) -> void:
 	if health <= 0:
 		_die()
 		return
+
+	if not low_health_hint_started and health <= low_health_hint_threshold:
+		_play_low_health_hint()
 
 	if phase == 1 and health <= phase_two_threshold:
 		_enter_phase_two()
@@ -249,6 +258,34 @@ func _play_phase_two_transition_hint() -> void:
 	)
 
 
+func _play_low_health_hint() -> void:
+	if phase_two_hint_canvas_modulate == null:
+		return
+	low_health_hint_started = true
+	if phase_two_hint_tween != null:
+		phase_two_hint_tween.kill()
+
+	var warning_red := Color(1.0, 0.68, 0.66, 1.0)
+	_flash_boss_core_for_phase_two()
+	_shake_phase_two_camera(low_health_hint_shake_duration, low_health_hint_shake_strength)
+
+	phase_two_hint_canvas_modulate.color = Color.WHITE
+	phase_two_hint_tween = create_tween()
+	phase_two_hint_tween.tween_property(
+		phase_two_hint_canvas_modulate,
+		"color",
+		warning_red,
+		low_health_hint_duration
+	)
+	phase_two_hint_tween.tween_interval(low_health_hint_hold_time)
+	phase_two_hint_tween.tween_property(
+		phase_two_hint_canvas_modulate,
+		"color",
+		Color.WHITE,
+		0.35
+	)
+
+
 func _flash_boss_core_for_phase_two() -> void:
 	if boss_core == null:
 		return
@@ -256,18 +293,26 @@ func _flash_boss_core_for_phase_two() -> void:
 		boss_core.call("flash_hit")
 
 
-func _shake_phase_two_camera() -> void:
+func _shake_phase_two_camera(duration: float = -1.0, strength: float = -1.0) -> void:
+	var shake_duration := phase_two_hint_shake_duration if duration < 0.0 else duration
+	var shake_strength := phase_two_hint_shake_strength if strength < 0.0 else strength
 	var camera := get_viewport().get_camera_2d()
 	if camera == null:
 		camera = get_node_or_null("../Camera2D") as Camera2D
-	if camera == null:
+	if camera != null:
+		if camera.has_method("shake"):
+			camera.call("shake", shake_duration, shake_strength)
+			return
+		if camera.has_method("start_shake"):
+			camera.call("start_shake", shake_duration, shake_strength)
+			return
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("_start_camera_shake"):
+		player.call("_start_camera_shake", shake_duration, shake_strength)
 		return
-	if camera.has_method("shake"):
-		camera.call("shake", phase_two_hint_shake_duration, phase_two_hint_shake_strength)
-	elif camera.has_method("start_shake"):
-		camera.call("start_shake", phase_two_hint_shake_duration, phase_two_hint_shake_strength)
-	else:
-		pass # TODO: Add a Camera2D shake method for the phase-two transition hint.
+
+	pass # TODO: Add a Camera2D shake method for BossManager screen-shake hints.
 
 
 func _start_wire_round_loop() -> void:
