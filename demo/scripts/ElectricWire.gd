@@ -11,15 +11,23 @@ extends Area2D
 @export var right_wire_global_x := 860.0
 @export var weak_point_x_range := 4.0
 @export_range(0.2, 1.0, 0.01) var wire_length_scale := 1.0
+@export var warning_red_color := Color(1.0, 0.08, 0.06, 1.0)
+@export var warning_level_one_flash_speed := 5.5
+@export var warning_level_two_flash_speed := 10.0
 
 var health := 0
 var manager: Node
 var _destroyed := false
 var _flash_tween: Tween
+var _countdown_warning_level := 0
+var _countdown_flash_elapsed := 0.0
 var _base_visual_position := Vector2.ZERO
 var _base_visual_scale := Vector2.ONE
 var _base_collision_position := Vector2.ZERO
 var _base_collision_scale := Vector2.ONE
+var _base_visual_modulate := Color.WHITE
+var _base_core_line_modulate := Color.WHITE
+var _base_weak_point_modulate := Color.WHITE
 var _custom_weak_point_range_enabled := false
 var _custom_weak_point_min_y := 0.0
 var _custom_weak_point_max_y := 0.0
@@ -34,7 +42,9 @@ var _custom_weak_point_max_y := 0.0
 func _ready() -> void:
 	health = max_health
 	_capture_base_wire_transform()
+	_capture_base_modulate()
 	_apply_wire_length_scale()
+	set_process(false)
 	collision_layer = 0
 	collision_mask = 0
 	if weak_point != null:
@@ -45,6 +55,19 @@ func _ready() -> void:
 		var wire_sprite := visual as AnimatedSprite2D
 		wire_sprite.frame = 0
 		wire_sprite.play("build")
+
+
+func _process(delta: float) -> void:
+	if _countdown_warning_level <= 0 or _destroyed:
+		return
+
+	_countdown_flash_elapsed += delta
+	var flash_speed := warning_level_one_flash_speed
+	if _countdown_warning_level >= 2:
+		flash_speed = warning_level_two_flash_speed
+	var pulse := 0.5 + 0.5 * sin(_countdown_flash_elapsed * flash_speed * TAU)
+	var red_amount := lerpf(0.35, 1.0, pulse)
+	_apply_warning_modulate(red_amount)
 
 
 func set_manager(new_manager: Node) -> void:
@@ -65,6 +88,26 @@ func set_weak_point_y_range(new_min_y: float, new_max_y: float) -> void:
 		call_deferred("_randomize_weak_point_position")
 
 
+func set_countdown_warning_level(level: int) -> void:
+	var new_level: int = clampi(level, 0, 2)
+	if _countdown_warning_level == new_level:
+		return
+
+	_countdown_warning_level = new_level
+	_countdown_flash_elapsed = 0.0
+	if _countdown_warning_level <= 0:
+		set_process(false)
+		_restore_base_modulate()
+		return
+
+	set_process(true)
+	_apply_warning_modulate(0.75)
+
+
+func clear_countdown_warning() -> void:
+	set_countdown_warning_level(0)
+
+
 func _capture_base_wire_transform() -> void:
 	if visual is Node2D:
 		var visual_node := visual as Node2D
@@ -73,6 +116,33 @@ func _capture_base_wire_transform() -> void:
 	if collision_shape != null:
 		_base_collision_position = collision_shape.position
 		_base_collision_scale = collision_shape.scale
+
+
+func _capture_base_modulate() -> void:
+	if visual != null:
+		_base_visual_modulate = visual.modulate
+	if core_line != null:
+		_base_core_line_modulate = core_line.modulate
+	if weak_point_visual != null:
+		_base_weak_point_modulate = weak_point_visual.modulate
+
+
+func _apply_warning_modulate(red_amount: float) -> void:
+	if visual != null:
+		visual.modulate = _base_visual_modulate.lerp(warning_red_color, red_amount)
+	if weak_point_visual != null:
+		weak_point_visual.modulate = _base_weak_point_modulate.lerp(warning_red_color, red_amount)
+	if core_line != null:
+		core_line.modulate = _base_core_line_modulate.lerp(Color.WHITE * 2.0, red_amount)
+
+
+func _restore_base_modulate() -> void:
+	if visual != null:
+		visual.modulate = _base_visual_modulate
+	if weak_point_visual != null:
+		weak_point_visual.modulate = _base_weak_point_modulate
+	if core_line != null:
+		core_line.modulate = _base_core_line_modulate
 
 
 func _apply_wire_length_scale() -> void:
@@ -122,6 +192,7 @@ func _destroy() -> void:
 		return
 
 	_destroyed = true
+	clear_countdown_warning()
 	if manager != null and manager.has_method("on_wire_destroyed"):
 		manager.call("on_wire_destroyed", self)
 	queue_free()

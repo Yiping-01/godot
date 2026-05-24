@@ -14,6 +14,8 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var wire_round_count := 3
 @export var wire_round_time := 15.0
 @export var wire_round_cooldown := 3.0
+@export var wire_warning_start_time := 5.0
+@export var wire_fast_warning_start_time := 3.0
 @export var lightning_strike_count := 3
 @export var lightning_strike_interval := 0.8
 @export var debug_start_phase_two := false
@@ -291,6 +293,8 @@ func _run_wire_round() -> void:
 			print("Wire round cleared")
 			wire_round_running = false
 			return
+		var remaining_time := wire_round_time - elapsed
+		_update_wire_countdown_warning(remaining_time)
 		var wait_time := minf(0.1, wire_round_time - elapsed)
 		await get_tree().create_timer(wait_time).timeout
 		elapsed += wait_time
@@ -302,6 +306,8 @@ func _run_wire_round() -> void:
 	if not active_wires.is_empty():
 		for wire in active_wires:
 			if is_instance_valid(wire):
+				if wire.has_method("clear_countdown_warning"):
+					wire.call("clear_countdown_warning")
 				wire.queue_free()
 		active_wires.clear()
 		await _start_lightning_sequence()
@@ -334,6 +340,18 @@ func _spawn_wire_round() -> void:
 				float(spawn_point.get_meta("weak_point_min_y")),
 				float(spawn_point.get_meta("weak_point_max_y"))
 			)
+
+
+func _update_wire_countdown_warning(remaining_time: float) -> void:
+	var warning_level := 0
+	if remaining_time <= wire_fast_warning_start_time:
+		warning_level = 2
+	elif remaining_time <= wire_warning_start_time:
+		warning_level = 1
+
+	for wire in active_wires:
+		if is_instance_valid(wire) and wire.has_method("set_countdown_warning_level"):
+			wire.call("set_countdown_warning_level", warning_level)
 
 
 func on_wire_destroyed(wire: Node) -> void:
