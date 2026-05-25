@@ -9,11 +9,10 @@ const DASH_FRAME_PATHS: Array[String] = [
 ]
 
 const JUMP_FRAME_PATHS: Array[String] = [
-	"res://demo/assets/boss/boss_jump/boss_jump1.png",
-	"res://demo/assets/boss/boss_jump/boss_jump2.png",
-	"res://demo/assets/boss/boss_jump/boss_jump3.png",
-	"res://demo/assets/boss/boss_jump/boss_jump4.png",
-	"res://demo/assets/boss/boss_jump/boss_jump5.png",
+	"res://demo/assets/boss/bossjump/boss01_v1_jump_01.png",
+	"res://demo/assets/boss/bossjump/boss01_v1_jump_02.png",
+	"res://demo/assets/boss/bossjump/boss01_v1_jump_03.png",
+	"res://demo/assets/boss/bossjump/boss01_v1_jump_04.png",
 ]
 
 const THROW_FRAME_PATHS: Array[String] = [
