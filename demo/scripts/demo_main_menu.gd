@@ -11,7 +11,6 @@ const UI_CONFIRM_PATH := "res://demo/assets/audio/scores/jump.wav"
 @onready var language_zh_button: Button = $LanguagePanel/ChineseButton
 @onready var language_en_button: Button = $LanguagePanel/EnglishButton
 @onready var quit_button: Button = $Menu/QuitButton
-@onready var title_label: Label = $TitleLabel
 @onready var subtitle_label: Label = $SubtitleLabel
 @onready var fade_rect: ColorRect = $FadeRect
 
@@ -80,7 +79,6 @@ func _set_language(locale: String) -> void:
 func _update_texts() -> void:
 	var localization := _get_localization()
 	var is_en := localization != null and String(localization.get("current_locale")) == "en"
-	title_label.text = "妳看起來很好吃"
 	subtitle_label.text = ""
 	start_button.text = "Start" if is_en else "開始"
 	continue_button.text = "Continue" if is_en else "繼續"
@@ -136,7 +134,7 @@ func _apply_fonts() -> void:
 	if body_font is Font:
 		_apply_font_to_control_tree(self, body_font)
 
-	title_label.add_theme_font_size_override("font_size", 68)
+
 
 
 func _apply_font_to_control_tree(control: Control, font: Font) -> void:

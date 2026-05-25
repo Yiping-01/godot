@@ -31,6 +31,9 @@ var _base_weak_point_modulate := Color.WHITE
 var _custom_weak_point_range_enabled := false
 var _custom_weak_point_min_y := 0.0
 var _custom_weak_point_max_y := 0.0
+var _custom_weak_point_x_range_enabled := false
+var _custom_weak_point_min_x := 0.0
+var _custom_weak_point_max_x := 0.0
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
 @onready var core_line: CanvasItem = get_node_or_null("CoreLine") as CanvasItem
@@ -84,6 +87,14 @@ func set_weak_point_y_range(new_min_y: float, new_max_y: float) -> void:
 	_custom_weak_point_range_enabled = true
 	_custom_weak_point_min_y = minf(new_min_y, new_max_y)
 	_custom_weak_point_max_y = maxf(new_min_y, new_max_y)
+	if is_node_ready():
+		call_deferred("_randomize_weak_point_position")
+
+
+func set_weak_point_x_range(new_min_x: float, new_max_x: float) -> void:
+	_custom_weak_point_x_range_enabled = true
+	_custom_weak_point_min_x = minf(new_min_x, new_max_x)
+	_custom_weak_point_max_x = maxf(new_min_x, new_max_x)
 	if is_node_ready():
 		call_deferred("_randomize_weak_point_position")
 
@@ -169,8 +180,13 @@ func _randomize_weak_point_position() -> void:
 	elif global_position.x >= right_wire_global_x:
 		min_y = right_weak_point_min_y
 		max_y = right_weak_point_max_y
+	var min_x := -weak_point_x_range
+	var max_x := weak_point_x_range
+	if _custom_weak_point_x_range_enabled:
+		min_x = _custom_weak_point_min_x
+		max_x = _custom_weak_point_max_x
 	weak_point.position = Vector2(
-		randf_range(-weak_point_x_range, weak_point_x_range),
+		randf_range(min_x, max_x),
 		randf_range(min_y, max_y)
 	)
 

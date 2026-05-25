@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bauy8vti8kers"]
 
 [ext_resource type="Script" uid="uid://chfreawbsdwu" path="res://demo/scripts/demo_main_menu.gd" id="1_menu_script"]
+[ext_resource type="Texture2D" uid="uid://bauklvsk4k1xo" path="res://demo/assets/art/backgrounds/home.png" id="2_home_bg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
 content_margin_left = 18.0
@@ -25,14 +26,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu_script")
 
-[node name="Background" type="ColorRect" parent="." unique_id=1794890210]
+[node name="Background" type="TextureRect" parent="." unique_id=1794890210]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025, 0.029, 0.033, 1)
+texture = ExtResource("2_home_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="Dim" type="ColorRect" parent="." unique_id=439989730]
 layout_mode = 1
@@ -42,18 +45,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.42)
-
-[node name="TitleLabel" type="Label" parent="." unique_id=2140594686]
-layout_mode = 0
-offset_left = 420.0
-offset_top = 250.0
-offset_right = 1500.0
-offset_bottom = 342.0
-theme_override_colors/font_color = Color(0.86, 0.98, 1, 0.96)
-theme_override_font_sizes/font_size = 72
-text = "妳看起來很好吃"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="SubtitleLabel" type="Label" parent="." unique_id=1056269251]
 layout_mode = 0

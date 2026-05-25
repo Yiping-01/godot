@@ -23,7 +23,7 @@
 [ext_resource type="Texture2D" uid="uid://b2rtspxrkr6s7" path="res://demo/assets/enemy/Boss/boss_handattack/Boss_attacklong_animation/boss01_v2_attack_07.png" id="26_attack_7"]
 [ext_resource type="Script" uid="uid://b7qw80m64qqfl" path="res://demo/scripts/BossManager.gd" id="27_boss_manager"]
 [ext_resource type="Script" uid="uid://hl71tdjfsf3" path="res://demo/scripts/BossCore.gd" id="28_boss_core"]
-[ext_resource type="PackedScene" path="res://demo/scenes/electric_wire.tscn" id="29_wire_scene"]
+[ext_resource type="PackedScene" uid="uid://d02mg0wjygob6" path="res://demo/scenes/electric_wire.tscn" id="29_wire_scene"]
 [ext_resource type="PackedScene" path="res://demo/scenes/lightning_area.tscn" id="30_lightning_scene"]
 [ext_resource type="Texture2D" uid="uid://ddexjtmr3nvmm" path="res://demo/assets/other/hexin/hexin.png" id="31_hexin"]
 [ext_resource type="Script" uid="uid://5himxrs53jqb" path="res://demo/scripts/boss_maplevel2_intro.gd" id="32_intro"]
@@ -36425,7 +36425,7 @@ scale = Vector2(1.2, 1.2)
 texture = ExtResource("1_26lsi")
 
 [node name="Player" parent="." unique_id=499235982 instance=ExtResource("3_hg18j")]
-position = Vector2(1183, 965)
+position = Vector2(220, 777)
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=622360063]
 position = Vector2(960, 384)
@@ -36463,17 +36463,24 @@ scale = Vector2(11, 1)
 [node name="WireSpawnPoints" type="Node2D" parent="." unique_id=1303178162]
 
 [node name="Point1" type="Marker2D" parent="WireSpawnPoints" unique_id=310420631]
-position = Vector2(288, 528)
-rotation = -2.443461
+position = Vector2(310, 600)
+rotation = -2.268928
+scale = Vector2(1, 2)
+metadata/weak_point_min_x = 75.0
+metadata/weak_point_max_x = 75.0
 
 [node name="Point2" type="Marker2D" parent="WireSpawnPoints" unique_id=1543103608]
-position = Vector2(1075.9999, 520.99994)
+position = Vector2(1150, 521)
 rotation = 2.9548423
+metadata/weak_point_min_x = -8.0
+metadata/weak_point_max_x = -8.0
 
-[node name="Point3" type="Marker2D" parent="WireSpawnPoints" unique_id=345434383]
-position = Vector2(1522.0001, 385.00003)
+[node name="Point3" type="Marker2D" parent="WireSpawnPoints" unique_id=2100000003]
+position = Vector2(1544.0002, 376)
 rotation = 0.32
-metadata/wire_length_scale = 0.62
+metadata/wire_length_scale = 0.9
+metadata/weak_point_min_x = 30.0
+metadata/weak_point_max_x = 30.0
 metadata/weak_point_min_y = -245.0
 metadata/weak_point_max_y = -165.0
 
@@ -37397,6 +37404,7 @@ position = Vector2(1460, 520)
 
 [node name="BossManager" type="Node2D" parent="." unique_id=696700648]
 script = ExtResource("27_boss_manager")
+debug_start_phase_two = true
 electric_wire_scene = ExtResource("29_wire_scene")
 lightning_area_scene = ExtResource("30_lightning_scene")
 tentacles_path = NodePath("../CornerTentacles")

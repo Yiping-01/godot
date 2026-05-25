@@ -385,6 +385,12 @@ func _spawn_wire_round() -> void:
 				float(spawn_point.get_meta("weak_point_min_y")),
 				float(spawn_point.get_meta("weak_point_max_y"))
 			)
+		if wire.has_method("set_weak_point_x_range") and spawn_point.has_meta("weak_point_min_x") and spawn_point.has_meta("weak_point_max_x"):
+			wire.call(
+				"set_weak_point_x_range",
+				float(spawn_point.get_meta("weak_point_min_x")),
+				float(spawn_point.get_meta("weak_point_max_x"))
+			)
 
 
 func _update_wire_countdown_warning(remaining_time: float) -> void:
