@@ -1,6 +1,8 @@
 # Godot 畢業製作
 
-Godot 4.6 project for the current playable demo.
+![Godot](https://img.shields.io/badge/Godot-4.6-blue?logo=godot-engine)
+![GDScript](https://img.shields.io/badge/GDScript-4.x-blue)
+![Status](https://img.shields.io/badge/Status-Demo-orange)
 
 ## Project Layout
 
