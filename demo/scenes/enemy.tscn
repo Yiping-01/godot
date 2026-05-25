@@ -111,6 +111,7 @@ animations = [{
 [node name="Enemy" type="CharacterBody2D" unique_id=2095183717 groups=["enemy"]]
 z_index = 30
 collision_layer = 4
+collision_mask = 3
 script = ExtResource("1_enemy_script")
 max_health = 1
 hurt_knockback = 280.0

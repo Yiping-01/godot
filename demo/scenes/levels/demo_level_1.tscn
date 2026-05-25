@@ -7,29 +7,24 @@
 [ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://demo/scenes/player.tscn" id="5_player"]
 [ext_resource type="PackedScene" uid="uid://0jam8o6gwigo" path="res://demo/scenes/enemy.tscn" id="6_enemy"]
 [ext_resource type="PackedScene" uid="uid://q051cpudn7vw" path="res://demo/scenes/enemy2.tscn" id="7_enemy2"]
-[ext_resource type="PackedScene" path="res://demo/scenes/squid_monster.tscn" id="8_squid"]
+[ext_resource type="PackedScene" uid="uid://drvqu3s7n34dp" path="res://demo/scenes/squid_monster.tscn" id="8_squid"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_floor.tscn" id="9_floor"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_wall.tscn" id="10_wall"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_wall_jump.tscn" id="11_wall_jump"]
 [ext_resource type="Script" uid="uid://cpkysymfeq4cy" path="res://demo/scripts/tutorial_trigger.gd" id="13_tutorial"]
 [ext_resource type="Script" uid="uid://da10xppur5liq" path="res://demo/scripts/map_room_marker.gd" id="14_map_room"]
-[ext_resource type="Script" uid="uid://dxjc2kqq4tgq6" path="res://demo/scripts/water_zone.gd" id="15_water_zone"]
 [ext_resource type="Script" uid="uid://cxg250go8p8y7" path="res://demo/scripts/demo_scene_transition.gd" id="16_transition"]
 [ext_resource type="Script" uid="uid://hid4uidnrebp" path="res://demo/scripts/respawn_point.gd" id="17_respawn"]
 [ext_resource type="Script" uid="uid://do5l6pdvb5aji" path="res://demo/scripts/demo_atmosphere.gd" id="18_atmosphere"]
 [ext_resource type="PackedScene" path="res://demo/scenes/bench.tscn" id="19_bench"]
-[ext_resource type="PackedScene" path="res://demo/scenes/blue_bounce_split_enemy.tscn" id="20_blue_bounce_split"]
 [ext_resource type="Texture2D" uid="uid://caohlb0fr8bia" path="res://demo/assets/art/backgrounds/deepsea_prop_plant.png" id="21_plant"]
 [ext_resource type="Texture2D" uid="uid://i3obiro2qu48" path="res://demo/assets/tiles/floor_stone_tile_01.png" id="22_floor_01"]
 [ext_resource type="Texture2D" uid="uid://btm682gk5r7n7" path="res://demo/assets/tiles/floor_stone_tile_02.png" id="23_floor_02"]
 [ext_resource type="Texture2D" uid="uid://eymdalbpvuen" path="res://demo/assets/tiles/floor_stone_tile_03.png" id="24_floor_03"]
 [ext_resource type="Texture2D" uid="uid://cmn73p08voh0f" path="res://demo/assets/tiles/floor_stone_tile_04.png" id="25_floor_04"]
 [ext_resource type="Texture2D" uid="uid://cgc3pu71iny8r" path="res://demo/assets/art/backgrounds/base_wall_single.png" id="26_wall_texture"]
-[ext_resource type="Script" path="res://demo/scripts/debug_hitbox_overlay.gd" id="27_debug_overlay"]
+[ext_resource type="Script" uid="uid://byewjrqi0yxp" path="res://demo/scripts/debug_hitbox_overlay.gd" id="27_debug_overlay"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_passage_marker.tscn" id="28_passage"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_water"]
-size = Vector2(1520, 760)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_tutorial"]
 size = Vector2(330, 230)
@@ -84,8 +79,9 @@ process_mode = 3
 script = ExtResource("4_exit_menu")
 
 [node name="GameUI" parent="." unique_id=2081608191 instance=ExtResource("3_game_ui")]
+visible = false
 
-[node name="DebugHitboxes" type="Node2D" parent="."]
+[node name="DebugHitboxes" type="Node2D" parent="." unique_id=1797613440]
 script = ExtResource("27_debug_overlay")
 
 [node name="Markers" type="Node2D" parent="." unique_id=255860910]
@@ -421,6 +417,7 @@ texture = ExtResource("26_wall_texture")
 
 [node name="BottomVoidFill" type="Polygon2D" parent="MapPieces" unique_id=548792633]
 z_index = -4
+position = Vector2(-677, 340)
 color = Color(0, 0, 0, 0.92)
 polygon = PackedVector2Array(-120, 738, 5840, 738, 5840, 1040, -120, 1040)
 
@@ -512,15 +509,17 @@ position = Vector2(2290, 636)
 patrol_speed = 85.0
 coin_drop_amount = 2
 
-[node name="DashSquid" parent="Enemies" instance=ExtResource("7_enemy2")]
-position = Vector2(3860, 610)
+[node name="DashSquid" parent="Enemies" unique_id=633863235 instance=ExtResource("7_enemy2")]
+position = Vector2(3888, 631)
+collision_mask = 1
 dash_speed = 760.0
 coin_drop_amount = 3
 patrol_left_limit = 3600.0
 patrol_right_limit = 4140.0
 
-[node name="SlamSquid" parent="Enemies" instance=ExtResource("8_squid")]
-position = Vector2(4680, 596)
+[node name="SlamSquid" parent="Enemies" unique_id=978118013 instance=ExtResource("8_squid")]
+position = Vector2(4712, 645)
+collision_mask = 1
 detect_range = 420.0
 patrol_distance = 130.0
 
@@ -528,8 +527,6 @@ patrol_distance = 130.0
 
 [node name="BossGateBench" parent="Benches" unique_id=2008656967 instance=ExtResource("19_bench")]
 position = Vector2(5180, 654)
-prompt_text = "休息"
-seated_text = "休息"
 
 [node name="Tutorials" type="Node2D" parent="." unique_id=690731777]
 
@@ -697,12 +694,12 @@ transition_label = "下個地點（海水房）"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="BossDoor" unique_id=1501020195]
 shape = SubResource("RectangleShape2D_door")
 
-[node name="BossDoorVisual" parent="BossDoor" instance=ExtResource("28_passage")]
+[node name="BossDoorVisual" parent="BossDoor" unique_id=1786302960 instance=ExtResource("28_passage")]
+modulate = Color(0.58, 0.92, 1, 0.9)
 position = Vector2(0, 12)
 scale = Vector2(0.92, 1.28)
-modulate = Color(0.58, 0.92, 1, 0.9)
 
-[node name="DoorPromptLabel" type="Label" parent="BossDoor"]
+[node name="DoorPromptLabel" type="Label" parent="BossDoor" unique_id=47991199]
 z_index = 8
 offset_left = -86.0
 offset_top = -158.0
@@ -715,4 +712,3 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 19
 text = "下個地點（海水房）"
 horizontal_alignment = 1
-

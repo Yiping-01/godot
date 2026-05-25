@@ -41,6 +41,7 @@ height = 110.0
 
 [node name="BlueBounceSplitEnemy" type="CharacterBody2D" groups=["enemy"]]
 collision_layer = 4
+collision_mask = 3
 script = ExtResource("1_script")
 can_split = true
 small_enemy_scene = ExtResource("7_small_enemy")
