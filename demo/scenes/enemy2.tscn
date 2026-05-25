@@ -145,6 +145,14 @@ frame_progress = 0.56720203
 position = Vector2(1, -4)
 shape = SubResource("RectangleShape2D_enemy2")
 
+[node name="ContactDamageArea" type="Area2D" parent="."]
+position = Vector2(1, -4)
+collision_layer = 32
+collision_mask = 16
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactDamageArea"]
+shape = SubResource("RectangleShape2D_enemy2")
+
 [node name="Hurtbox" type="Area2D" parent="." unique_id=1199551649]
 position = Vector2(1, -10)
 scale = Vector2(1, 0.8)

@@ -36685,10 +36685,11 @@ animation = &"back"
 [node name="CornerAttack" type="AnimatedSprite2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1852209610]
 position = Vector2(-55.000008, 38.66666)
 rotation = 3.1415927
-scale = Vector2(0.3, 0.35333365)
+scale = Vector2(0.3, 0.3)
 sprite_frames = SubResource("SpriteFrames_corner_tentacle_attack")
 animation = &"attack"
 frame = 6
+frame_progress = 1.0
 
 [node name="AttackArea" type="Area2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1037504343]
 monitoring = false
@@ -36700,7 +36701,6 @@ polygon = PackedVector2Array(0, 0, 85, 65, 275, 95, 305, 205, 80, 185)
 disabled = true
 
 [node name="HitboxFrame1" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=1320675859]
-visible = false
 position = Vector2(-40, -95.333336)
 polygon = PackedVector2Array(9, -38, 82, -38, 89, -5.333333, 81, 29.333336, 72, 48.000004, 63, 60.666668, 50, 80.666664, 31, 99.333336, 7, 120.666664, -22, 150.00002, -45, 176.00002, -58, 205.33334, -69, 237.33334, -70, 260, -75, 292.66666, -80, 304, -92, 272.66666, -95, 242.00002, -93, 216.66667, -88, 183.33334, -78, 154.66667, -65, 134.66667, -54, 124, -31, 95.333336, -2, 50.666668, 12, 20, 16, -11.333333)
 disabled = true
@@ -36738,8 +36738,9 @@ polygon = PackedVector2Array(-35.56134, -38.951515, 75.38995, -39.925274, 88.192
 disabled = true
 
 [node name="HitboxFrame7" type="CollisionPolygon2D" parent="CornerTentacles/Tentacle_TopLeft/AttackArea" unique_id=62653295]
-position = Vector2(-168, -164.66667)
-polygon = PackedVector2Array(30, 30, 54, 53.333332, 81, 58.666664, 121, 56.666664, 158, 60.666664, 206, 89.333336, 236, 116.66667, 252, 140.66667, 254, 164.66667, 203, 124, 162, 104.66667, 107, 105.333336, 39, 118, 14, 112, -18, 90.666664, -32, 74.666664)
+visible = false
+position = Vector2(-163, -153.33334)
+polygon = PackedVector2Array(31, 42.66668, 54, 61.333347, 92, 70.000015, 126, 66.000015, 161, 73.33334, 206, 89.333336, 236, 116.66667, 252, 140.66667, 254, 164.66667, 207, 127.33334, 165, 111.33334, 109, 108.000015, 39, 118, 12, 112.66668, -20, 100.000015, -40, 84.000015, -24, 52.00001)
 disabled = true
 
 [node name="FanWarning" type="Polygon2D" parent="CornerTentacles/Tentacle_TopLeft" unique_id=1217864189]

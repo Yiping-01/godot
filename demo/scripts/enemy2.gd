@@ -34,6 +34,7 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 @onready var hurtbox: Area2D = $Hurtbox
 @onready var damage_area: Area2D = $DamageArea
 @onready var damage_shape: CollisionShape2D = $DamageArea/CollisionShape2D
+@onready var contact_damage_area: Area2D = get_node_or_null("ContactDamageArea") as Area2D
 @onready var hit_effect: AnimatedSprite2D = $HitEffect
 @onready var damage_audio: AudioStreamPlayer2D = $DamageAudio
 @onready var death_audio: AudioStreamPlayer2D = $DeathAudio
@@ -59,6 +60,10 @@ func _ready() -> void:
 	add_to_group("enemy")
 	damage_area_offset_x = absf(damage_area.position.x)
 	damage_area.area_entered.connect(_on_damage_area_entered)
+	if contact_damage_area != null:
+		contact_damage_area.area_entered.connect(_on_contact_damage_area_entered)
+		contact_damage_area.monitoring = true
+		call_deferred("_damage_current_contact_overlaps")
 	hit_effect.animation_finished.connect(_on_hit_effect_animation_finished)
 	hit_effect.visible = false
 	_set_damage_area_enabled(false)
@@ -329,6 +334,9 @@ func _die() -> void:
 	hurtbox.set_deferred("monitorable", false)
 	damage_area.set_deferred("monitoring", false)
 	damage_area.set_deferred("monitorable", false)
+	if contact_damage_area != null:
+		contact_damage_area.set_deferred("monitoring", false)
+		contact_damage_area.set_deferred("monitorable", false)
 	_play_audio(death_audio)
 	sprite.modulate = Color(1.0, 0.35, 0.28, 0.9)
 	call_deferred("_drop_coins")
@@ -378,6 +386,26 @@ func _on_damage_area_entered(area: Area2D) -> void:
 	if receiver == null:
 		return
 
+	receiver.call("take_damage", contact_damage, global_position)
+
+
+func _on_contact_damage_area_entered(area: Area2D) -> void:
+	if is_dead:
+		return
+	_damage_contact_target(area)
+
+
+func _damage_current_contact_overlaps() -> void:
+	if is_dead or contact_damage_area == null:
+		return
+	for area in contact_damage_area.get_overlapping_areas():
+		_damage_contact_target(area)
+
+
+func _damage_contact_target(area: Area2D) -> void:
+	var receiver := _find_damage_receiver(area)
+	if receiver == null:
+		return
 	receiver.call("take_damage", contact_damage, global_position)
 
 

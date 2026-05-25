@@ -27,6 +27,9 @@ size = Vector2(177, 120)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_damage"]
 size = Vector2(132, 46)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_contact"]
+size = Vector2(250, 250)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_quake_damage"]
 size = Vector2(980, 134)
 
@@ -123,7 +126,6 @@ idle_decision_time = 0.42
 rest_time = 1.25
 attack_range = 940.0
 close_attack_range = 330.0
-body_contact_damage_enabled = false
 quake_windup_time = 0.72
 quake_damage_width = 980.0
 quake_damage_hitbox_height = 134.0
@@ -197,6 +199,15 @@ color = Color(0.8, 0.98, 1, 0.52)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Boss" unique_id=154871719]
 scale = Vector2(1, 1.2)
 shape = SubResource("RectangleShape2D_boss")
+
+[node name="BodyContactArea" type="Area2D" parent="Boss"]
+position = Vector2(0, -12)
+collision_layer = 32
+collision_mask = 16
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/BodyContactArea"]
+shape = SubResource("RectangleShape2D_boss_contact")
 
 [node name="DamageArea" type="Area2D" parent="Boss" unique_id=1646172298]
 position = Vector2(-90, 42)

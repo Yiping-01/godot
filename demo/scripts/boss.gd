@@ -41,6 +41,7 @@ const THROW_FRAME_PATHS: Array[String] = [
 @export var vertical_tolerance: float = 180.0
 @export var contact_damage: int = 1
 @export var body_contact_damage_enabled: bool = true
+@export var body_contact_damage_interval: float = 0.35
 @export var dash_telegraph_length: float = 720.0
 @export var dash_telegraph_y_offset: float = 95.0
 @export var dash_hitbox_size := Vector2(132.0, 46.0)
@@ -172,6 +173,8 @@ var intro_next_ring_time := 0.0
 var intro_audio: AudioStreamPlayer
 var body_contact_area: Area2D
 var body_contact_shape: CollisionShape2D
+var body_contact_targets: Array[Area2D] = []
+var body_contact_damage_cooldown := 0.0
 var target: Node2D
 var is_defeated := false
 var telegraph_node: Node2D
@@ -261,7 +264,7 @@ func _physics_process(delta: float) -> void:
 
 	_update_boss_animation(delta)
 	move_and_slide()
-	_damage_body_contact_overlaps()
+	_update_body_contact_damage(delta)
 
 
 func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
@@ -307,6 +310,7 @@ func _begin_death_sequence() -> void:
 	if body_contact_area != null:
 		body_contact_area.set_deferred("monitoring", false)
 		body_contact_area.set_deferred("monitorable", false)
+	body_contact_targets.clear()
 	DEMO_COMBAT_JUICE.shake_camera(self, 1.15, 18.0)
 	_notify_boss_defeat_started()
 	_play_demo_defeat_sfx()
@@ -1517,41 +1521,73 @@ func _damage_anti_pogo_area_overlaps() -> void:
 
 
 func _setup_body_contact_area() -> void:
-	if not body_contact_damage_enabled or collision_shape == null or collision_shape.shape == null:
+	if not body_contact_damage_enabled:
 		return
 
-	body_contact_area = Area2D.new()
-	body_contact_area.name = "BodyContactArea"
+	body_contact_area = get_node_or_null("BodyContactArea") as Area2D
+	if body_contact_area == null:
+		if collision_shape == null or collision_shape.shape == null:
+			return
+		body_contact_area = Area2D.new()
+		body_contact_area.name = "BodyContactArea"
+		add_child(body_contact_area)
+
 	body_contact_area.collision_layer = 32
 	body_contact_area.collision_mask = 16
 	body_contact_area.monitoring = true
 	body_contact_area.monitorable = false
-	body_contact_area.area_entered.connect(_on_body_contact_area_entered)
-	add_child(body_contact_area)
+	if not body_contact_area.area_entered.is_connected(_on_body_contact_area_entered):
+		body_contact_area.area_entered.connect(_on_body_contact_area_entered)
+	if not body_contact_area.area_exited.is_connected(_on_body_contact_area_exited):
+		body_contact_area.area_exited.connect(_on_body_contact_area_exited)
 
-	body_contact_shape = CollisionShape2D.new()
-	body_contact_shape.shape = collision_shape.shape
-	body_contact_shape.position = collision_shape.position
-	body_contact_shape.rotation = collision_shape.rotation
-	body_contact_shape.scale = collision_shape.scale
-	body_contact_area.add_child(body_contact_shape)
+	body_contact_shape = body_contact_area.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if body_contact_shape == null and collision_shape != null and collision_shape.shape != null:
+		body_contact_shape = CollisionShape2D.new()
+		body_contact_shape.name = "CollisionShape2D"
+		body_contact_shape.shape = collision_shape.shape
+		body_contact_shape.position = collision_shape.position
+		body_contact_shape.rotation = collision_shape.rotation
+		body_contact_shape.scale = collision_shape.scale
+		body_contact_area.add_child(body_contact_shape)
 
 
-func _damage_body_contact_overlaps() -> void:
+func _update_body_contact_damage(delta: float) -> void:
 	if intro_time_left > 0.0 or body_contact_area == null:
 		return
+	if not body_contact_area.monitoring:
+		return
 
-	for area in body_contact_area.get_overlapping_areas():
+	body_contact_damage_cooldown -= delta
+	if body_contact_damage_cooldown > 0.0:
+		return
+
+	for index in range(body_contact_targets.size() - 1, -1, -1):
+		var area := body_contact_targets[index]
+		if area == null or not is_instance_valid(area) or not area.is_inside_tree():
+			body_contact_targets.remove_at(index)
+	for area in body_contact_targets:
 		_damage_contact_target(area)
+	body_contact_damage_cooldown = body_contact_damage_interval
 
 
 func _on_body_contact_area_entered(area: Area2D) -> void:
 	if intro_time_left > 0.0:
 		return
+	if not body_contact_targets.has(area):
+		body_contact_targets.append(area)
+	body_contact_damage_cooldown = body_contact_damage_interval
 	_damage_contact_target(area)
 
 
+func _on_body_contact_area_exited(area: Area2D) -> void:
+	body_contact_targets.erase(area)
+
+
 func _damage_contact_target(target_area: Area2D) -> void:
+	if target_area == null or not is_instance_valid(target_area) or not target_area.is_inside_tree():
+		return
+
 	var receiver := _find_damage_receiver(target_area)
 	if receiver == null or receiver == self:
 		return

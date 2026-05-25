@@ -23,6 +23,7 @@ const STATE_COOLDOWN := 4
 
 @onready var attack_area: Area2D = $AttackArea
 @onready var hurt_box: Area2D = $HurtBox
+@onready var contact_damage_area: Area2D = get_node_or_null("ContactDamageArea") as Area2D
 @onready var sprite: Sprite2D = $Sprite2D
 
 var player: Node2D
@@ -43,6 +44,10 @@ func _ready() -> void:
 	add_to_group("enemy")
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	attack_area.body_entered.connect(_on_attack_area_body_entered)
+	if contact_damage_area != null:
+		contact_damage_area.area_entered.connect(_on_contact_damage_area_entered)
+		contact_damage_area.monitoring = true
+		call_deferred("_damage_current_contact_overlaps")
 	hurt_box.area_entered.connect(_on_hurt_box_area_entered)
 	attack_area.monitoring = false
 	visual_home_offset = sprite.position
@@ -172,6 +177,26 @@ func _damage_overlapping_players() -> void:
 			return
 
 
+func _on_contact_damage_area_entered(area: Area2D) -> void:
+	if hp <= 0:
+		return
+	_damage_contact_target(area)
+
+
+func _damage_current_contact_overlaps() -> void:
+	if hp <= 0 or contact_damage_area == null:
+		return
+	for area in contact_damage_area.get_overlapping_areas():
+		_damage_contact_target(area)
+
+
+func _damage_contact_target(area: Area2D) -> void:
+	var receiver := _find_damage_receiver(area)
+	if receiver == null:
+		return
+	receiver.call("take_damage", damage, global_position)
+
+
 func _on_hurt_box_area_entered(area: Area2D) -> void:
 	if area.name == "AttackArea" or area.name == "UpAttackArea" or area.name == "DownAttackArea" or area.name == "ChargeAttackArea":
 		var attacker := area.get_parent()
@@ -179,6 +204,15 @@ func _on_hurt_box_area_entered(area: Area2D) -> void:
 		if attacker is Node2D:
 			attacker_position = attacker.global_position
 		take_damage(1, attacker_position)
+
+
+func _find_damage_receiver(target_node: Node) -> Node:
+	var current: Node = target_node
+	while current != null:
+		if current.has_method("take_damage"):
+			return current
+		current = current.get_parent()
+	return null
 
 
 func take_damage(amount: int, _attacker_position := Vector2.ZERO) -> void:
@@ -197,6 +231,9 @@ func _die() -> void:
 	if attack_area != null:
 		attack_area.set_deferred("monitoring", false)
 		attack_area.set_deferred("monitorable", false)
+	if contact_damage_area != null:
+		contact_damage_area.set_deferred("monitoring", false)
+		contact_damage_area.set_deferred("monitorable", false)
 	if hurt_box != null:
 		hurt_box.set_deferred("monitoring", false)
 		hurt_box.set_deferred("monitorable", false)
