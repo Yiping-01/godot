@@ -22,13 +22,13 @@
 [ext_resource type="PackedScene" path="res://demo/scenes/map_passage_marker.tscn" id="23_passage"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boss"]
-size = Vector2(177, 120)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_damage"]
-size = Vector2(132, 46)
+size = Vector2(149.25354, 110.19626)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_contact"]
-size = Vector2(250, 250)
+size = Vector2(214, 202)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_boss_damage"]
+size = Vector2(125, 102)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_quake_damage"]
 size = Vector2(980, 134)
@@ -197,16 +197,19 @@ scale_amount_max = 0.075
 color = Color(0.8, 0.98, 1, 0.52)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Boss" unique_id=154871719]
-scale = Vector2(1, 1.2)
+position = Vector2(-4.624756, 5.7615967)
+scale = Vector2(0.91957295, 1.1753864)
 shape = SubResource("RectangleShape2D_boss")
 
-[node name="BodyContactArea" type="Area2D" parent="Boss"]
+[node name="BodyContactArea" type="Area2D" parent="Boss" unique_id=565819749]
 position = Vector2(0, -12)
 collision_layer = 32
 collision_mask = 16
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/BodyContactArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/BodyContactArea" unique_id=1846067919]
+position = Vector2(18, -3)
+scale = Vector2(0.69912523, 0.71710014)
 shape = SubResource("RectangleShape2D_boss_contact")
 
 [node name="DamageArea" type="Area2D" parent="Boss" unique_id=1646172298]
@@ -217,6 +220,7 @@ monitoring = false
 monitorable = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Boss/DamageArea" unique_id=822050555]
+position = Vector2(3.5, -28)
 shape = SubResource("RectangleShape2D_boss_damage")
 disabled = true
 
@@ -292,7 +296,7 @@ z_index = 12
 color = Color(0.04, 0.01, 0.01, 0.72)
 polygon = PackedVector2Array(-74, -102, 74, -102, 74, 102, -74, 102)
 
-[node name="LockedLabel" type="Label" parent="ReturnDoor" unique_id=2032166954]
+[node name="LockedLabel" type="Label" parent="ReturnDoor/LockedShade" unique_id=2032166954]
 visible = false
 z_index = 14
 offset_left = -78.0

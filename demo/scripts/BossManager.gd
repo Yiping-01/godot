@@ -18,6 +18,13 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var wire_fast_warning_start_time := 3.0
 @export var lightning_strike_count := 3
 @export var lightning_strike_interval := 0.8
+@export var lightning_random_min_x := 118.0
+@export var lightning_random_max_x := 1712.0
+@export var lightning_near_player_radius := 420.0
+@export var lightning_min_spacing := 220.0
+@export var enraged_wire_round_time := 9.0
+@export var enraged_lightning_strike_interval := 0.5
+@export var enraged_core_open_duration := 3.5
 @export var debug_start_phase_two := false
 @export var phase_two_hint_duration := 0.65
 @export var phase_two_hint_hold_time := 0.22
@@ -41,6 +48,7 @@ var health := 0
 var phase := 1
 var boss_dead := false
 var core_open := false
+var enraged := false
 var active_wires: Array[Node] = []
 var wire_round_running := false
 var phase_two_started := false
@@ -55,6 +63,24 @@ var phase_two_hint_tween: Tween
 @onready var core_open_background: CanvasItem = get_node_or_null(core_open_background_path) as CanvasItem
 @onready var wire_spawn_points: Node = get_node_or_null(wire_spawn_points_path)
 @onready var lightning_spawn_points: Node = get_node_or_null(lightning_spawn_points_path)
+
+
+func _get_current_wire_round_time() -> float:
+	var value := enraged_wire_round_time if enraged else wire_round_time
+	print("wire round time:", value, " enraged:", enraged)
+	return value
+
+
+func _get_current_lightning_interval() -> float:
+	var value := enraged_lightning_strike_interval if enraged else lightning_strike_interval
+	print("lightning interval:", value, " enraged:", enraged)
+	return value
+
+
+func _get_current_core_open_duration() -> float:
+	var value := enraged_core_open_duration if enraged else core_open_duration
+	print("core open duration:", value, " enraged:", enraged)
+	return value
 
 
 func _ready() -> void:
@@ -112,6 +138,10 @@ func damage_boss(amount: int) -> void:
 	if not low_health_hint_started and health <= low_health_hint_threshold:
 		_play_low_health_hint()
 
+	if not enraged and health <= low_health_hint_threshold:
+		enraged = true
+		print("Boss enraged:", enraged)
+
 	if phase == 1 and health <= phase_two_threshold:
 		_enter_phase_two()
 
@@ -140,7 +170,7 @@ func _open_core() -> void:
 		elif boss_core.has_method("open_core"):
 			boss_core.call("open_core")
 
-	await get_tree().create_timer(core_open_duration).timeout
+	await get_tree().create_timer(_get_current_core_open_duration()).timeout
 	if not boss_dead:
 		_close_core_and_respawn()
 
@@ -332,15 +362,16 @@ func _run_wire_round() -> void:
 	_spawn_wire_round()
 
 	var elapsed := 0.0
-	while elapsed < wire_round_time and not boss_dead:
+	var current_wire_round_time := _get_current_wire_round_time()
+	while elapsed < current_wire_round_time and not boss_dead:
 		_clean_active_wires()
 		if active_wires.is_empty():
 			print("Wire round cleared")
 			wire_round_running = false
 			return
-		var remaining_time := wire_round_time - elapsed
+		var remaining_time := current_wire_round_time - elapsed
 		_update_wire_countdown_warning(remaining_time)
-		var wait_time := minf(0.1, wire_round_time - elapsed)
+		var wait_time := minf(0.1, current_wire_round_time - elapsed)
 		await get_tree().create_timer(wait_time).timeout
 		elapsed += wait_time
 
@@ -415,11 +446,14 @@ func on_wire_destroyed(wire: Node) -> void:
 func _start_lightning_sequence() -> void:
 	if boss_dead:
 		return
-	for i in range(lightning_strike_count):
+	var wave_count := 2 if enraged else 1
+	for wave_index in range(wave_count):
 		if boss_dead:
 			return
-		trigger_lightning()
-		await get_tree().create_timer(lightning_strike_interval).timeout
+		for strike_position in _pick_near_player_lightning_positions(lightning_strike_count):
+			trigger_lightning(strike_position)
+		if wave_index < wave_count - 1:
+			await get_tree().create_timer(_get_current_lightning_interval()).timeout
 
 
 func _clean_active_wires() -> void:
@@ -448,6 +482,66 @@ func _pick_spawn_position(points_root: Node) -> Vector2:
 	if point is Node2D:
 		return (point as Node2D).global_position
 	return global_position
+
+
+func _pick_random_lightning_position() -> Vector2:
+	var base_position := _pick_spawn_position(lightning_spawn_points)
+	base_position.x = randf_range(lightning_random_min_x, lightning_random_max_x)
+	return base_position
+
+
+func _pick_near_player_lightning_positions(count: int) -> Array[Vector2]:
+	var positions: Array[Vector2] = []
+	var base_position := _pick_spawn_position(lightning_spawn_points)
+	var center_x := _get_player_x()
+	var min_x := maxf(lightning_random_min_x, center_x - lightning_near_player_radius)
+	var max_x := minf(lightning_random_max_x, center_x + lightning_near_player_radius)
+	if min_x > max_x:
+		min_x = lightning_random_min_x
+		max_x = lightning_random_max_x
+
+	var picked_x_values: Array[float] = []
+	var attempts := maxi(24, count * 16)
+	while picked_x_values.size() < count and attempts > 0:
+		attempts -= 1
+		var candidate_x := randf_range(min_x, max_x)
+		if _is_lightning_x_far_enough(candidate_x, picked_x_values):
+			picked_x_values.append(candidate_x)
+
+	if picked_x_values.size() < count:
+		picked_x_values = _build_even_lightning_x_values(center_x, count)
+
+	for x in picked_x_values:
+		positions.append(Vector2(x, base_position.y))
+	return positions
+
+
+func _is_lightning_x_far_enough(candidate_x: float, picked_x_values: Array[float]) -> bool:
+	for x in picked_x_values:
+		if absf(candidate_x - x) < lightning_min_spacing:
+			return false
+	return true
+
+
+func _build_even_lightning_x_values(center_x: float, count: int) -> Array[float]:
+	var values: Array[float] = []
+	if count <= 0:
+		return values
+	var start_x := center_x - lightning_min_spacing * float(count - 1) * 0.5
+	for i in range(count):
+		values.append(clampf(start_x + lightning_min_spacing * float(i), lightning_random_min_x, lightning_random_max_x))
+	values.shuffle()
+	return values
+
+
+func _get_player_x() -> float:
+	var player := get_tree().get_first_node_in_group("player")
+	if player is Node2D:
+		return (player as Node2D).global_position.x
+	var fallback_player := get_node_or_null("../Player")
+	if fallback_player is Node2D:
+		return (fallback_player as Node2D).global_position.x
+	return _pick_spawn_position(lightning_spawn_points).x
 
 
 func _pick_spawn_point(points_root: Node) -> Node2D:
