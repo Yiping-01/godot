@@ -34,6 +34,7 @@ var _custom_weak_point_max_y := 0.0
 var _custom_weak_point_x_range_enabled := false
 var _custom_weak_point_min_x := 0.0
 var _custom_weak_point_max_x := 0.0
+var _weak_point_revealed := false
 
 @onready var visual: CanvasItem = get_node_or_null("Visual") as CanvasItem
 @onready var core_line: CanvasItem = get_node_or_null("CoreLine") as CanvasItem
@@ -53,11 +54,16 @@ func _ready() -> void:
 	if weak_point != null:
 		weak_point.collision_layer = 4
 		weak_point.collision_mask = 0
+		_set_weak_point_enabled(false)
 		call_deferred("_randomize_weak_point_position")
 	if visual is AnimatedSprite2D:
 		var wire_sprite := visual as AnimatedSprite2D
 		wire_sprite.frame = 0
+		if not wire_sprite.animation_finished.is_connected(_on_wire_build_animation_finished):
+			wire_sprite.animation_finished.connect(_on_wire_build_animation_finished)
 		wire_sprite.play("build")
+	else:
+		call_deferred("_reveal_weak_point")
 
 
 func _process(delta: float) -> void:
@@ -117,6 +123,28 @@ func set_countdown_warning_level(level: int) -> void:
 
 func clear_countdown_warning() -> void:
 	set_countdown_warning_level(0)
+
+
+func _on_wire_build_animation_finished() -> void:
+	_reveal_weak_point()
+
+
+func _reveal_weak_point() -> void:
+	if _destroyed or _weak_point_revealed:
+		return
+	_weak_point_revealed = true
+	_set_weak_point_enabled(true)
+
+
+func _set_weak_point_enabled(enabled: bool) -> void:
+	if weak_point == null:
+		return
+	weak_point.visible = enabled
+	weak_point.monitoring = enabled
+	weak_point.monitorable = enabled
+	var weak_point_shape := weak_point.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if weak_point_shape != null:
+		weak_point_shape.set_deferred("disabled", not enabled)
 
 
 func _capture_base_wire_transform() -> void:
