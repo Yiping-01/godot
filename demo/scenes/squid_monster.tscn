@@ -28,12 +28,13 @@ texture = ExtResource("2_squid_texture")
 position = Vector2(-3, -52)
 shape = SubResource("CapsuleShape2D_body")
 
-[node name="ContactDamageArea" type="Area2D" parent="."]
-position = Vector2(-3, -52)
+[node name="ContactDamageArea" type="Area2D" parent="." unique_id=1736436703]
+position = Vector2(-0.99999976, -37)
+scale = Vector2(0.7, 0.9)
 collision_layer = 32
 collision_mask = 16
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactDamageArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactDamageArea" unique_id=56552893]
 shape = SubResource("CapsuleShape2D_body")
 
 [node name="AttackArea" type="Area2D" parent="." unique_id=880741848]
@@ -46,7 +47,7 @@ position = Vector2(1, 2)
 shape = SubResource("CircleShape2D_attack")
 
 [node name="HurtBox" type="Area2D" parent="." unique_id=1331706206]
-position = Vector2(-1.999999, -40)
+position = Vector2(-3.9999998, -24)
 scale = Vector2(0.8, 0.8)
 collision_layer = 4
 collision_mask = 8

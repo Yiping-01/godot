@@ -102,6 +102,7 @@ const CUSTOM_2D_LIGHT_SHADER := preload("res://demo/shaders/shaderlib/custom_2d_
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 const WATER_EXIT_PARTICLE_TEXTURE := preload("res://demo/assets/hollow_import/effects/water_footstep_particle.png")
 const AIR_JUMP_PARTICLE_TEXTURE := preload("res://demo/assets/hollow_import/effects/white_hit_particle.png")
+const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
 const ULTIMATE_COMBOS := {
 	"quick_map|wall_burst": {"name": "潮汐破圖", "damage": 4, "radius": 220.0, "color": Color(0.72, 1.0, 0.95, 1.0), "rays": 10},
 	"quick_map|water_dash": {"name": "流光穿梭", "damage": 4, "radius": 230.0, "color": Color(0.58, 0.9, 1.0, 1.0), "rays": 12},
@@ -187,6 +188,8 @@ var dash_direction := 1
 var is_underwater := false
 var has_water_surface_y := false
 var water_surface_y := 0.0
+var lock_underwater_horizontal_y := false
+var locked_underwater_y := 0.0
 var underwater_dash_direction := Vector2.ZERO
 var underwater_dash_current_speed := 0.0
 var water_exit_animation_left := 0.0
@@ -194,6 +197,7 @@ var double_jump_animation_left := 0.0
 var water_exit_camera_blend_left := 0.0
 var is_resting := false
 var normal_z_index := 0
+var normal_collision_mask := 0
 var attack_effect_base_scale := Vector2.ONE
 var charge_effect_base_scale := Vector2.ONE
 var far_attack_frames: SpriteFrames
@@ -219,6 +223,7 @@ func _ready() -> void:
 	call_deferred("_snap_camera_to_player")
 	_setup_player_light()
 	normal_z_index = z_index
+	normal_collision_mask = collision_mask
 	attack_offset_x = absf(attack_area.position.x)
 	charge_attack_offset_x = absf(charge_attack_area.position.x)
 	current_attack_damage = attack_damage
@@ -377,12 +382,16 @@ func _update_underwater_movement(delta: float) -> void:
 		_update_camera_shake(delta)
 		return
 
+	lock_underwater_horizontal_y = false
 	_handle_underwater_swim(delta)
 	_handle_far_attack_input(delta)
 	_handle_underwater_attack_input()
 	_update_attack(delta)
 
 	move_and_slide()
+	if lock_underwater_horizontal_y:
+		global_position.y = locked_underwater_y
+		velocity.y = 0.0
 	_update_animation()
 	_update_camera_shake(delta)
 
@@ -393,7 +402,14 @@ func _handle_underwater_swim(delta: float) -> void:
 		velocity = velocity.move_toward(Vector2.ZERO, underwater_drag * delta * 0.55)
 		return
 
-	var input_vector := _get_underwater_input()
+	var horizontal_input := _get_horizontal_input()
+	var vertical_input := _get_vertical_input()
+	var input_vector := Vector2(horizontal_input, vertical_input)
+	if input_vector.length_squared() > 1.0:
+		input_vector = input_vector.normalized()
+	lock_underwater_horizontal_y = not is_zero_approx(horizontal_input) and is_zero_approx(vertical_input)
+	if lock_underwater_horizontal_y:
+		locked_underwater_y = global_position.y
 	var move_speed := underwater_swim_speed
 	if is_charging_attack:
 		move_speed *= charge_move_speed_multiplier
@@ -401,7 +417,12 @@ func _handle_underwater_swim(delta: float) -> void:
 	if input_vector == Vector2.ZERO:
 		velocity = velocity.move_toward(Vector2.ZERO, underwater_drag * delta)
 	else:
-		velocity = velocity.move_toward(input_vector * move_speed, underwater_swim_acceleration * delta)
+		var target_velocity := input_vector * move_speed
+		if is_zero_approx(vertical_input):
+			target_velocity.y = 0.0
+			velocity.y = 0.0
+		velocity.x = move_toward(velocity.x, target_velocity.x, underwater_swim_acceleration * delta)
+		velocity.y = move_toward(velocity.y, target_velocity.y, underwater_swim_acceleration * delta)
 		if not is_zero_approx(input_vector.x):
 			facing_direction = int(signf(input_vector.x))
 			animated_sprite.flip_h = facing_direction > 0
@@ -1273,6 +1294,7 @@ func _apply_hurt_knockback(from_position: Vector2) -> void:
 
 func _start_invincibility() -> void:
 	invincible = true
+	_set_enemy_body_collision_enabled(false)
 	var tween := create_tween()
 	var flash_count: int = maxi(1, int(round(invincible_time / 0.2)))
 	for i in range(flash_count):
@@ -1284,6 +1306,15 @@ func _start_invincibility() -> void:
 func _finish_invincibility() -> void:
 	animated_sprite.modulate = Color.WHITE
 	invincible = false
+	_set_enemy_body_collision_enabled(true)
+
+
+func _set_enemy_body_collision_enabled(enabled: bool) -> void:
+	if normal_collision_mask == 0:
+		normal_collision_mask = collision_mask
+	collision_mask = normal_collision_mask
+	if not enabled:
+		set_collision_mask_value(ENEMY_BODY_COLLISION_LAYER_NUMBER, false)
 
 
 func _respawn() -> void:
