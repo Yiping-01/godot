@@ -67,9 +67,10 @@ func _start_phase_two_transition() -> void:
 	_set_return_door_locked(false)
 	_focus_arena_audio(false)
 	_shake_player_camera(phase_two_transition_shake_duration, phase_two_transition_shake_strength)
+	GameState.set_pending_transition_title("深海震動了……", "真正的本體，正在甦醒")
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null and ui.has_method("show_area_title"):
-		ui.show_area_title("Boss Phase 2", "The arena opens")
+		ui.show_area_title("深海震動了……", "真正的本體，正在甦醒")
 	await get_tree().create_timer(phase_two_transition_delay, true, false, true).timeout
 	var remaining_shake := maxf(phase_two_transition_shake_duration - phase_two_transition_delay, phase_two_entry_shake_min_duration)
 	GameState.set_pending_transition_shake(remaining_shake, phase_two_transition_shake_strength)

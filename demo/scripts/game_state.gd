@@ -82,6 +82,8 @@ var continue_spawn_marker_name := ""
 var has_continue_spawn_marker := false
 var pending_transition_shake_duration := 0.0
 var pending_transition_shake_strength := 0.0
+var pending_transition_title := ""
+var pending_transition_subtitle := ""
 
 
 func _ready() -> void:
@@ -121,6 +123,7 @@ func reset_demo_state() -> void:
 	scene_health_potion_purchases.clear()
 	scene_rough_charm_purchases.clear()
 	clear_pending_transition_shake()
+	clear_pending_transition_title()
 	clear_player_runtime_status()
 	inventory_changed.emit(inventory)
 	health_potions_changed.emit(get_health_potion_count())
@@ -154,6 +157,25 @@ func consume_pending_transition_shake() -> Dictionary:
 func clear_pending_transition_shake() -> void:
 	pending_transition_shake_duration = 0.0
 	pending_transition_shake_strength = 0.0
+
+
+func set_pending_transition_title(title: String, subtitle: String) -> void:
+	pending_transition_title = title
+	pending_transition_subtitle = subtitle
+
+
+func consume_pending_transition_title() -> Dictionary:
+	var title_data: Dictionary = {
+		"title": pending_transition_title,
+		"subtitle": pending_transition_subtitle,
+	}
+	clear_pending_transition_title()
+	return title_data
+
+
+func clear_pending_transition_title() -> void:
+	pending_transition_title = ""
+	pending_transition_subtitle = ""
 
 
 func has_player_runtime_status() -> bool:

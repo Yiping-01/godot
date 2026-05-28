@@ -37404,7 +37404,6 @@ position = Vector2(1460, 520)
 
 [node name="BossManager" type="Node2D" parent="." unique_id=696700648]
 script = ExtResource("27_boss_manager")
-debug_start_phase_two = true
 electric_wire_scene = ExtResource("29_wire_scene")
 lightning_area_scene = ExtResource("30_lightning_scene")
 tentacles_path = NodePath("../CornerTentacles")

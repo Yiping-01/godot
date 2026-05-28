@@ -103,6 +103,7 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 const WATER_EXIT_PARTICLE_TEXTURE := preload("res://demo/assets/hollow_import/effects/water_footstep_particle.png")
 const AIR_JUMP_PARTICLE_TEXTURE := preload("res://demo/assets/hollow_import/effects/white_hit_particle.png")
 const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 const ULTIMATE_COMBOS := {
 	"quick_map|wall_burst": {"name": "潮汐破圖", "damage": 4, "radius": 220.0, "color": Color(0.72, 1.0, 0.95, 1.0), "rays": 10},
 	"quick_map|water_dash": {"name": "流光穿梭", "damage": 4, "radius": 230.0, "color": Color(0.58, 0.9, 1.0, 1.0), "rays": 12},
@@ -198,6 +199,7 @@ var water_exit_camera_blend_left := 0.0
 var is_resting := false
 var normal_z_index := 0
 var normal_collision_mask := 0
+var normal_collision_layer := 0
 var attack_effect_base_scale := Vector2.ONE
 var charge_effect_base_scale := Vector2.ONE
 var far_attack_frames: SpriteFrames
@@ -224,6 +226,7 @@ func _ready() -> void:
 	_setup_player_light()
 	normal_z_index = z_index
 	normal_collision_mask = collision_mask
+	normal_collision_layer = collision_layer
 	attack_offset_x = absf(attack_area.position.x)
 	charge_attack_offset_x = absf(charge_attack_area.position.x)
 	current_attack_damage = attack_damage
@@ -1312,9 +1315,13 @@ func _finish_invincibility() -> void:
 func _set_enemy_body_collision_enabled(enabled: bool) -> void:
 	if normal_collision_mask == 0:
 		normal_collision_mask = collision_mask
+	if normal_collision_layer == 0:
+		normal_collision_layer = collision_layer
 	collision_mask = normal_collision_mask
+	collision_layer = normal_collision_layer
 	if not enabled:
 		set_collision_mask_value(ENEMY_BODY_COLLISION_LAYER_NUMBER, false)
+		set_collision_layer_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 
 
 func _respawn() -> void:

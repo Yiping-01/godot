@@ -175,8 +175,10 @@ var body_contact_area: Area2D
 var body_contact_shape: CollisionShape2D
 var body_contact_targets: Array[Area2D] = []
 var body_contact_damage_cooldown := 0.0
+var last_solid_floor_y := 100000000.0
 var target: Node2D
 var is_defeated := false
+var unlock_achievement_on_death := false
 var telegraph_node: Node2D
 var telegraph_line: Line2D
 var telegraph_tween: Tween
@@ -262,8 +264,11 @@ func _physics_process(delta: float) -> void:
 			_:
 				_update_idle(delta)
 
+	var was_falling_jump := _is_falling_jump_body_contact()
 	_update_boss_animation(delta)
 	move_and_slide()
+	_damage_jump_body_collisions(was_falling_jump)
+	_update_last_solid_floor_y()
 	_update_body_contact_damage(delta)
 
 
@@ -295,7 +300,8 @@ func _begin_death_sequence() -> void:
 		return
 
 	is_defeated = true
-	_unlock_kill_achievement()
+	if unlock_achievement_on_death:
+		_unlock_kill_achievement()
 	velocity = Vector2.ZERO
 	_clear_attack_telegraph()
 	_set_windup_effect(false)
@@ -645,6 +651,7 @@ func _begin_quake_jump() -> void:
 func _launch_quake_jump() -> void:
 	state = &"quake_jump"
 	quake_has_left_floor = false
+	_snap_to_last_solid_floor_before_jump()
 	velocity.x = 0.0
 	velocity.y = quake_jump_velocity
 	_set_windup_effect(false)
@@ -695,6 +702,7 @@ func _begin_anti_pogo_counter() -> void:
 func _launch_anti_pogo_counter() -> void:
 	_set_windup_effect(false)
 	_reset_sprite_pose()
+	_snap_to_last_solid_floor_before_jump()
 	_configure_anti_pogo_damage_area()
 	_set_quake_damage_area_enabled(true)
 	if quake_damage_area != null and quake_damage_shape != null:
@@ -1600,6 +1608,60 @@ func _damage_contact_target(target_area: Area2D) -> void:
 		return
 
 	receiver.call("take_damage", contact_damage, global_position)
+
+
+func _is_falling_jump_body_contact() -> bool:
+	return (state == &"quake_jump" or state == &"anti_pogo_launch") and velocity.y >= 0.0
+
+
+func _damage_jump_body_collisions(was_falling_jump: bool) -> void:
+	if not was_falling_jump or intro_time_left > 0.0:
+		return
+
+	for index in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(index)
+		if collision == null or collision.get_normal().y > -0.35:
+			continue
+
+		var collider: Object = collision.get_collider()
+		if not (collider is Node):
+			continue
+
+		var receiver: Node = _find_damage_receiver(collider as Node)
+		if receiver == null or receiver == self:
+			continue
+		if receiver.has_method("take_damage"):
+			receiver.call("take_damage", contact_damage, global_position)
+			body_contact_damage_cooldown = body_contact_damage_interval
+
+
+func _update_last_solid_floor_y() -> void:
+	for index in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(index)
+		if collision == null or collision.get_normal().y > -0.35:
+			continue
+
+		var collider: Object = collision.get_collider()
+		if not (collider is Node):
+			continue
+
+		var receiver: Node = _find_damage_receiver(collider as Node)
+		if receiver != null and receiver != self:
+			continue
+
+		last_solid_floor_y = global_position.y
+		return
+
+
+func _snap_to_last_solid_floor_before_jump() -> void:
+	if last_solid_floor_y >= 99999999.0:
+		return
+	if global_position.y >= last_solid_floor_y - 24.0:
+		return
+
+	if target != null and target.has_method("take_damage"):
+		target.call("take_damage", contact_damage, global_position)
+	global_position.y = last_solid_floor_y
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
