@@ -4,24 +4,10 @@
 ![GDScript](https://img.shields.io/badge/GDScript-4.x-blue)
 ![Status](https://img.shields.io/badge/Status-Demo-orange)
 
-## Project Layout
-
-- `demo/scenes/levels`: playable spaces, including normal room, water room, and boss room.
-- `demo/scenes`: reusable scenes such as player, enemies, UI, map pieces, and interactables.
-- `demo/scripts`: game code and shared systems.
-- `demo/assets`: art, audio, fonts, generated assets, tiles, and imported reference assets.
-- `demo/shaders`: project shaders.
-- `demo/i18n`: localization files.
-- `addons`: installed Godot editor/runtime plugins.
-
-## Version
-
-Current version: `0.1.0`
-
-## Description# Godot 畢業製作
+## 專案說明
 
 這是使用 **Godot 4.6** 製作的畢業製作專案。  
-目前版本為可遊玩的 2D橫向卷軸Demo，主要展示遊戲的核心操作、場景探索、Boss 戰流程與基本系統。
+目前版本為可遊玩的 **2D 橫向卷軸 Demo**，主要展示遊戲的核心操作、場景探索、Boss 戰流程與基本系統。
 
 ## 專案狀態
 
@@ -36,7 +22,7 @@ Current version: `0.1.0`
 - 渲染效果與 Shader 測試
 - 可自訂操作按鍵
 
-## Project Layout
+## 專案結構
 
 - `demo/scenes/levels`：可遊玩場景，包含一般房間、水中房間與 Boss 房間。
 - `demo/scenes`：可重複使用的場景，例如玩家、敵人、UI、地圖物件與互動物件。
@@ -52,7 +38,7 @@ Current version: `0.1.0`
 
 | 按鍵 | 功能 |
 |---|---|
-| A / D | 左右移動 |
+| W / A / S / D | 上下左右移動 |
 | Z | 跳躍 |
 | X | 攻擊 |
 | E | 互動 |
@@ -69,21 +55,19 @@ Current version: `0.1.0`
 - 調整平台與關卡配置，讓移動與戰鬥更順暢
 - 優化 UI、血量顯示與提示文字
 
-## Version
+## 版本
 
 Current version: `0.1.0`
 
-## Development Environment
+## 開發環境
 
 - Godot 4.6
 - Git
 - GitHub
 
-## Collaboration
+## 協作注意事項
 
 開始修改前，請先拉取 GitHub 最新版本：
 
 ```bash
 git pull origin main
-
-畢業製作 Godot 專案。
