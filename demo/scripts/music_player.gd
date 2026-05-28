@@ -5,6 +5,7 @@ const SFX_BUS := "SFX"
 
 var game_music := preload("res://demo/assets/audio/scores/game_music.wav")
 var title_music := preload("res://demo/assets/audio/scores/bgtitle_music.wav")
+var boss_music := preload("res://demo/assets/audio/scores/Boss_music.mp3")
 var game_music_player: AudioStreamPlayer
 
 
@@ -50,6 +51,10 @@ func play_game_music() -> void:
 
 func play_title_music() -> void:
 	_play_music_stream(title_music)
+
+
+func play_boss_music() -> void:
+	_play_music_stream(boss_music)
 
 
 func _play_music_stream(stream: AudioStream) -> void:

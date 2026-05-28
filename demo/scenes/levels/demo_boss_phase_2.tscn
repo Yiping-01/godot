@@ -36416,7 +36416,6 @@ process_mode = 3
 script = ExtResource("36_exit_menu")
 
 [node name="GameUI" parent="." unique_id=1424178019 instance=ExtResource("35_game_ui")]
-visible = false
 
 [node name="Bosslevel2Bg" type="Sprite2D" parent="." unique_id=999257590]
 z_index = -100

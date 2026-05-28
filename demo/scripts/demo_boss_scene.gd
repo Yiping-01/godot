@@ -18,6 +18,7 @@ var phase_two_packed_scene: PackedScene
 func _ready() -> void:
 	get_tree().paused = false
 	GameState.set_input_locked(false)
+	_play_boss_music()
 	return_door = get_node_or_null("ReturnDoor") as Area2D
 	var wind := get_node_or_null("BossRoomWind") as AudioStreamPlayer
 	if wind != null and wind.stream != null:
@@ -114,3 +115,9 @@ func _focus_arena_audio(active: bool) -> void:
 		return
 	var tween := create_tween()
 	tween.tween_property(wind, "volume_db", -10.0 if active else -17.0, 0.55)
+
+
+func _play_boss_music() -> void:
+	var music_player := get_node_or_null("/root/MusicPlayer")
+	if music_player != null and music_player.has_method("play_boss_music"):
+		music_player.play_boss_music()

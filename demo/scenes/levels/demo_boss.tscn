@@ -77,7 +77,6 @@ process_mode = 3
 script = ExtResource("4_exit_menu")
 
 [node name="GameUI" parent="." unique_id=1978401946 instance=ExtResource("3_game_ui")]
-visible = false
 
 [node name="DebugHitboxes" type="Node2D" parent="." unique_id=2060438688]
 script = ExtResource("19_debug_overlay")

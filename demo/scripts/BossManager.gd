@@ -594,6 +594,7 @@ func _pick_spawn_point(points_root: Node) -> Node2D:
 func _die() -> void:
 	boss_dead = true
 	_unlock_kill_achievement()
+	_play_game_music()
 	phase_two_started = false
 	wire_round_running = false
 	core_open = false
@@ -615,6 +616,12 @@ func _unlock_kill_achievement() -> void:
 	var achievement_manager := get_node_or_null("/root/AchievementManager")
 	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
 		achievement_manager.call("unlock_kill_achievement", monster_id)
+
+
+func _play_game_music() -> void:
+	var music_player := get_node_or_null("/root/MusicPlayer")
+	if music_player != null and music_player.has_method("play_game_music"):
+		music_player.play_game_music()
 
 
 func _set_end_background() -> void:

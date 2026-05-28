@@ -134,22 +134,24 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "English"
 
-[node name="OverwriteSaveDialog" type="ConfirmationDialog" parent="."]
+[node name="OverwriteSaveDialog" type="ConfirmationDialog" parent="." unique_id=679288147]
+oversampling_override = 1.0
 title = "確認開始新遊戲"
-position = Vector2i(610, 405)
+position = Vector2i(504, 228)
 size = Vector2i(700, 270)
 ok_button_text = "是"
-cancel_button_text = "否"
 dialog_text = "偵測到已有存檔，開始新遊戲會覆蓋原本進度，是否繼續？"
+cancel_button_text = "否"
 
-[node name="NoSaveDialog" type="AcceptDialog" parent="."]
+[node name="NoSaveDialog" type="AcceptDialog" parent="." unique_id=334967232]
+oversampling_override = 1.0
 title = "繼續遊戲"
-position = Vector2i(710, 430)
+position = Vector2i(704, 318)
 size = Vector2i(500, 180)
 ok_button_text = "確認"
 dialog_text = "目前沒有存檔"
 
-[node name="ContinueInfoPanel" type="PanelContainer" parent="."]
+[node name="ContinueInfoPanel" type="PanelContainer" parent="." unique_id=1819081756]
 visible = false
 layout_mode = 0
 offset_left = 610.0
@@ -158,29 +160,29 @@ offset_right = 1310.0
 offset_bottom = 720.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_save_panel")
 
-[node name="Margin" type="MarginContainer" parent="ContinueInfoPanel"]
+[node name="Margin" type="MarginContainer" parent="ContinueInfoPanel" unique_id=1634565168]
 layout_mode = 2
 theme_override_constants/margin_left = 24
 theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 22
 
-[node name="Content" type="VBoxContainer" parent="ContinueInfoPanel/Margin"]
+[node name="Content" type="VBoxContainer" parent="ContinueInfoPanel/Margin" unique_id=1142435950]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="TitleLabel" type="Label" parent="ContinueInfoPanel/Margin/Content"]
+[node name="TitleLabel" type="Label" parent="ContinueInfoPanel/Margin/Content" unique_id=1649588277]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "繼續遊戲"
 horizontal_alignment = 1
 
-[node name="PreviewPanel" type="PanelContainer" parent="ContinueInfoPanel/Margin/Content"]
+[node name="PreviewPanel" type="PanelContainer" parent="ContinueInfoPanel/Margin/Content" unique_id=1632074704]
 custom_minimum_size = Vector2(640, 170)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_preview_panel")
 
-[node name="PreviewNameLabel" type="Label" parent="ContinueInfoPanel/Margin/Content/PreviewPanel"]
+[node name="PreviewNameLabel" type="Label" parent="ContinueInfoPanel/Margin/Content/PreviewPanel" unique_id=961649393]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.95, 0.98, 0.9)
 theme_override_font_sizes/font_size = 30
@@ -188,7 +190,7 @@ text = "深海洞窟"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SaveInfoLabel" type="Label" parent="ContinueInfoPanel/Margin/Content"]
+[node name="SaveInfoLabel" type="Label" parent="ContinueInfoPanel/Margin/Content" unique_id=368022963]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.98, 1, 0.95)
 theme_override_font_sizes/font_size = 22
@@ -196,19 +198,19 @@ text = "上次地點：深海洞窟
 錢幣：0
 存檔時間：未知"
 
-[node name="ButtonRow" type="HBoxContainer" parent="ContinueInfoPanel/Margin/Content"]
+[node name="ButtonRow" type="HBoxContainer" parent="ContinueInfoPanel/Margin/Content" unique_id=768477344]
 layout_mode = 2
 theme_override_constants/separation = 18
 alignment = 1
 
-[node name="ContinueLoadButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow"]
+[node name="ContinueLoadButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow" unique_id=795301972]
 custom_minimum_size = Vector2(150, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "繼續"
 
-[node name="ContinueCancelButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow"]
+[node name="ContinueCancelButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow" unique_id=1739385462]
 custom_minimum_size = Vector2(150, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
@@ -216,6 +218,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "取消"
 
 [node name="FadeRect" type="ColorRect" parent="." unique_id=1783674024]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

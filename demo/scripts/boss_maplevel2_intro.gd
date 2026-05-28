@@ -7,6 +7,7 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 
 
 func _ready() -> void:
+	_play_boss_music()
 	_play_entry_impact()
 	_show_pending_transition_title()
 
@@ -79,3 +80,9 @@ func _show_pending_transition_title() -> void:
 	tween.tween_interval(2.45)
 	tween.tween_property(text_box, "modulate:a", 0.0, 0.45)
 	tween.tween_callback(layer.queue_free)
+
+
+func _play_boss_music() -> void:
+	var music_player := get_node_or_null("/root/MusicPlayer")
+	if music_player != null and music_player.has_method("play_boss_music"):
+		music_player.play_boss_music()
