@@ -298,8 +298,30 @@ func _close_game_ui_window() -> bool:
 func _go_to_main_menu() -> void:
 	get_tree().paused = false
 	GameState.set_input_locked(false)
+	_save_demo_progress_before_main_menu()
 	GameState.save_game()
 	get_tree().change_scene_to_file(main_menu_scene)
+
+
+func _save_demo_progress_before_main_menu() -> void:
+	var player := get_tree().get_first_node_in_group("player")
+	if player == null:
+		print("Warning: player not found, demo save skipped.")
+		return
+	if not (player is Node2D):
+		print("Warning: player is not Node2D, demo save skipped.")
+		return
+
+	var save_manager := get_node_or_null("/root/DemoSaveManager")
+	if save_manager == null:
+		print("Warning: DemoSaveManager not found, demo save skipped.")
+		return
+
+	var scene_path := ""
+	if get_tree().current_scene != null:
+		scene_path = get_tree().current_scene.scene_file_path
+	save_manager.call("save_game", scene_path, (player as Node2D).global_position)
+	save_manager.call("stop_timer")
 
 
 func _start_rebind(action_name: String) -> void:

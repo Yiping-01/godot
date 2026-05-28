@@ -124,7 +124,7 @@ const ULTIMATE_COMBOS := {
 @onready var attack_effect: AnimatedSprite2D = $AttackEffect
 @onready var charge_effect: AnimatedSprite2D = $ChargeEffect
 @onready var hit_effect: AnimatedSprite2D = $HitEffect
-@onready var death_effect: AnimatedSprite2D = $DeathEffect
+@onready var death_effect: CanvasItem = get_node_or_null("DeathEffect") as CanvasItem
 @onready var jump_audio: AudioStreamPlayer2D = $JumpAudio
 @onready var double_jump_audio: AudioStreamPlayer2D = $DoubleJumpAudio
 @onready var attack_audio: AudioStreamPlayer2D = $AttackAudio
@@ -233,11 +233,13 @@ func _ready() -> void:
 	attack_effect.animation_finished.connect(_on_attack_effect_animation_finished)
 	charge_effect.animation_finished.connect(_on_charge_effect_animation_finished)
 	hit_effect.animation_finished.connect(_on_hit_effect_animation_finished)
-	death_effect.animation_finished.connect(_on_death_effect_animation_finished)
+	if death_effect is AnimatedSprite2D:
+		(death_effect as AnimatedSprite2D).animation_finished.connect(_on_death_effect_animation_finished)
 	attack_effect.visible = false
 	charge_effect.visible = false
 	hit_effect.visible = false
-	death_effect.visible = false
+	if death_effect != null:
+		death_effect.visible = false
 	animated_sprite.flip_h = facing_direction > 0
 	_update_attack_area_side()
 	animated_sprite.play("wait")
@@ -1221,7 +1223,8 @@ func die() -> void:
 	_cancel_attack_charge()
 	_set_all_attack_areas_enabled(false)
 	animated_sprite.visible = false
-	death_effect.visible = false
+	if death_effect != null:
+		death_effect.visible = false
 	_start_camera_shake(0.4, 10.0)
 	died.emit()
 
@@ -1311,7 +1314,8 @@ func _respawn() -> void:
 	animated_sprite.visible = true
 	animated_sprite.modulate = Color.WHITE
 	animated_sprite.play("wait")
-	death_effect.visible = false
+	if death_effect != null:
+		death_effect.visible = false
 	health_changed.emit(current_health, max_health)
 	stamina_changed.emit(current_stamina, max_stamina)
 	respawned.emit()
@@ -1926,5 +1930,5 @@ func _on_hit_effect_animation_finished() -> void:
 
 
 func _on_death_effect_animation_finished() -> void:
-	if not is_dead:
+	if not is_dead and death_effect != null:
 		death_effect.visible = false
