@@ -4,6 +4,7 @@
 [node name="BlueBounceSmallEnemy" instance=ExtResource("1_enemy")]
 script = ExtResource("2_script")
 coin_drop_amount = 1
+monster_id = "WaterBlueBounceOctopus"
 bounce_min = Vector2(-640, 90)
 bounce_max = Vector2(295, 370)
 [node name="Sprite2D" parent="." index="0"]

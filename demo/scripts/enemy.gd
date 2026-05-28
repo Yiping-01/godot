@@ -16,6 +16,7 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 @export var patrol_distance: float = 120.0
 @export var lock_to_spawn_height: bool = true
 @export var spawn_protection_time: float = 0.45
+@export var monster_id: String = "NormalOctopus"
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -141,6 +142,7 @@ func _flash() -> void:
 
 func _die() -> void:
 	is_dead = true
+	_unlock_kill_achievement()
 	velocity = Vector2.ZERO
 	collision_layer = 0
 	collision_mask = 1
@@ -159,6 +161,12 @@ func _die() -> void:
 	tween.tween_property(sprite, "scale", sprite.scale * 0.82, death_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tween.finished
 	queue_free()
+
+
+func _unlock_kill_achievement() -> void:
+	var achievement_manager := get_node_or_null("/root/AchievementManager")
+	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
+		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
 func _drop_coins() -> void:

@@ -23,6 +23,7 @@ const THROW_FRAME_PATHS: Array[String] = [
 ]
 
 @export var max_health: int = 10
+@export var monster_id: String = "Boss"
 @export var gravity: float = 1600.0
 @export var dash_speed: float = 760.0
 @export var dash_time: float = 0.42
@@ -294,6 +295,7 @@ func _begin_death_sequence() -> void:
 		return
 
 	is_defeated = true
+	_unlock_kill_achievement()
 	velocity = Vector2.ZERO
 	_clear_attack_telegraph()
 	_set_windup_effect(false)
@@ -320,6 +322,12 @@ func _begin_death_sequence() -> void:
 	tween.chain().tween_interval(0.55)
 	tween.chain().tween_property(sprite, "modulate:a", 0.0, 0.36)
 	tween.tween_callback(Callable(self, "queue_free"))
+
+
+func _unlock_kill_achievement() -> void:
+	var achievement_manager := get_node_or_null("/root/AchievementManager")
+	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
+		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
 func _notify_boss_defeat_started() -> void:

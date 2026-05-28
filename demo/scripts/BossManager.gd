@@ -8,6 +8,7 @@ const BOSS_CORE_OPEN_BACKGROUND := preload("res://demo/assets/background/bosslev
 const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgtitle/boss_end_bg.png")
 
 @export var max_health := 100
+@export var monster_id := "Boss"
 @export var phase_two_threshold := 60
 @export var core_open_duration := 6.0
 @export var tentacle_respawn_delay := 1.2
@@ -592,6 +593,7 @@ func _pick_spawn_point(points_root: Node) -> Node2D:
 
 func _die() -> void:
 	boss_dead = true
+	_unlock_kill_achievement()
 	phase_two_started = false
 	wire_round_running = false
 	core_open = false
@@ -607,6 +609,12 @@ func _die() -> void:
 		boss_body.visible = false
 	_set_end_background()
 	boss_defeated.emit()
+
+
+func _unlock_kill_achievement() -> void:
+	var achievement_manager := get_node_or_null("/root/AchievementManager")
+	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
+		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
 func _set_end_background() -> void:

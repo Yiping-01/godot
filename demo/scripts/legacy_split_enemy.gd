@@ -13,6 +13,7 @@ extends CharacterBody2D
 @export var small_enemy_scene_path := "res://demo/scenes/enemy.tscn"
 @export var respawn_scene_path := "res://demo/scenes/legacy_split_enemy.tscn"
 @export var spawn_protection_time := 0.35
+@export var monster_id: String = "WaterBlueBounceOctopus"
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -88,6 +89,7 @@ func take_damage(amount: int, attacker_position: Vector2) -> void:
 
 func _die() -> void:
 	is_dead = true
+	_unlock_kill_achievement()
 	can_take_damage = false
 	velocity = Vector2.ZERO
 	knockback_velocity = Vector2.ZERO
@@ -102,6 +104,12 @@ func _die() -> void:
 
 	await _fade_out_death(anim, death_fade_time)
 	queue_free()
+
+
+func _unlock_kill_achievement() -> void:
+	var achievement_manager := get_node_or_null("/root/AchievementManager")
+	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
+		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
 func _fade_out_death(target: CanvasItem, duration: float) -> void:

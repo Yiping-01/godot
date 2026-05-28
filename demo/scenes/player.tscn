@@ -20,11 +20,11 @@
 [ext_resource type="Texture2D" uid="uid://b1j544fx7axuk" path="res://demo/assets/art/legacy/Temporary_Art/Effect and FX Pixel All Free/Free/Part 2/62.png" id="18_hit_fx"]
 [ext_resource type="AudioStream" uid="uid://dbjq85wpakrxh" path="res://demo/assets/art/legacy/audio/sword_hit_window_1.wav" id="19_sword_hit"]
 [ext_resource type="AudioStream" uid="uid://c5emh117ix4mu" path="res://demo/assets/art/legacy/audio/hero_damage.wav" id="20_hero_damage"]
-[ext_resource type="AudioStream" path="res://demo/assets/audio/scores/jump.wav" id="21_jump_sfx"]
-[ext_resource type="AudioStream" path="res://demo/assets/audio/scores/attack1.wav" id="22_far_attack_sfx"]
-[ext_resource type="AudioStream" path="res://demo/assets/audio/scores/attack2.wav" id="23_attack_sfx"]
 [ext_resource type="Texture2D" uid="uid://cy68rucrisocn" path="res://demo/assets/art/legacy/player/Jump/sea0_jump_1.png" id="21_jump_1"]
+[ext_resource type="AudioStream" uid="uid://c2ps20ky04b1s" path="res://demo/assets/audio/scores/jump.wav" id="21_jump_sfx"]
+[ext_resource type="AudioStream" uid="uid://dhpoo83f8tyjm" path="res://demo/assets/audio/scores/attack1.wav" id="22_far_attack_sfx"]
 [ext_resource type="Texture2D" uid="uid://o1sebvsscb78" path="res://demo/assets/art/legacy/player/Jump/sea0_jump_2.png" id="22_jump_2"]
+[ext_resource type="AudioStream" uid="uid://dsp114i5rjrxp" path="res://demo/assets/audio/scores/attack2.wav" id="23_attack_sfx"]
 [ext_resource type="Texture2D" uid="uid://ds2b5faotev8r" path="res://demo/assets/art/legacy/player/Jump/sea0_jump_3.png" id="23_jump_3"]
 [ext_resource type="Texture2D" uid="uid://bxxnrxli6iiq8" path="res://demo/assets/art/legacy/player/Jump/sea0_jump_4.png" id="24_jump_4"]
 [ext_resource type="Texture2D" uid="uid://b7dmyyrgxbfks" path="res://demo/assets/art/legacy/player/Jump/sea0_jump_5.png" id="25_jump_5"]
@@ -34,15 +34,15 @@
 [ext_resource type="Texture2D" uid="uid://c5jp7xhm3bs3q" path="res://demo/assets/art/legacy/player/AttackUp/sea0_attackup_4.png" id="29_attack_up_4"]
 [ext_resource type="Texture2D" uid="uid://b1ftaqtamaeto" path="res://demo/assets/art/legacy/player/AttackUp/sea0_attackup_5.png" id="30_attack_up_5"]
 [ext_resource type="Texture2D" uid="uid://c3sxqu1m06mmr" path="res://demo/assets/art/legacy/player/AttackUp/sea0_attackup_6.png" id="31_attack_up_6"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_damage/sea0_damage_1.png" id="32_damage_1"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_damage/sea0_damage_2.png" id="33_damage_2"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_01.png" id="34_swim_1"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_02.png" id="35_swim_2"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_03.png" id="36_swim_3"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_04.png" id="37_swim_4"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_05.png" id="38_swim_5"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_slide/sea0_slide_1.png" id="39_slide_1"]
-[ext_resource type="Texture2D" path="res://demo/assets/art/legacy/player/sea0_slide/sea0_slide_2.png" id="40_slide_2"]
+[ext_resource type="Texture2D" uid="uid://b0fd68qftfa1k" path="res://demo/assets/art/legacy/player/sea0_damage/sea0_damage_1.png" id="32_damage_1"]
+[ext_resource type="Texture2D" uid="uid://dm4841xqhtwnn" path="res://demo/assets/art/legacy/player/sea0_damage/sea0_damage_2.png" id="33_damage_2"]
+[ext_resource type="Texture2D" uid="uid://cuu5v18s0pnm2" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_01.png" id="34_swim_1"]
+[ext_resource type="Texture2D" uid="uid://ckltgcxniejoh" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_02.png" id="35_swim_2"]
+[ext_resource type="Texture2D" uid="uid://c5y7yrbpli5c6" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_03.png" id="36_swim_3"]
+[ext_resource type="Texture2D" uid="uid://cn3nrcb3o2xqu" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_04.png" id="37_swim_4"]
+[ext_resource type="Texture2D" uid="uid://dsp61ocvd48fh" path="res://demo/assets/art/legacy/player/sea0_swim/sea0_swim_05.png" id="38_swim_5"]
+[ext_resource type="Texture2D" uid="uid://phpdq7g7y40" path="res://demo/assets/art/legacy/player/sea0_slide/sea0_slide_1.png" id="39_slide_1"]
+[ext_resource type="Texture2D" uid="uid://bo3let8n4g4p7" path="res://demo/assets/art/legacy/player/sea0_slide/sea0_slide_2.png" id="40_slide_2"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_player"]
 animations = [{
@@ -108,26 +108,6 @@ animations = [{
 "texture": ExtResource("21_jump_1")
 }, {
 "duration": 1.0,
-"texture": ExtResource("22_jump_2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("23_jump_3")
-}, {
-"duration": 1.0,
-"texture": ExtResource("24_jump_4")
-}, {
-"duration": 1.0,
-"texture": ExtResource("25_jump_5")
-}],
-"loop": false,
-"name": &"jump",
-"speed": 10.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("21_jump_1")
-}, {
-"duration": 1.0,
 "texture": ExtResource("23_jump_3")
 }, {
 "duration": 1.0,
@@ -142,40 +122,23 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("34_swim_1")
-}, {
-"duration": 1.0,
-"texture": ExtResource("35_swim_2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("36_swim_3")
-}, {
-"duration": 1.0,
 "texture": ExtResource("21_jump_1")
 }, {
 "duration": 1.0,
 "texture": ExtResource("22_jump_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("23_jump_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("24_jump_4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("25_jump_5")
 }],
 "loop": false,
-"name": &"water_exit",
-"speed": 13.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": ExtResource("2_wait_1")
-}, {
-"duration": 1.0,
-"texture": ExtResource("3_wait_2")
-}, {
-"duration": 1.0,
-"texture": ExtResource("4_wait_3")
-}, {
-"duration": 1.0,
-"texture": ExtResource("5_wait_4")
-}],
-"loop": true,
-"name": &"wait",
-"speed": 6.0
+"name": &"jump",
+"speed": 10.0
 }, {
 "frames": [{
 "duration": 1.0,
@@ -210,13 +173,19 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("39_slide_1")
+"texture": ExtResource("2_wait_1")
 }, {
 "duration": 1.0,
-"texture": ExtResource("40_slide_2")
+"texture": ExtResource("3_wait_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_wait_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_wait_4")
 }],
 "loop": true,
-"name": &"wall_slide",
+"name": &"wait",
 "speed": 6.0
 }, {
 "frames": [{
@@ -238,6 +207,37 @@ animations = [{
 "loop": true,
 "name": &"walk",
 "speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("39_slide_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("40_slide_2")
+}],
+"loop": true,
+"name": &"wall_slide",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("34_swim_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("35_swim_2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("36_swim_3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("21_jump_1")
+}, {
+"duration": 1.0,
+"texture": ExtResource("22_jump_2")
+}],
+"loop": false,
+"name": &"water_exit",
+"speed": 13.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player"]
@@ -447,14 +447,14 @@ monitorable = false
 shape = SubResource("RectangleShape2D_down_attack")
 disabled = true
 
-[node name="ChargeAttackArea" type="Area2D" parent="."]
+[node name="ChargeAttackArea" type="Area2D" parent="." unique_id=981952239]
 position = Vector2(76, 2)
 collision_layer = 8
 collision_mask = 4
 monitoring = false
 monitorable = false
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ChargeAttackArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ChargeAttackArea" unique_id=1911536741]
 shape = SubResource("RectangleShape2D_charge_attack")
 disabled = true
 
@@ -473,7 +473,7 @@ scale = Vector2(2.4, 2.4)
 sprite_frames = SubResource("SpriteFrames_attack_effect")
 animation = &"slash"
 
-[node name="ChargeEffect" type="AnimatedSprite2D" parent="."]
+[node name="ChargeEffect" type="AnimatedSprite2D" parent="." unique_id=1278359870]
 visible = false
 modulate = Color(1, 0.78, 0.34, 0.88)
 scale = Vector2(2, 2)
@@ -498,24 +498,18 @@ position_smoothing_speed = 8.0
 
 [node name="JumpAudio" type="AudioStreamPlayer2D" parent="." unique_id=1632853381]
 stream = ExtResource("21_jump_sfx")
-bus = &"SFX"
 
 [node name="DoubleJumpAudio" type="AudioStreamPlayer2D" parent="." unique_id=1081622854]
 stream = ExtResource("21_jump_sfx")
-bus = &"SFX"
 
 [node name="AttackAudio" type="AudioStreamPlayer2D" parent="." unique_id=2127639950]
 stream = ExtResource("23_attack_sfx")
-bus = &"SFX"
 
-[node name="FarAttackAudio" type="AudioStreamPlayer2D" parent="."]
+[node name="FarAttackAudio" type="AudioStreamPlayer2D" parent="." unique_id=1908570740]
 stream = ExtResource("22_far_attack_sfx")
-bus = &"SFX"
 
 [node name="HitAudio" type="AudioStreamPlayer2D" parent="." unique_id=448333012]
 stream = ExtResource("19_sword_hit")
-bus = &"SFX"
 
 [node name="HurtAudio" type="AudioStreamPlayer2D" parent="." unique_id=1740789835]
 stream = ExtResource("20_hero_damage")
-bus = &"SFX"

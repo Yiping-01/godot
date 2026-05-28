@@ -20,6 +20,7 @@ const STATE_COOLDOWN := 4
 @export var patrol_speed := 80.0
 @export var patrol_distance := 180.0
 @export var visual_smoothing := 0.18
+@export var monster_id: String = "SlamSquid"
 
 @onready var attack_area: Area2D = $AttackArea
 @onready var hurt_box: Area2D = $HurtBox
@@ -225,6 +226,7 @@ func take_damage(amount: int, _attacker_position := Vector2.ZERO) -> void:
 
 
 func _die() -> void:
+	_unlock_kill_achievement()
 	set_physics_process(false)
 	collision_layer = 0
 	collision_mask = 1
@@ -240,6 +242,12 @@ func _die() -> void:
 
 	await _fade_out_death(sprite, 0.45)
 	queue_free()
+
+
+func _unlock_kill_achievement() -> void:
+	var achievement_manager := get_node_or_null("/root/AchievementManager")
+	if achievement_manager != null and achievement_manager.has_method("unlock_kill_achievement"):
+		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
 func _fade_out_death(target: CanvasItem, duration: float) -> void:
