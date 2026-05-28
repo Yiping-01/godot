@@ -106,67 +106,6 @@ layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "English"
 
-[node name="NameInputPanel" type="Control" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Blocker" type="ColorRect" parent="NameInputPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.58)
-
-[node name="PanelBox" type="PanelContainer" parent="NameInputPanel"]
-custom_minimum_size = Vector2(460, 230)
-layout_mode = 0
-offset_left = 730.0
-offset_top = 420.0
-offset_right = 1190.0
-offset_bottom = 650.0
-
-[node name="VBox" type="VBoxContainer" parent="NameInputPanel/PanelBox"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="TitleLabel" type="Label" parent="NameInputPanel/PanelBox/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "請輸入玩家名字"
-horizontal_alignment = 1
-
-[node name="NameLineEdit" type="LineEdit" parent="NameInputPanel/PanelBox/VBox"]
-custom_minimum_size = Vector2(400, 48)
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-placeholder_text = "玩家名字"
-
-[node name="ButtonRow" type="HBoxContainer" parent="NameInputPanel/PanelBox/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
-alignment = 1
-
-[node name="ConfirmButton" type="Button" parent="NameInputPanel/PanelBox/VBox/ButtonRow"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "確認"
-
-[node name="CancelButton" type="Button" parent="NameInputPanel/PanelBox/VBox/ButtonRow"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-theme_override_font_sizes/font_size = 22
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-text = "取消"
-
 [node name="FadeRect" type="ColorRect" parent="." unique_id=1783674024]
 layout_mode = 1
 anchors_preset = 15

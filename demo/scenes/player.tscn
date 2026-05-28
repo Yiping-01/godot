@@ -486,7 +486,7 @@ scale = Vector2(0.18, 0.18)
 sprite_frames = SubResource("SpriteFrames_hit_effect")
 animation = &"hit"
 
-[node name="DeathEffect" type="Node2D" parent="." unique_id=139826292]
+[node name="DeathEffect" type="AnimatedSprite2D" parent="." unique_id=139826292]
 visible = false
 scale = Vector2(0.2, 0.2)
 

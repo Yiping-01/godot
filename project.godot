@@ -26,7 +26,6 @@ InputHelper="*uid://cholww48njaeh"
 InputSettings="*res://demo/scripts/input_settings.gd"
 PhantomCameraManager="*res://addons/phantom_camera/scripts/managers/phantom_camera_manager.gd"
 BetterTerrain="*uid://cut8newgywffy"
-DemoSaveManager="*res://demo/scripts/DemoSaveManager.gd"
 
 [display]
 

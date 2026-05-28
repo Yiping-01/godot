@@ -13,14 +13,9 @@ const UI_CONFIRM_PATH := "res://demo/assets/audio/scores/jump.wav"
 @onready var quit_button: Button = $Menu/QuitButton
 @onready var subtitle_label: Label = $SubtitleLabel
 @onready var fade_rect: ColorRect = $FadeRect
-@onready var name_input_panel: Control = $NameInputPanel
-@onready var name_line_edit: LineEdit = $NameInputPanel/PanelBox/VBox/NameLineEdit
-@onready var name_confirm_button: Button = $NameInputPanel/PanelBox/VBox/ButtonRow/ConfirmButton
-@onready var name_cancel_button: Button = $NameInputPanel/PanelBox/VBox/ButtonRow/CancelButton
 
 var music_player: AudioStreamPlayer
 var confirm_player: AudioStreamPlayer
-var name_input_mode := "start"
 
 
 func _ready() -> void:
@@ -36,103 +31,29 @@ func _ready() -> void:
 	language_zh_button.pressed.connect(_set_language.bind("zh"))
 	language_en_button.pressed.connect(_set_language.bind("en"))
 	quit_button.pressed.connect(Callable(get_tree(), "quit"))
-	name_confirm_button.pressed.connect(_confirm_start_with_name)
-	name_cancel_button.pressed.connect(_cancel_name_input)
-	name_line_edit.text_submitted.connect(_on_name_text_submitted)
 	var localization := _get_localization()
 	if localization != null:
 		localization.connect("language_changed", Callable(self, "_update_texts"))
-	name_input_panel.visible = false
-	continue_button.disabled = false
+	continue_button.disabled = not GameState.has_continue_scene()
 	_update_texts()
 	_fade_in()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
-		if name_input_panel.visible:
-			_cancel_name_input()
-			get_viewport().set_input_as_handled()
-			return
 		get_tree().quit()
 
 
 func _start_new_flow() -> void:
-	name_input_mode = "start"
-	_show_name_input_panel()
-
-
-func _show_name_input_panel() -> void:
-	name_input_panel.visible = true
-	name_line_edit.text = ""
-	name_line_edit.grab_focus()
-
-
-func _confirm_start_with_name() -> void:
-	var player_name := name_line_edit.text.strip_edges()
-	if player_name.is_empty():
-		print("請輸入玩家名字")
-		return
-
-	if name_input_mode == "continue":
-		await _continue_with_name(player_name)
-		return
-
 	GameState.reset_demo_state()
 	GameState.clear_continue_scene()
 	GameState.set_input_locked(false)
-	var demo_save_manager := _get_demo_save_manager()
-	if demo_save_manager != null:
-		demo_save_manager.call("start_new_game", player_name, LEVEL1_SCENE, Vector2.ZERO)
-		demo_save_manager.call("start_timer")
 	_load_scene(LEVEL1_SCENE)
 
 
-func _on_name_text_submitted(_submitted_name: String) -> void:
-	_confirm_start_with_name()
-
-
-func _cancel_name_input() -> void:
-	name_input_panel.visible = false
-	name_line_edit.text = ""
-
-
 func _continue_flow() -> void:
-	name_input_mode = "continue"
-	_show_name_input_panel()
-
-
-func _continue_with_name(player_name: String) -> void:
-	var demo_save_manager := _get_demo_save_manager()
-	if demo_save_manager == null:
-		print("Warning: DemoSaveManager not found, continue skipped.")
-		return
-	if not bool(demo_save_manager.call("has_save", player_name)):
-		print("找不到這個名字的存檔")
-		return
-
-	var save_data: Variant = demo_save_manager.call("load_game", player_name)
-	if not (save_data is Dictionary):
-		print("Warning: save data is invalid, continue skipped.")
-		return
-
-	var save_dictionary := save_data as Dictionary
-	var scene_path := String(save_dictionary.get("current_scene", ""))
-	if scene_path.is_empty():
-		print("Warning: save scene path is empty, continue skipped.")
-		return
-
-	demo_save_manager.set("current_player_name", player_name)
-	demo_save_manager.set("current_play_time", float(save_dictionary.get("play_time", 0.0)))
-	demo_save_manager.call("start_timer")
 	GameState.set_input_locked(false)
-	var restore_task := SavedPositionRestoreTask.new()
-	restore_task.target_position = Vector2(
-		float(save_dictionary.get("position_x", 0.0)),
-		float(save_dictionary.get("position_y", 0.0))
-	)
-	get_tree().root.add_child(restore_task)
-	_load_scene(scene_path)
+	_load_scene(GameState.prepare_continue_scene())
 
 
 func _load_scene(path: String) -> void:
@@ -184,7 +105,7 @@ func _build_audio() -> void:
 
 
 func _connect_button_feedback() -> void:
-	for button in [start_button, continue_button, quit_button, language_zh_button, language_en_button, name_confirm_button, name_cancel_button]:
+	for button in [start_button, continue_button, quit_button, language_zh_button, language_en_button]:
 		button.mouse_entered.connect(_on_button_hovered.bind(button))
 		button.focus_entered.connect(_on_button_hovered.bind(button))
 		button.pressed.connect(_animate_button_press.bind(button))
@@ -238,31 +159,3 @@ func _text(key: String, en: String, zh: String) -> String:
 
 func _get_localization() -> Node:
 	return get_node_or_null("/root/Localization")
-
-
-func _get_demo_save_manager() -> Node:
-	return get_node_or_null("/root/DemoSaveManager")
-
-
-class SavedPositionRestoreTask:
-	extends Node
-
-	var target_position := Vector2.ZERO
-
-	func _ready() -> void:
-		call_deferred("_restore_after_scene_load")
-
-	func _restore_after_scene_load() -> void:
-		await get_tree().process_frame
-		await get_tree().process_frame
-		var player := get_tree().get_first_node_in_group("player")
-		if player == null:
-			print("Warning: player not found after loading save.")
-			queue_free()
-			return
-		if not (player is Node2D):
-			print("Warning: loaded player is not Node2D.")
-			queue_free()
-			return
-		(player as Node2D).global_position = target_position
-		queue_free()
