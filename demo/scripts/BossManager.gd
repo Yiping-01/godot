@@ -12,7 +12,7 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var core_open_duration := 6.0
 @export var tentacle_respawn_delay := 1.2
 @export var wire_round_count := 3
-@export var wire_round_time := 15.0
+@export var wire_round_time := 50.0
 @export var wire_round_cooldown := 3.0
 @export var wire_warning_start_time := 5.0
 @export var wire_fast_warning_start_time := 3.0
@@ -22,7 +22,7 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var lightning_random_max_x := 1712.0
 @export var lightning_near_player_radius := 420.0
 @export var lightning_min_spacing := 220.0
-@export var enraged_wire_round_time := 9.0
+@export var enraged_wire_round_time := 35.0
 @export var enraged_lightning_strike_interval := 0.5
 @export var enraged_core_open_duration := 3.5
 @export var debug_start_phase_two := false
@@ -35,6 +35,9 @@ const BOSS_END_BACKGROUND := preload("res://demo/assets/background/bosslevel_bgt
 @export var low_health_hint_hold_time := 0.12
 @export var low_health_hint_shake_duration := 0.28
 @export var low_health_hint_shake_strength := 8.0
+@export var enraged_hint_duration := 3.0
+@export var enraged_hint_flash_interval := 0.16
+@export var enraged_hint_shake_strength := 18.0
 @export var electric_wire_scene: PackedScene
 @export var lightning_area_scene: PackedScene
 @export var tentacles_path: NodePath
@@ -141,6 +144,7 @@ func damage_boss(amount: int) -> void:
 	if not enraged and health <= low_health_hint_threshold:
 		enraged = true
 		print("Boss enraged:", enraged)
+		_play_enraged_mode_hint()
 
 	if phase == 1 and health <= phase_two_threshold:
 		_enter_phase_two()
@@ -313,6 +317,38 @@ func _play_low_health_hint() -> void:
 		"color",
 		Color.WHITE,
 		0.35
+	)
+
+
+func _play_enraged_mode_hint() -> void:
+	if phase_two_hint_canvas_modulate == null:
+		return
+	if phase_two_hint_tween != null:
+		phase_two_hint_tween.kill()
+
+	_flash_boss_core_for_phase_two()
+	_shake_phase_two_camera(enraged_hint_duration, enraged_hint_shake_strength)
+
+	var dark_flash := Color(0.02, 0.0, 0.0, 1.0)
+	var bright_flash := Color(1.35, 1.18, 1.08, 1.0)
+	phase_two_hint_canvas_modulate.color = dark_flash
+	phase_two_hint_tween = create_tween()
+	var elapsed := 0.0
+	var use_bright := true
+	while elapsed < enraged_hint_duration:
+		phase_two_hint_tween.tween_property(
+			phase_two_hint_canvas_modulate,
+			"color",
+			bright_flash if use_bright else dark_flash,
+			enraged_hint_flash_interval
+		)
+		elapsed += enraged_hint_flash_interval
+		use_bright = not use_bright
+	phase_two_hint_tween.tween_property(
+		phase_two_hint_canvas_modulate,
+		"color",
+		Color.WHITE,
+		0.25
 	)
 
 
