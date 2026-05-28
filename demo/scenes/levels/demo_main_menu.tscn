@@ -17,6 +17,34 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_save_panel"]
+content_margin_left = 24.0
+content_margin_top = 24.0
+content_margin_right = 24.0
+content_margin_bottom = 24.0
+bg_color = Color(0.02, 0.035, 0.045, 0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.56, 0.82, 0.84, 0.42)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_preview_panel"]
+bg_color = Color(0.04, 0.11, 0.13, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.82, 0.9, 0.35)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="DemoMainMenu" type="Control" unique_id=1602326581]
 layout_mode = 3
 anchors_preset = 15
@@ -105,6 +133,87 @@ custom_minimum_size = Vector2(174, 44)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "English"
+
+[node name="OverwriteSaveDialog" type="ConfirmationDialog" parent="."]
+title = "確認開始新遊戲"
+position = Vector2i(610, 405)
+size = Vector2i(700, 270)
+ok_button_text = "是"
+cancel_button_text = "否"
+dialog_text = "偵測到已有存檔，開始新遊戲會覆蓋原本進度，是否繼續？"
+
+[node name="NoSaveDialog" type="AcceptDialog" parent="."]
+title = "繼續遊戲"
+position = Vector2i(710, 430)
+size = Vector2i(500, 180)
+ok_button_text = "確認"
+dialog_text = "目前沒有存檔"
+
+[node name="ContinueInfoPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 610.0
+offset_top = 280.0
+offset_right = 1310.0
+offset_bottom = 720.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_save_panel")
+
+[node name="Margin" type="MarginContainer" parent="ContinueInfoPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 22
+
+[node name="Content" type="VBoxContainer" parent="ContinueInfoPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="ContinueInfoPanel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "繼續遊戲"
+horizontal_alignment = 1
+
+[node name="PreviewPanel" type="PanelContainer" parent="ContinueInfoPanel/Margin/Content"]
+custom_minimum_size = Vector2(640, 170)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_preview_panel")
+
+[node name="PreviewNameLabel" type="Label" parent="ContinueInfoPanel/Margin/Content/PreviewPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.95, 0.98, 0.9)
+theme_override_font_sizes/font_size = 30
+text = "深海洞窟"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SaveInfoLabel" type="Label" parent="ContinueInfoPanel/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.98, 1, 0.95)
+theme_override_font_sizes/font_size = 22
+text = "上次地點：深海洞窟
+錢幣：0
+存檔時間：未知"
+
+[node name="ButtonRow" type="HBoxContainer" parent="ContinueInfoPanel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ContinueLoadButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "繼續"
+
+[node name="ContinueCancelButton" type="Button" parent="ContinueInfoPanel/Margin/Content/ButtonRow"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "取消"
 
 [node name="FadeRect" type="ColorRect" parent="." unique_id=1783674024]
 layout_mode = 1

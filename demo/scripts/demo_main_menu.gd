@@ -13,6 +13,13 @@ const UI_CONFIRM_PATH := "res://demo/assets/audio/scores/jump.wav"
 @onready var quit_button: Button = $Menu/QuitButton
 @onready var subtitle_label: Label = $SubtitleLabel
 @onready var fade_rect: ColorRect = $FadeRect
+@onready var overwrite_save_dialog: ConfirmationDialog = $OverwriteSaveDialog
+@onready var no_save_dialog: AcceptDialog = $NoSaveDialog
+@onready var continue_info_panel: PanelContainer = $ContinueInfoPanel
+@onready var save_preview_label: Label = $ContinueInfoPanel/Margin/Content/PreviewPanel/PreviewNameLabel
+@onready var save_info_label: Label = $ContinueInfoPanel/Margin/Content/SaveInfoLabel
+@onready var continue_load_button: Button = $ContinueInfoPanel/Margin/Content/ButtonRow/ContinueLoadButton
+@onready var continue_cancel_button: Button = $ContinueInfoPanel/Margin/Content/ButtonRow/ContinueCancelButton
 
 var music_player: AudioStreamPlayer
 var confirm_player: AudioStreamPlayer
@@ -31,29 +38,71 @@ func _ready() -> void:
 	language_zh_button.pressed.connect(_set_language.bind("zh"))
 	language_en_button.pressed.connect(_set_language.bind("en"))
 	quit_button.pressed.connect(Callable(get_tree(), "quit"))
+	overwrite_save_dialog.confirmed.connect(_confirm_new_game_overwrite)
+	continue_load_button.pressed.connect(_confirm_continue_game)
+	continue_cancel_button.pressed.connect(_hide_continue_info_panel)
 	var localization := _get_localization()
 	if localization != null:
 		localization.connect("language_changed", Callable(self, "_update_texts"))
-	continue_button.disabled = not GameState.has_continue_scene()
+	continue_button.disabled = false
+	continue_info_panel.hide()
 	_update_texts()
 	_fade_in()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
+		if continue_info_panel.visible:
+			_hide_continue_info_panel()
+			return
 		get_tree().quit()
 
 
 func _start_new_flow() -> void:
-	GameState.reset_demo_state()
-	GameState.clear_continue_scene()
-	GameState.set_input_locked(false)
-	_load_scene(LEVEL1_SCENE)
+	if GameState.has_save_file():
+		overwrite_save_dialog.popup_centered()
+		return
+	_start_new_game()
+
+
+func _confirm_new_game_overwrite() -> void:
+	_start_new_game()
+
+
+func _start_new_game() -> void:
+	_load_scene(GameState.start_new_game())
 
 
 func _continue_flow() -> void:
-	GameState.set_input_locked(false)
-	_load_scene(GameState.prepare_continue_scene())
+	if not GameState.has_save_file():
+		no_save_dialog.popup_centered()
+		return
+	_show_continue_info_panel()
+
+
+func _show_continue_info_panel() -> void:
+	var save_info := GameState.get_save_info()
+	if save_info.is_empty():
+		no_save_dialog.popup_centered()
+		return
+
+	var preview_scene_name := String(save_info.get("preview_scene_name", "未知地點"))
+	save_preview_label.text = preview_scene_name
+	save_info_label.text = "上次地點：%s\n錢幣：%d\n存檔時間：%s" % [
+		preview_scene_name,
+		int(save_info.get("coins", 0)),
+		String(save_info.get("saved_at", "未知")),
+	]
+	continue_info_panel.show()
+
+
+func _hide_continue_info_panel() -> void:
+	continue_info_panel.hide()
+
+
+func _confirm_continue_game() -> void:
+	_hide_continue_info_panel()
+	_load_scene(GameState.continue_game())
 
 
 func _load_scene(path: String) -> void:

@@ -531,8 +531,6 @@ func is_room_visited(scene_path: String, room_id: String) -> bool:
 
 
 func save_game() -> void:
-	
-
 	var config := ConfigFile.new()
 	config.set_value("player", "currency", currency)
 	config.set_value("player", "inventory", inventory)
@@ -540,6 +538,14 @@ func save_game() -> void:
 	config.set_value("player", "scene_rough_charm_purchases", scene_rough_charm_purchases)
 	config.set_value("player", "has_respawn", has_saved_respawn)
 	config.set_value("player", "respawn_position", saved_respawn_position)
+	var scene_path := _get_current_scene_path()
+	var player_position := _get_current_player_position()
+	config.set_value("save", "current_scene", scene_path)
+	config.set_value("save", "position_x", player_position.x)
+	config.set_value("save", "position_y", player_position.y)
+	config.set_value("save", "coins", currency)
+	config.set_value("save", "saved_at", _get_save_timestamp())
+	config.set_value("save", "preview_scene_name", get_scene_display_name(scene_path))
 	config.save(SAVE_PATH)
 
 
@@ -556,8 +562,13 @@ func save_continue_scene(scene_path: String, player_position := Vector2.ZERO, ha
 	config.set_value("continue", "scene_path", continue_scene_path)
 	config.set_value("continue", "has_player_position", has_continue_player_position)
 	config.set_value("continue", "player_position", continue_player_position)
+	config.set_value("continue", "position_x", continue_player_position.x)
+	config.set_value("continue", "position_y", continue_player_position.y)
 	config.set_value("continue", "has_spawn_marker", has_continue_spawn_marker)
 	config.set_value("continue", "spawn_marker_name", continue_spawn_marker_name)
+	config.set_value("continue", "coins", currency)
+	config.set_value("continue", "saved_at", _get_save_timestamp())
+	config.set_value("continue", "preview_scene_name", get_scene_display_name(continue_scene_path))
 	config.save(CONTINUE_SCENE_SAVE_PATH)
 
 
@@ -589,6 +600,85 @@ func prepare_continue_scene() -> String:
 	elif has_continue_player_position:
 		set_pending_spawn_position(continue_player_position)
 	return scene_path
+
+
+func has_save_file() -> bool:
+	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(CONTINUE_SCENE_SAVE_PATH)
+
+
+func get_save_info() -> Dictionary:
+	if not has_save_file():
+		return {}
+
+	var info := {
+		"current_scene": DEFAULT_START_SCENE,
+		"position_x": 0.0,
+		"position_y": 0.0,
+		"coins": currency,
+		"saved_at": "",
+		"preview_image": "",
+		"preview_scene_name": get_scene_display_name(DEFAULT_START_SCENE),
+	}
+
+	if FileAccess.file_exists(SAVE_PATH):
+		var save_config := ConfigFile.new()
+		if save_config.load(SAVE_PATH) == OK:
+			var scene_path := String(save_config.get_value("save", "current_scene", info["current_scene"]))
+			info["current_scene"] = scene_path
+			info["position_x"] = float(save_config.get_value("save", "position_x", info["position_x"]))
+			info["position_y"] = float(save_config.get_value("save", "position_y", info["position_y"]))
+			info["coins"] = int(save_config.get_value("save", "coins", save_config.get_value("player", "currency", currency)))
+			info["saved_at"] = String(save_config.get_value("save", "saved_at", info["saved_at"]))
+			info["preview_scene_name"] = String(save_config.get_value("save", "preview_scene_name", get_scene_display_name(scene_path)))
+
+	if FileAccess.file_exists(CONTINUE_SCENE_SAVE_PATH):
+		var continue_config := ConfigFile.new()
+		if continue_config.load(CONTINUE_SCENE_SAVE_PATH) == OK:
+			var continue_scene := String(continue_config.get_value("continue", "scene_path", info["current_scene"]))
+			var loaded_position: Variant = continue_config.get_value("continue", "player_position", Vector2(float(info["position_x"]), float(info["position_y"])))
+			info["current_scene"] = continue_scene
+			if loaded_position is Vector2:
+				info["position_x"] = loaded_position.x
+				info["position_y"] = loaded_position.y
+			else:
+				info["position_x"] = float(continue_config.get_value("continue", "position_x", info["position_x"]))
+				info["position_y"] = float(continue_config.get_value("continue", "position_y", info["position_y"]))
+			info["coins"] = int(continue_config.get_value("continue", "coins", info["coins"]))
+			info["saved_at"] = String(continue_config.get_value("continue", "saved_at", info["saved_at"]))
+			info["preview_scene_name"] = String(continue_config.get_value("continue", "preview_scene_name", get_scene_display_name(continue_scene)))
+
+	if String(info["saved_at"]) == "":
+		var modified_path := CONTINUE_SCENE_SAVE_PATH if FileAccess.file_exists(CONTINUE_SCENE_SAVE_PATH) else SAVE_PATH
+		info["saved_at"] = _get_file_modified_timestamp(modified_path)
+	if String(info["saved_at"]) == "":
+		info["saved_at"] = "未知"
+	if String(info["preview_scene_name"]) == "":
+		info["preview_scene_name"] = get_scene_display_name(String(info["current_scene"]))
+	return info
+
+
+func clear_save_file() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(SAVE_PATH)
+	if FileAccess.file_exists(CONTINUE_SCENE_SAVE_PATH):
+		DirAccess.remove_absolute(CONTINUE_SCENE_SAVE_PATH)
+	clear_continue_scene()
+
+
+func start_new_game() -> String:
+	clear_save_file()
+	reset_demo_state()
+	clear_continue_scene()
+	set_input_locked(false)
+	return DEFAULT_START_SCENE
+
+
+func continue_game() -> String:
+	load_game()
+	set_input_locked(false)
+	if not has_continue_scene() and FileAccess.file_exists(SAVE_PATH):
+		return _prepare_save_file_scene()
+	return prepare_continue_scene()
 
 
 func has_continue_scene() -> bool:
@@ -632,3 +722,79 @@ func load_game() -> void:
 	var loaded_position: Variant = config.get_value("player", "respawn_position", Vector2.ZERO)
 	if loaded_position is Vector2:
 		saved_respawn_position = loaded_position
+
+
+func get_scene_display_name(scene_path: String) -> String:
+	match scene_path:
+		"res://demo/scenes/levels/demo_level_1.tscn":
+			return "深海洞窟"
+		"res://demo/scenes/levels/demo_water.tscn":
+			return "水中通道"
+		"res://demo/scenes/levels/demo_boss.tscn":
+			return "Boss 房間"
+		"res://demo/scenes/levels/demo_boss_phase_2.tscn":
+			return "Boss 第二階段"
+		_:
+			if scene_path == "":
+				return "未知地點"
+			var file_name := scene_path.get_file().get_basename()
+			return file_name.replace("_", " ")
+
+
+func _get_current_scene_path() -> String:
+	var tree := get_tree()
+	if tree == null or tree.current_scene == null:
+		return continue_scene_path if continue_scene_path != "" else DEFAULT_START_SCENE
+	var scene_path := tree.current_scene.scene_file_path
+	return scene_path if scene_path != "" else DEFAULT_START_SCENE
+
+
+func _get_current_player_position() -> Vector2:
+	var tree := get_tree()
+	if tree != null:
+		var player := tree.get_first_node_in_group("player")
+		if player is Node2D:
+			return player.global_position
+	if has_saved_respawn:
+		return saved_respawn_position
+	return continue_player_position
+
+
+func _get_save_timestamp() -> String:
+	return _format_datetime_dict(Time.get_datetime_dict_from_system())
+
+
+func _get_file_modified_timestamp(path: String) -> String:
+	if path == "" or not FileAccess.file_exists(path):
+		return ""
+	var unix_time := int(FileAccess.get_modified_time(path))
+	if unix_time <= 0:
+		return ""
+	return _format_datetime_dict(Time.get_datetime_dict_from_unix_time(unix_time))
+
+
+func _format_datetime_dict(datetime: Dictionary) -> String:
+	return "%04d/%02d/%02d %02d:%02d" % [
+		int(datetime.get("year", 0)),
+		int(datetime.get("month", 0)),
+		int(datetime.get("day", 0)),
+		int(datetime.get("hour", 0)),
+		int(datetime.get("minute", 0)),
+	]
+
+
+func _prepare_save_file_scene() -> String:
+	var save_info := get_save_info()
+	if save_info.is_empty():
+		return DEFAULT_START_SCENE
+
+	var scene_path := String(save_info.get("current_scene", DEFAULT_START_SCENE))
+	if scene_path == "":
+		scene_path = DEFAULT_START_SCENE
+	var position := Vector2(
+		float(save_info.get("position_x", 0.0)),
+		float(save_info.get("position_y", 0.0))
+	)
+	if position != Vector2.ZERO:
+		set_pending_spawn_position(position)
+	return scene_path
