@@ -191,6 +191,8 @@ var has_water_surface_y := false
 var water_surface_y := 0.0
 var lock_underwater_horizontal_y := false
 var locked_underwater_y := 0.0
+var underwater_hurt_y_locked := false
+var underwater_hurt_locked_y := 0.0
 var underwater_dash_direction := Vector2.ZERO
 var underwater_dash_current_speed := 0.0
 var water_exit_animation_left := 0.0
@@ -392,7 +394,12 @@ func _update_underwater_movement(delta: float) -> void:
 	_update_attack(delta)
 
 	move_and_slide()
-	if lock_underwater_horizontal_y:
+	if underwater_hurt_y_locked:
+		global_position.y = underwater_hurt_locked_y
+		velocity.y = 0.0
+		if hurt_lock_left <= 0.0:
+			underwater_hurt_y_locked = false
+	elif lock_underwater_horizontal_y:
 		global_position.y = locked_underwater_y
 		velocity.y = 0.0
 	_update_animation()
@@ -401,8 +408,11 @@ func _update_underwater_movement(delta: float) -> void:
 
 func _handle_underwater_swim(delta: float) -> void:
 	if hurt_lock_left > 0.0:
-		hurt_lock_left -= delta
-		velocity = velocity.move_toward(Vector2.ZERO, underwater_drag * delta * 0.55)
+		hurt_lock_left = maxf(hurt_lock_left - delta, 0.0)
+		velocity.x = move_toward(velocity.x, 0.0, underwater_drag * delta * 0.55)
+		velocity.y = 0.0
+		if hurt_lock_left <= 0.0:
+			underwater_hurt_y_locked = false
 		return
 
 	var horizontal_input := _get_horizontal_input()
@@ -443,6 +453,7 @@ func _try_water_surface_jump() -> bool:
 		return false
 
 	is_underwater = false
+	underwater_hurt_y_locked = false
 	global_position.y = water_surface_y - water_surface_exit_lift
 	velocity.y = jump_velocity
 	velocity.x = _get_horizontal_input() * speed
@@ -1113,9 +1124,13 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 	_cancel_attack_state()
 	_end_dash(false)
 	_cancel_attack_charge()
-	_apply_hurt_knockback(from_position)
+	if is_underwater:
+		_apply_underwater_hurt_feedback(from_position)
+	else:
+		_apply_hurt_knockback(from_position)
 	_play_audio(hurt_audio)
-	_play_hurt_animation()
+	if not is_underwater:
+		_play_hurt_animation()
 	_play_hit_effect(global_position)
 	_start_camera_shake(0.24, 8.0)
 
@@ -1136,8 +1151,11 @@ func take_quake_damage(amount: int) -> void:
 	_cancel_attack_state()
 	_end_dash(false)
 	_cancel_attack_charge()
+	if is_underwater:
+		_apply_underwater_hurt_feedback(Vector2.ZERO)
 	_play_audio(hurt_audio)
-	_play_hurt_animation()
+	if not is_underwater:
+		_play_hurt_animation()
 	_play_hit_effect(global_position)
 
 	if current_health <= 0.0:
@@ -1218,6 +1236,7 @@ func set_underwater(enabled: bool) -> void:
 	_end_dash(false)
 	velocity *= 0.35
 	if not enabled:
+		underwater_hurt_y_locked = false
 		dash_cooldown_left = 0.0
 		_start_water_exit_animation()
 
@@ -1261,6 +1280,7 @@ func respawn_from_void() -> void:
 	velocity = Vector2.ZERO
 	is_underwater = false
 	has_water_surface_y = false
+	underwater_hurt_y_locked = false
 	hurt_lock_left = 0.0
 	wall_jump_lock_left = 0.0
 	jump_count = 0
@@ -1295,6 +1315,21 @@ func _apply_hurt_knockback(from_position: Vector2) -> void:
 	hurt_lock_left = hurt_control_lock_time
 
 
+func _apply_underwater_hurt_feedback(from_position: Vector2) -> void:
+	var push_direction := signf(global_position.x - from_position.x)
+	if is_zero_approx(push_direction):
+		push_direction = -float(facing_direction)
+
+	hurt_lock_left = hurt_control_lock_time
+	is_hurt_animating = false
+	hurt_animation_left = 0.0
+	underwater_hurt_y_locked = true
+	underwater_hurt_locked_y = global_position.y
+	knockback_velocity = Vector2(push_direction * knockback_force * 0.62, 0.0)
+	velocity = knockback_velocity
+	lock_underwater_horizontal_y = false
+
+
 func _start_invincibility() -> void:
 	invincible = true
 	_set_enemy_body_collision_enabled(false)
@@ -1321,7 +1356,6 @@ func _set_enemy_body_collision_enabled(enabled: bool) -> void:
 	collision_layer = normal_collision_layer
 	if not enabled:
 		set_collision_mask_value(ENEMY_BODY_COLLISION_LAYER_NUMBER, false)
-		set_collision_layer_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 
 
 func _respawn() -> void:
@@ -1330,6 +1364,7 @@ func _respawn() -> void:
 	velocity = Vector2.ZERO
 	is_underwater = false
 	has_water_surface_y = false
+	underwater_hurt_y_locked = false
 	reset_camera_limits()
 	reset_camera_profile()
 	_snap_camera_to_player()

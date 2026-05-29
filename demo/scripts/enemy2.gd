@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Enemy2
 
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
+const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
 
 @export_enum("melee", "ranged") var behavior_mode := "melee"
 @export var max_health: int = 3
@@ -28,6 +29,8 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 @export var lock_to_spawn_height := true
 @export var patrol_left_limit: float = -100000000.0
 @export var patrol_right_limit: float = 100000000.0
+@export var top_contact_damage_margin := 10.0
+@export var body_collision_ignore_time := 0.35
 @export var monster_id: String = "DashSquid"
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
@@ -53,11 +56,14 @@ var is_dead := false
 var damage_area_offset_x := 0.0
 var target: Node2D
 var spawn_y := 0.0
+var normal_collision_layer := 0
+var body_collision_ignore_left := 0.0
 
 
 func _ready() -> void:
 	health = max_health
 	spawn_y = global_position.y
+	normal_collision_layer = collision_layer
 	add_to_group("enemy")
 	damage_area_offset_x = absf(damage_area.position.x)
 	damage_area.area_entered.connect(_on_damage_area_entered)
@@ -78,6 +84,7 @@ func _physics_process(delta: float) -> void:
 
 	target = _find_player()
 	attack_cooldown_left = maxf(attack_cooldown_left - delta, 0.0)
+	_update_body_collision_ignore(delta)
 
 	if lock_to_spawn_height:
 		global_position.y = spawn_y
@@ -104,6 +111,7 @@ func _physics_process(delta: float) -> void:
 		global_position.y = spawn_y
 		velocity.y = 0.0
 	_keep_inside_patrol_limits()
+	_resolve_player_top_contact()
 	_update_walk_animation()
 
 	if state == &"idle" and (is_on_wall() or (is_on_floor() and not _has_floor_ahead())):
@@ -296,6 +304,58 @@ func _keep_inside_patrol_limits() -> void:
 			velocity.x = 0.0
 		direction = -1
 		_sync_facing()
+
+
+func _resolve_player_top_contact() -> void:
+	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
+		return
+	if not _is_player_on_top(target):
+		return
+
+	target.call("take_damage", contact_damage, global_position)
+	_set_body_collision_ignored(body_collision_ignore_time)
+
+
+func _is_player_on_top(player: Node2D) -> bool:
+	if collision_shape == null or not collision_shape.shape is RectangleShape2D:
+		return false
+
+	var enemy_shape := collision_shape.shape as RectangleShape2D
+	var enemy_half_size := enemy_shape.size * collision_shape.global_scale.abs() * 0.5
+	var enemy_top := collision_shape.global_position.y - enemy_half_size.y
+	var enemy_left := collision_shape.global_position.x - enemy_half_size.x
+	var enemy_right := collision_shape.global_position.x + enemy_half_size.x
+
+	var player_shape := player.find_child("CollisionShape2D", true, false) as CollisionShape2D
+	if player_shape == null or not player_shape.shape is RectangleShape2D:
+		return false
+
+	var player_rect := player_shape.shape as RectangleShape2D
+	var player_half_size := player_rect.size * player_shape.global_scale.abs() * 0.5
+	var player_bottom := player_shape.global_position.y + player_half_size.y
+	var player_left := player_shape.global_position.x - player_half_size.x
+	var player_right := player_shape.global_position.x + player_half_size.x
+
+	var horizontally_overlapping := player_right >= enemy_left - 4.0 and player_left <= enemy_right + 4.0
+	var touching_top := player_bottom >= enemy_top - top_contact_damage_margin and player_bottom <= enemy_top + top_contact_damage_margin
+	return horizontally_overlapping and touching_top
+
+
+func _update_body_collision_ignore(delta: float) -> void:
+	if body_collision_ignore_left <= 0.0:
+		return
+
+	body_collision_ignore_left -= delta
+	if body_collision_ignore_left <= 0.0 and not is_dead:
+		collision_layer = normal_collision_layer
+
+
+func _set_body_collision_ignored(duration: float) -> void:
+	if normal_collision_layer == 0:
+		normal_collision_layer = collision_layer
+	collision_layer = normal_collision_layer
+	set_collision_layer_value(ENEMY_BODY_COLLISION_LAYER_NUMBER, false)
+	body_collision_ignore_left = maxf(body_collision_ignore_left, duration)
 
 
 func _update_walk_animation() -> void:

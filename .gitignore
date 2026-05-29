@@ -19,3 +19,14 @@ Desktop.ini
 *.log
 *.tmp
 *.temp
+
+# Godot export builds
+*.exe
+*.pck
+*.zip
+*.apk
+*.aab
+*.dmg
+*.app
+/builds/
+/exports/

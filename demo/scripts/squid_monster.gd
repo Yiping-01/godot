@@ -7,6 +7,7 @@ const STATE_MOVE_ABOVE := 1
 const STATE_SLAM := 2
 const STATE_RETURN := 3
 const STATE_COOLDOWN := 4
+const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
 
 @export var detect_range := 300.0
 @export var hp := 4
@@ -20,11 +21,14 @@ const STATE_COOLDOWN := 4
 @export var patrol_speed := 80.0
 @export var patrol_distance := 180.0
 @export var visual_smoothing := 0.18
+@export var top_contact_damage_margin := 12.0
+@export var body_collision_ignore_time := 0.35
 @export var monster_id: String = "SlamSquid"
 
 @onready var attack_area: Area2D = $AttackArea
 @onready var hurt_box: Area2D = $HurtBox
 @onready var contact_damage_area: Area2D = get_node_or_null("ContactDamageArea") as Area2D
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var sprite: Sprite2D = $Sprite2D
 
 var player: Node2D
@@ -38,11 +42,14 @@ var slam_target_position := Vector2.ZERO
 var hurt_tween: Tween
 var hover_time := 0.0
 var visual_home_offset := Vector2.ZERO
+var normal_collision_layer := 0
+var body_collision_ignore_left := 0.0
 
 
 func _ready() -> void:
 	home_position = global_position
 	add_to_group("enemy")
+	normal_collision_layer = collision_layer
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	attack_area.body_entered.connect(_on_attack_area_body_entered)
 	if contact_damage_area != null:
@@ -58,6 +65,7 @@ func _physics_process(delta: float) -> void:
 	if player == null:
 		player = get_tree().get_first_node_in_group("player") as Node2D
 
+	_update_body_collision_ignore(delta)
 	if player != null and can_attack and state == STATE_IDLE:
 		var distance := global_position.distance_to(player.global_position)
 		if distance <= detect_range:
@@ -72,6 +80,8 @@ func _physics_process(delta: float) -> void:
 			_update_slam(delta)
 		STATE_RETURN:
 			_update_return(delta)
+
+	_resolve_player_top_contact()
 
 
 func _update_idle(delta: float) -> void:
@@ -196,6 +206,71 @@ func _damage_contact_target(area: Area2D) -> void:
 	if receiver == null:
 		return
 	receiver.call("take_damage", damage, global_position)
+
+
+func _resolve_player_top_contact() -> void:
+	if player == null or not is_instance_valid(player) or not player.has_method("take_damage"):
+		return
+	if not _is_player_on_top(player):
+		return
+
+	player.call("take_damage", damage, global_position)
+	_set_body_collision_ignored(body_collision_ignore_time)
+
+
+func _is_player_on_top(target_player: Node2D) -> bool:
+	var enemy_rect := _get_collision_shape_rect(collision_shape)
+	if enemy_rect.size == Vector2.ZERO:
+		return false
+
+	var player_shape := target_player.find_child("CollisionShape2D", true, false) as CollisionShape2D
+	var player_rect := _get_collision_shape_rect(player_shape)
+	if player_rect.size == Vector2.ZERO:
+		return false
+
+	var player_bottom := player_rect.position.y + player_rect.size.y
+	var enemy_top := enemy_rect.position.y
+	var horizontally_overlapping := player_rect.position.x + player_rect.size.x >= enemy_rect.position.x - 4.0 and player_rect.position.x <= enemy_rect.position.x + enemy_rect.size.x + 4.0
+	var touching_top := player_bottom >= enemy_top - top_contact_damage_margin and player_bottom <= enemy_top + top_contact_damage_margin
+	return horizontally_overlapping and touching_top
+
+
+func _get_collision_shape_rect(shape_node: CollisionShape2D) -> Rect2:
+	if shape_node == null or shape_node.shape == null:
+		return Rect2()
+
+	var shape_size := Vector2.ZERO
+	if shape_node.shape is RectangleShape2D:
+		shape_size = (shape_node.shape as RectangleShape2D).size
+	elif shape_node.shape is CapsuleShape2D:
+		var capsule := shape_node.shape as CapsuleShape2D
+		shape_size = Vector2(capsule.radius * 2.0, capsule.height)
+	elif shape_node.shape is CircleShape2D:
+		var circle := shape_node.shape as CircleShape2D
+		shape_size = Vector2(circle.radius * 2.0, circle.radius * 2.0)
+
+	if shape_size == Vector2.ZERO:
+		return Rect2()
+
+	var scaled_size := shape_size * shape_node.global_scale.abs()
+	return Rect2(shape_node.global_position - scaled_size * 0.5, scaled_size)
+
+
+func _update_body_collision_ignore(delta: float) -> void:
+	if body_collision_ignore_left <= 0.0:
+		return
+
+	body_collision_ignore_left -= delta
+	if body_collision_ignore_left <= 0.0 and hp > 0:
+		collision_layer = normal_collision_layer
+
+
+func _set_body_collision_ignored(duration: float) -> void:
+	if normal_collision_layer == 0:
+		normal_collision_layer = collision_layer
+	collision_layer = normal_collision_layer
+	set_collision_layer_value(ENEMY_BODY_COLLISION_LAYER_NUMBER, false)
+	body_collision_ignore_left = maxf(body_collision_ignore_left, duration)
 
 
 func _on_hurt_box_area_entered(area: Area2D) -> void:

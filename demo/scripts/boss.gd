@@ -21,6 +21,7 @@ const THROW_FRAME_PATHS: Array[String] = [
 	"res://demo/assets/boss/boss_throw/boss_throw3.png",
 	"res://demo/assets/boss/boss_throw/boss_throw4.png",
 ]
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 
 @export var max_health: int = 10
 @export var monster_id: String = "Boss"
@@ -42,6 +43,7 @@ const THROW_FRAME_PATHS: Array[String] = [
 @export var contact_damage: int = 1
 @export var body_contact_damage_enabled: bool = true
 @export var body_contact_damage_interval: float = 0.35
+@export var player_body_collision_ignore_time: float = 0.35
 @export var dash_telegraph_length: float = 720.0
 @export var dash_telegraph_y_offset: float = 95.0
 @export var dash_hitbox_size := Vector2(132.0, 46.0)
@@ -176,6 +178,8 @@ var body_contact_shape: CollisionShape2D
 var body_contact_targets: Array[Area2D] = []
 var body_contact_damage_cooldown := 0.0
 var last_solid_floor_y := 100000000.0
+var normal_collision_mask := 0
+var player_body_collision_ignore_left := 0.0
 var target: Node2D
 var is_defeated := false
 var unlock_achievement_on_death := false
@@ -190,6 +194,7 @@ var anti_pogo_cooldown_left := 0.0
 
 func _ready() -> void:
 	health = max_health
+	normal_collision_mask = collision_mask
 	default_texture = sprite.texture
 	default_sprite_scale = sprite.scale
 	default_sprite_modulate = sprite.modulate
@@ -221,6 +226,7 @@ func _physics_process(delta: float) -> void:
 
 	target = _find_player()
 	_update_anti_pogo_timers(delta)
+	_update_player_body_collision_ignore(delta)
 
 	if not is_on_floor():
 		velocity.y += _get_current_gravity() * delta
@@ -268,6 +274,7 @@ func _physics_process(delta: float) -> void:
 	_update_boss_animation(delta)
 	move_and_slide()
 	_damage_jump_body_collisions(was_falling_jump)
+	_resolve_player_floor_collisions()
 	_update_last_solid_floor_y()
 	_update_body_contact_damage(delta)
 
@@ -1635,17 +1642,33 @@ func _damage_jump_body_collisions(was_falling_jump: bool) -> void:
 			body_contact_damage_cooldown = body_contact_damage_interval
 
 
+func _resolve_player_floor_collisions() -> void:
+	if intro_time_left > 0.0:
+		return
+
+	for index in range(get_slide_collision_count()):
+		var collision: KinematicCollision2D = get_slide_collision(index)
+		if collision == null or collision.get_normal().y > -0.35:
+			continue
+
+		var receiver := _damage_receiver_from_collision(collision)
+		if receiver == null or receiver == self:
+			continue
+
+		if receiver.has_method("take_damage"):
+			receiver.call("take_damage", contact_damage, global_position)
+		body_contact_damage_cooldown = body_contact_damage_interval
+		_set_player_body_collision_ignored(player_body_collision_ignore_time)
+		return
+
+
 func _update_last_solid_floor_y() -> void:
 	for index in range(get_slide_collision_count()):
 		var collision: KinematicCollision2D = get_slide_collision(index)
 		if collision == null or collision.get_normal().y > -0.35:
 			continue
 
-		var collider: Object = collision.get_collider()
-		if not (collider is Node):
-			continue
-
-		var receiver: Node = _find_damage_receiver(collider as Node)
+		var receiver := _damage_receiver_from_collision(collision)
 		if receiver != null and receiver != self:
 			continue
 
@@ -1662,6 +1685,30 @@ func _snap_to_last_solid_floor_before_jump() -> void:
 	if target != null and target.has_method("take_damage"):
 		target.call("take_damage", contact_damage, global_position)
 	global_position.y = last_solid_floor_y
+
+
+func _damage_receiver_from_collision(collision: KinematicCollision2D) -> Node:
+	var collider: Object = collision.get_collider()
+	if not (collider is Node):
+		return null
+	return _find_damage_receiver(collider as Node)
+
+
+func _update_player_body_collision_ignore(delta: float) -> void:
+	if player_body_collision_ignore_left <= 0.0:
+		return
+
+	player_body_collision_ignore_left -= delta
+	if player_body_collision_ignore_left <= 0.0:
+		collision_mask = normal_collision_mask
+
+
+func _set_player_body_collision_ignored(duration: float) -> void:
+	if normal_collision_mask == 0:
+		normal_collision_mask = collision_mask
+	collision_mask = normal_collision_mask
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
+	player_body_collision_ignore_left = maxf(player_body_collision_ignore_left, duration)
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
