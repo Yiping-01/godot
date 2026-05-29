@@ -339,7 +339,49 @@ func _ready() -> void:
 	TranslationServer.set_locale(current_locale)
 
 
+func _clean_text_override(key: String) -> String:
+	if current_locale == "en":
+		var en := {
+			"CURRENCY_AMOUNT": "Bottles: %d",
+			"SHOP_ITEM_LINE": "%s\nCosts %d bottles%s\n%s",
+			"SHOP_NOT_ENOUGH_MONEY": "Not enough bottles.",
+			"TOAST_COIN": "Recycled bottle +%d",
+		}
+		return String(en.get(key, ""))
+
+	var zh := {
+		"CURRENCY_AMOUNT": "寶特瓶：%d",
+		"INVENTORY_FIRST_HINT": "按 I 可以查看背包與回收資源。",
+		"SHOP_TITLE": "%s 的回收補給站",
+		"SHOP_HINT": "點選補給購買 / I 或 Esc：關閉",
+		"SHOP_INVENTORY_HINT": "用回收寶特瓶交換補給。",
+		"SHOP_OWNED": "已取得",
+		"SHOP_LIMIT": "已達上限",
+		"SHOP_ITEM_LINE": "%s\n需要 %d 個寶特瓶%s\n%s",
+		"SHOP_ALREADY_HAVE": "已經擁有：%s",
+		"SHOP_POTION_LIMIT": "回復藥水已達上限。",
+		"SHOP_NOT_ENOUGH_MONEY": "寶特瓶不足。",
+		"SHOP_GOT_ITEM": "取得：%s",
+		"DIALOGUE_SHOP_HINT": "E：查看補給 / Esc：離開",
+		"DIALOGUE_NEXT_HINT": "E：繼續 / Esc：離開",
+		"ITEM_HEALTH_POTION": "回復藥水",
+		"ITEM_HEALTH_POTION_DESC": "補回一次生命。",
+		"ITEM_TRAVELER_NOTE": "旅行筆記",
+		"ITEM_TRAVELER_NOTE_DESC": "記錄海溝中的觀察。",
+		"ITEM_ROUGH_CHARM": "粗糙護符",
+		"ITEM_ROUGH_CHARM_DESC": "由回收零件拼成的小護符。",
+		"ITEM_OLD_MAP": "破舊地圖",
+		"ITEM_OLD_MAP_DESC": "標記附近通道。",
+		"ITEM_UNKNOWN_DESC": "尚未辨識的物品。",
+		"TOAST_COIN": "回收寶特瓶 +%d",
+	}
+	return String(zh.get(key, ""))
+
+
 func text(key: String) -> String:
+	var clean := _clean_text_override(key)
+	if clean != "":
+		return clean
 	var locale_texts: Dictionary = texts.get(current_locale, texts[DEFAULT_LOCALE])
 	var default_texts: Dictionary = texts[DEFAULT_LOCALE]
 	return String(locale_texts.get(key, default_texts.get(key, key)))

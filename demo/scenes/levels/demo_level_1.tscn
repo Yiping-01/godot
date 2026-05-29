@@ -25,6 +25,7 @@
 [ext_resource type="Texture2D" uid="uid://cgc3pu71iny8r" path="res://demo/assets/art/backgrounds/base_wall_single.png" id="26_wall_texture"]
 [ext_resource type="Script" uid="uid://byewjrqi0yxp" path="res://demo/scripts/debug_hitbox_overlay.gd" id="27_debug_overlay"]
 [ext_resource type="PackedScene" path="res://demo/scenes/map_passage_marker.tscn" id="28_passage"]
+[ext_resource type="PackedScene" path="res://demo/scenes/shop_npc.tscn" id="29_shop_npc"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_tutorial"]
 size = Vector2(330, 230)
@@ -456,6 +457,11 @@ patrol_distance = 130.0
 
 [node name="BossGateBench" parent="Benches" unique_id=2008656967 instance=ExtResource("19_bench")]
 position = Vector2(5180, 654)
+
+[node name="Npc" type="Node2D" parent="." unique_id=1436082081]
+
+[node name="RecyclingMerchant" parent="Npc" instance=ExtResource("29_shop_npc")]
+position = Vector2(3220, 646)
 
 [node name="Tutorials" type="Node2D" parent="." unique_id=690731777]
 

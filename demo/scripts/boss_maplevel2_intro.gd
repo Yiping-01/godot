@@ -79,7 +79,13 @@ func _show_pending_transition_title() -> void:
 	tween.tween_property(text_box, "modulate:a", 1.0, 0.22)
 	tween.tween_interval(2.45)
 	tween.tween_property(text_box, "modulate:a", 0.0, 0.45)
-	tween.tween_callback(layer.queue_free)
+	tween.tween_callback(_queue_free_instance_id.bind(layer.get_instance_id()))
+
+
+func _queue_free_instance_id(instance_id: int) -> void:
+	var node := instance_from_id(instance_id)
+	if node is Node:
+		node.queue_free()
 
 
 func _play_boss_music() -> void:

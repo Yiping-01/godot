@@ -63,7 +63,7 @@ offset_right = 1135.0
 offset_bottom = 54.0
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_prompt")
-text = "金錢：0"
+text = "寶特瓶：0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -94,13 +94,13 @@ theme_override_constants/separation = 8
 [node name="NameLabel" type="Label" parent="DialoguePanel/VBoxContainer" unique_id=695882370]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "NPC"
+text = "回收站商人"
 
 [node name="DialogueLabel" type="Label" parent="DialoguePanel/VBoxContainer" unique_id=258515903]
 custom_minimum_size = Vector2(0, 92)
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Dialogue"
+text = "..."
 autowrap_mode = 3
 
 [node name="HintLabel" type="Label" parent="DialoguePanel/VBoxContainer" unique_id=1062539515]
@@ -141,7 +141,7 @@ text = "背包"
 [node name="CurrencyLabel" type="Label" parent="InventoryPanel/VBoxContainer" unique_id=1155244398]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "金錢：0"
+text = "寶特瓶：0"
 
 [node name="InventoryScroll" type="ScrollContainer" parent="InventoryPanel/VBoxContainer" unique_id=596442341]
 custom_minimum_size = Vector2(0, 190)
@@ -192,25 +192,25 @@ text = "商店"
 [node name="CurrencyLabel" type="Label" parent="ShopPanel/VBoxContainer" unique_id=193580269]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "金錢：0"
+text = "寶特瓶：0"
 
 [node name="ShopItem0" type="Button" parent="ShopPanel/VBoxContainer" unique_id=409122719]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Item 0"
+text = "補給 1"
 
 [node name="ShopItem1" type="Button" parent="ShopPanel/VBoxContainer" unique_id=456127145]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Item 1"
+text = "補給 2"
 
 [node name="ShopItem2" type="Button" parent="ShopPanel/VBoxContainer" unique_id=1439718459]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Item 2"
+text = "補給 3"
 
 [node name="CloseHintLabel" type="Label" parent="ShopPanel/VBoxContainer" unique_id=1737695030]
 layout_mode = 2
@@ -274,13 +274,13 @@ offset_bottom = 84.0
 [node name="SubTitleLabel" type="Label" parent="AreaTitlePanel/VBoxContainer" unique_id=251899707]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Prototype route"
+text = "海溝通道"
 horizontal_alignment = 1
 
 [node name="MainTitleLabel" type="Label" parent="AreaTitlePanel/VBoxContainer" unique_id=712127997]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
-text = "Forgotten Test Path"
+text = "被遺忘的回收路線"
 horizontal_alignment = 1
 
 [node name="FadeRect" type="ColorRect" parent="." unique_id=1989580094]

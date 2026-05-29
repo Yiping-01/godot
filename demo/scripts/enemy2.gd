@@ -59,6 +59,7 @@ var target: Node2D
 var spawn_y := 0.0
 var normal_collision_layer := 0
 var body_collision_ignore_left := 0.0
+var dash_afterimage_left := 0.0
 
 
 func _ready() -> void:
@@ -174,6 +175,10 @@ func _update_windup(delta: float) -> void:
 func _update_dash(delta: float) -> void:
 	state_timer -= delta
 	velocity.x = float(dash_direction) * dash_speed
+	dash_afterimage_left -= delta
+	if dash_afterimage_left <= 0.0:
+		dash_afterimage_left = 0.045
+		_spawn_dash_afterimage(0.16)
 	if (dash_direction < 0 and global_position.x <= patrol_left_limit) or (dash_direction > 0 and global_position.x >= patrol_right_limit):
 		_set_damage_area_enabled(false)
 		_enter_recovery()
@@ -198,6 +203,7 @@ func _begin_attack() -> void:
 	attack_cooldown_left = attack_cooldown
 	_set_damage_area_enabled(false)
 	_flash(Color(0.55, 0.88, 1.0), 0.08, 0.2)
+	_play_windup_tell()
 
 
 func _start_dash() -> void:
@@ -211,6 +217,8 @@ func _start_dash() -> void:
 	_set_damage_area_enabled(true)
 	sprite.play("attack")
 	velocity.x = float(dash_direction) * dash_speed
+	dash_afterimage_left = 0.0
+	_spawn_dash_afterimage(0.3)
 
 
 func _enter_recovery() -> void:
@@ -291,6 +299,48 @@ func _has_floor_ahead() -> bool:
 func _sync_facing() -> void:
 	sprite.flip_h = direction > 0
 	damage_area.position.x = damage_area_offset_x * direction
+
+
+func _play_windup_tell() -> void:
+	var warning_length := ranged_range * 0.34 if behavior_mode == "ranged" else melee_range * 0.8
+	DEMO_COMBAT_JUICE.spawn_enemy_attack_warning(self, global_position + Vector2(20.0 * float(direction), -8.0), direction, warning_length, attack_windup_time)
+	var original_scale := sprite.scale
+	var wind_scale := Vector2(original_scale.x * 0.9, original_scale.y * 1.12) if behavior_mode == "ranged" else Vector2(original_scale.x * 1.16, original_scale.y * 0.86)
+	var tween := create_tween()
+	tween.tween_property(sprite, "scale", wind_scale, attack_windup_time * 0.62).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "scale", original_scale, attack_windup_time * 0.38).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _spawn_dash_afterimage(duration: float) -> void:
+	if sprite == null or sprite.sprite_frames == null:
+		return
+	var texture := sprite.sprite_frames.get_frame_texture(sprite.animation, sprite.frame)
+	if texture == null:
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	var scene := get_tree().current_scene
+	if scene == null or not scene.is_node_ready() or Engine.get_process_frames() < 3:
+		return
+
+	var ghost := Sprite2D.new()
+	ghost.name = "EnemyDashAfterimage"
+	ghost.texture = texture
+	ghost.centered = true
+	ghost.flip_h = sprite.flip_h
+	ghost.global_position = sprite.global_position - Vector2(float(dash_direction) * 18.0, 0.0)
+	ghost.global_rotation = sprite.global_rotation
+	ghost.global_scale = sprite.global_scale
+	ghost.z_index = z_index + 1
+	ghost.modulate = Color(0.46, 0.92, 1.0, 0.34)
+	parent.add_child(ghost)
+
+	var tween := ghost.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ghost, "global_position", ghost.global_position - Vector2(float(dash_direction) * 34.0, 0.0), duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.finished.connect(Callable(ghost, "queue_free"))
 
 
 func _keep_inside_patrol_limits() -> void:
@@ -405,6 +455,7 @@ func _die() -> void:
 		contact_damage_area.set_deferred("monitorable", false)
 	_play_audio(death_audio)
 	sprite.modulate = Color(1.0, 0.35, 0.28, 0.9)
+	DEMO_COMBAT_JUICE.spawn_death_burst(self, global_position, 0.95)
 	call_deferred("_drop_coins")
 
 	var tween := create_tween()

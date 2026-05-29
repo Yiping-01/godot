@@ -19,7 +19,7 @@ func _ready() -> void:
 	sprite.modulate = blue_modulate
 	state = &"pulse_idle"
 	pulse_timer = pulse_idle_time
-	damage_area.monitoring = true
+	damage_area.monitoring = false
 
 
 func _physics_process(delta: float) -> void:
@@ -64,7 +64,7 @@ func _update_damage_pulse(delta: float) -> void:
 			if pulse_timer <= 0.0:
 				state = &"pulse_recovery"
 				pulse_timer = pulse_recovery_time
-				damage_area.set_deferred("monitoring", true)
+				damage_area.set_deferred("monitoring", false)
 				sprite.modulate = blue_modulate
 		&"pulse_recovery":
 			if pulse_timer <= 0.0:
@@ -72,26 +72,28 @@ func _update_damage_pulse(delta: float) -> void:
 				pulse_timer = pulse_idle_time
 		_:
 			sprite.modulate = blue_modulate
-			damage_area.set_deferred("monitoring", true)
+			damage_area.set_deferred("monitoring", false)
 			if pulse_timer <= 0.0:
 				state = &"pulse_windup"
 				pulse_timer = pulse_windup_time
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
-	if is_dead:
+	if is_dead or state != &"attack":
 		return
 	_damage_attack_target(area)
 
 
 func _damage_current_attack_overlaps() -> void:
-	if is_dead or damage_area == null:
+	if is_dead or state != &"attack" or damage_area == null:
 		return
 	for area in damage_area.get_overlapping_areas():
 		_damage_attack_target(area)
 
 
 func _damage_attack_target(area: Area2D) -> void:
+	if state != &"attack":
+		return
 	var receiver: Node = _find_damage_receiver(area)
 	if receiver == null:
 		return

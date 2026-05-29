@@ -33,6 +33,12 @@ static func play_hit_pause(context: Node, duration := 0.055, time_scale := 0.08)
 	)
 
 
+static func _queue_free_instance_id(instance_id: int) -> void:
+	var node := instance_from_id(instance_id)
+	if node is Node:
+		node.queue_free()
+
+
 static func spawn_hit_flash(context: Node, position: Vector2, direction := 1) -> void:
 	if not is_enabled(context):
 		return
@@ -50,32 +56,87 @@ static func spawn_hit_flash(context: Node, position: Vector2, direction := 1) ->
 	flash.texture = flash_texture
 	flash.global_position = position
 	flash.rotation = -0.35 * float(direction)
-	flash.scale = Vector2(0.18, 0.42)
+	flash.scale = Vector2(0.13, 0.3)
 	flash.z_index = 350
-	flash.modulate = Color(1.0, 1.0, 1.0, 0.86)
+	flash.modulate = Color(1.0, 1.0, 1.0, 0.66)
 	root.add_child(flash)
-
-	var slash := Line2D.new()
-	slash.name = "DemoSlashTrace"
-	slash.width = 7.0
-	slash.default_color = Color(0.84, 0.96, 1.0, 0.9)
-	slash.z_index = 351
-	slash.global_position = position
-	slash.rotation = -0.4 * float(direction)
-	slash.add_point(Vector2(-42.0, 0.0))
-	slash.add_point(Vector2(0.0, -10.0))
-	slash.add_point(Vector2(46.0, 1.0))
-	root.add_child(slash)
 
 	var flash_tween := flash.create_tween()
 	flash_tween.set_parallel(true)
-	flash_tween.tween_property(flash, "scale", flash.scale * 1.7, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	flash_tween.tween_property(flash, "modulate:a", 0.0, 0.12)
-	flash_tween.chain().tween_callback(Callable(flash, "queue_free"))
+	flash_tween.tween_property(flash, "scale", flash.scale * 1.45, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	flash_tween.tween_property(flash, "modulate:a", 0.0, 0.1)
+	flash_tween.chain().tween_callback(_queue_free_instance_id.bind(flash.get_instance_id()))
 
-	var slash_tween := slash.create_tween()
-	slash_tween.tween_property(slash, "modulate:a", 0.0, 0.14)
-	slash_tween.tween_callback(Callable(slash, "queue_free"))
+
+static func spawn_attack_sweep(context: Node, position: Vector2, direction := 1, attack_type: StringName = &"side") -> void:
+	if not is_enabled(context):
+		return
+
+	var root := _effect_root(context)
+	if root == null:
+		return
+
+	var sweep := Line2D.new()
+	sweep.name = "DemoAttackSweep"
+	sweep.width = 4.0 if attack_type != &"charge" else 6.5
+	sweep.default_color = Color(0.82, 0.96, 1.0, 0.48) if attack_type != &"charge" else Color(1.0, 0.78, 0.32, 0.66)
+	sweep.z_index = 352
+	sweep.global_position = position
+	sweep.rotation = 0.15 * float(direction)
+	var reach := 82.0 if attack_type != &"charge" else 118.0
+	var height := 36.0 if attack_type != &"up" else 76.0
+	sweep.add_point(Vector2(-reach * 0.48 * float(direction), -height * 0.35))
+	sweep.add_point(Vector2(0.0, -height))
+	sweep.add_point(Vector2(reach * 0.52 * float(direction), -height * 0.12))
+	root.add_child(sweep)
+
+	var tween := sweep.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(sweep, "width", 1.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(sweep, "modulate:a", 0.0, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(sweep, "scale", Vector2.ONE * 1.12, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_callback(_queue_free_instance_id.bind(sweep.get_instance_id()))
+
+
+static func spawn_enemy_attack_warning(context: Node, position: Vector2, direction := 1, length := 120.0, duration := 0.24) -> void:
+	if not is_enabled(context):
+		return
+
+	var root := _effect_root(context)
+	if root == null:
+		return
+
+	var warning := Line2D.new()
+	warning.name = "DemoEnemyAttackWarning"
+	warning.width = 4.0
+	warning.default_color = Color(1.0, 0.52, 0.24, 0.82)
+	warning.z_index = 348
+	warning.global_position = position
+	warning.add_point(Vector2(0.0, -10.0))
+	warning.add_point(Vector2(length * float(direction), -10.0))
+	root.add_child(warning)
+
+	var flash_texture := load(FLASH_TEXTURE_PATH)
+	if flash_texture is Texture2D:
+		var dot := Sprite2D.new()
+		dot.name = "DemoEnemyWarningDot"
+		dot.texture = flash_texture
+		dot.global_position = position + Vector2(length * float(direction), -10.0)
+		dot.scale = Vector2.ONE * 0.085
+		dot.z_index = 349
+		dot.modulate = Color(1.0, 0.46, 0.18, 0.8)
+		root.add_child(dot)
+		var dot_tween := dot.create_tween()
+		dot_tween.set_parallel(true)
+		dot_tween.tween_property(dot, "scale", Vector2.ONE * 0.22, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		dot_tween.tween_property(dot, "modulate:a", 0.0, duration)
+		dot_tween.chain().tween_callback(_queue_free_instance_id.bind(dot.get_instance_id()))
+
+	var tween := warning.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(warning, "width", 9.0, duration * 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(warning, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(_queue_free_instance_id.bind(warning.get_instance_id()))
 
 
 static func spawn_death_burst(context: Node, position: Vector2, scale_multiplier := 1.0) -> void:
@@ -89,9 +150,9 @@ static func spawn_death_burst(context: Node, position: Vector2, scale_multiplier
 	var burst_texture := load(BURST_TEXTURE_PATH)
 	var smoke_texture := load(SMOKE_TEXTURE_PATH)
 	var spark_texture := load(SPARK_TEXTURE_PATH)
-	_spawn_particle_burst(root, position, burst_texture, 24, 0.42, 110.0 * scale_multiplier, Color(1.0, 0.86, 0.45, 0.82))
-	_spawn_particle_burst(root, position + Vector2(0.0, -8.0), smoke_texture, 14, 0.54, 64.0 * scale_multiplier, Color(1.0, 0.42, 0.14, 0.42))
-	_spawn_particle_burst(root, position + Vector2(0.0, -14.0), spark_texture, 16, 0.32, 140.0 * scale_multiplier, Color(0.85, 1.0, 1.0, 0.72))
+	_spawn_particle_burst(root, position, burst_texture, 12, 0.36, 92.0 * scale_multiplier, Color(1.0, 0.86, 0.45, 0.62))
+	_spawn_particle_burst(root, position + Vector2(0.0, -8.0), smoke_texture, 8, 0.42, 54.0 * scale_multiplier, Color(1.0, 0.42, 0.14, 0.30))
+	_spawn_particle_burst(root, position + Vector2(0.0, -14.0), spark_texture, 8, 0.28, 110.0 * scale_multiplier, Color(0.85, 1.0, 1.0, 0.48))
 	_spawn_death_light(root, position, scale_multiplier)
 
 	var shock_texture := load(DONUT_TEXTURE_PATH)
@@ -104,14 +165,14 @@ static func spawn_death_burst(context: Node, position: Vector2, scale_multiplier
 	shock.global_position = position
 	shock.scale = Vector2.ONE * 0.055 * scale_multiplier
 	shock.z_index = 330
-	shock.modulate = Color(0.9, 1.0, 1.0, 0.78)
+	shock.modulate = Color(0.9, 1.0, 1.0, 0.52)
 	root.add_child(shock)
 
 	var tween := shock.create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(shock, "scale", Vector2.ONE * 0.46 * scale_multiplier, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(shock, "modulate:a", 0.0, 0.32)
-	tween.chain().tween_callback(Callable(shock, "queue_free"))
+	tween.chain().tween_callback(_queue_free_instance_id.bind(shock.get_instance_id()))
 
 
 static func spawn_boss_death_sequence(context: Node, position: Vector2, scale_multiplier := 1.0) -> void:
@@ -131,11 +192,16 @@ static func spawn_boss_death_sequence(context: Node, position: Vector2, scale_mu
 	for step in range(4):
 		var step_scale := scale_multiplier * (0.75 + float(step) * 0.16)
 		var timer := root.get_tree().create_timer(0.16 + float(step) * 0.13, true, false, true)
-		timer.timeout.connect(func() -> void:
-			var burst_pos := position + Vector2(randf_range(-90.0, 90.0), randf_range(-80.0, 50.0))
-			_spawn_boss_death_particles(root, burst_pos, step_scale)
-			_spawn_boss_flash(root, burst_pos, scale_multiplier * 0.55)
-		)
+		timer.timeout.connect(_spawn_boss_death_step.bind(root.get_instance_id(), position, step_scale, scale_multiplier))
+
+
+static func _spawn_boss_death_step(root_id: int, position: Vector2, step_scale: float, scale_multiplier: float) -> void:
+	var root := instance_from_id(root_id)
+	if not root is Node or not root.is_inside_tree():
+		return
+	var burst_pos := position + Vector2(randf_range(-90.0, 90.0), randf_range(-80.0, 50.0))
+	_spawn_boss_death_particles(root, burst_pos, step_scale)
+	_spawn_boss_flash(root, burst_pos, scale_multiplier * 0.55)
 
 
 static func shake_camera(context: Node, duration := 0.18, strength := 5.0) -> void:
@@ -173,11 +239,13 @@ static func spawn_intro_ring(context: Node, position: Vector2, radius := 92.0, c
 	tween.set_parallel(true)
 	tween.tween_property(ring, "scale", Vector2.ONE * 5.4, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(ring, "modulate:a", 0.0, 0.5)
-	tween.chain().tween_callback(Callable(ring, "queue_free"))
+	tween.chain().tween_callback(_queue_free_instance_id.bind(ring.get_instance_id()))
 
 
 static func _spawn_particle_burst(root: Node, position: Vector2, texture: Texture2D, amount: int, lifetime: float, velocity: float, color: Color) -> void:
 	if texture == null:
+		return
+	if root == null or not is_instance_valid(root) or not root.is_inside_tree():
 		return
 
 	var particles := CPUParticles2D.new()
@@ -202,7 +270,7 @@ static func _spawn_particle_burst(root: Node, position: Vector2, texture: Textur
 	particles.emitting = true
 
 	var timer := root.get_tree().create_timer(lifetime + 0.18, true, false, true)
-	timer.timeout.connect(Callable(particles, "queue_free"))
+	timer.timeout.connect(_queue_free_instance_id.bind(particles.get_instance_id()))
 
 
 static func _spawn_boss_death_particles(root: Node, position: Vector2, scale_multiplier: float) -> void:
@@ -230,7 +298,7 @@ static func _spawn_boss_flash(root: Node, position: Vector2, scale_multiplier: f
 	tween.set_parallel(true)
 	tween.tween_property(flash, "scale", Vector2.ONE * 2.1 * scale_multiplier, 0.42).set_trans(Tween.TRANS_QUINT).set_ease(Tween.EASE_OUT)
 	tween.tween_property(flash, "modulate:a", 0.0, 0.42)
-	tween.chain().tween_callback(Callable(flash, "queue_free"))
+	tween.chain().tween_callback(_queue_free_instance_id.bind(flash.get_instance_id()))
 
 
 static func _spawn_boss_shock_lines(root: Node, position: Vector2, scale_multiplier: float) -> void:
@@ -250,7 +318,7 @@ static func _spawn_boss_shock_lines(root: Node, position: Vector2, scale_multipl
 		tween.set_parallel(true)
 		tween.tween_property(line, "modulate:a", 0.0, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tween.tween_property(line, "width", 1.0, 0.36)
-		tween.chain().tween_callback(Callable(line, "queue_free"))
+		tween.chain().tween_callback(_queue_free_instance_id.bind(line.get_instance_id()))
 
 
 static func _spawn_death_light(root: Node, position: Vector2, scale_multiplier: float) -> void:
@@ -270,7 +338,7 @@ static func _spawn_death_light(root: Node, position: Vector2, scale_multiplier: 
 	tween.set_parallel(true)
 	tween.tween_property(light, "energy", 0.0, 0.28)
 	tween.tween_property(light, "texture_scale", 1.3 * scale_multiplier, 0.28)
-	tween.chain().tween_callback(Callable(light, "queue_free"))
+	tween.chain().tween_callback(_queue_free_instance_id.bind(light.get_instance_id()))
 
 
 static func _effect_root(context: Node) -> Node:

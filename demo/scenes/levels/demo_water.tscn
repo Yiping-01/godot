@@ -99,27 +99,27 @@ camera_limit_bottom = 980
 
 [node name="WaterVisual" type="Polygon2D" parent="WaterZone" unique_id=1912289053]
 z_index = -8
-position = Vector2(-16.62268, -125.401306)
+position = Vector2(-17.62268, -125.401306)
 scale = Vector2(1.1298933, 1.5274378)
 color = Color(0.045, 0.34, 0.55, 0.45)
 polygon = PackedVector2Array(-1150, -322.5, 1150, -322.5, 1150, 322.5, -1150, 322.5)
 
 [node name="OceanDepthTint" type="Polygon2D" parent="WaterZone" unique_id=183581239]
 z_index = -7
-position = Vector2(-16.62268, -125.401306)
+position = Vector2(-17.62268, -125.401306)
 scale = Vector2(1.1298933, 1.5274378)
 color = Color(0.015, 0.08, 0.18, 0.46)
 polygon = PackedVector2Array(-1150, -70, 1150, -70, 1150, 322.5, -1150, 322.5)
 
 [node name="OceanSurfaceGlow" type="Polygon2D" parent="WaterZone" unique_id=2144678784]
 z_index = -1
-position = Vector2(-16.62268, -125.401306)
+position = Vector2(-17.62268, -125.401306)
 scale = Vector2(1.1298933, 1.5274378)
 color = Color(0.55, 0.95, 1, 0.18)
 polygon = PackedVector2Array(-1150, -322.5, 1150, -322.5, 1150, -286, -1150, -286)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WaterZone" unique_id=1378471485]
-position = Vector2(-16.62268, -125.401306)
+position = Vector2(-17.62268, -125.401306)
 scale = Vector2(1.1298933, 1.5274378)
 shape = SubResource("RectangleShape2D_water")
 

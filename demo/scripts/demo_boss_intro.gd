@@ -24,10 +24,6 @@ func _on_body_entered(body: Node2D) -> void:
 	if boss is Node2D:
 		boss.set_physics_process(true)
 
-	var ui := get_tree().get_first_node_in_group("game_ui")
-	if ui != null and ui.has_method("show_area_title"):
-		ui.show_area_title(intro_title, intro_subtitle)
-
 	if boss is Node2D:
 		if boss.has_method("_start_intro_effect"):
 			boss.call("_start_intro_effect")

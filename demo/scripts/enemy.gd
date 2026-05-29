@@ -168,6 +168,7 @@ func _die() -> void:
 	damage_area.set_deferred("monitorable", false)
 	_play_audio(death_audio)
 	sprite.modulate = Color(1.0, 0.35, 0.28, 0.9)
+	DEMO_COMBAT_JUICE.spawn_death_burst(self, global_position, 0.82)
 	call_deferred("_drop_coins")
 
 	var tween := create_tween()
@@ -351,6 +352,7 @@ func _begin_attack_windup() -> void:
 	velocity.x = 0.0
 	damage_area.set_deferred("monitoring", false)
 	_sync_facing()
+	_play_windup_tell()
 
 
 func _cancel_attack() -> void:
@@ -387,6 +389,15 @@ func _has_floor_ahead() -> bool:
 
 func _sync_facing() -> void:
 	sprite.flip_h = direction > 0
+
+
+func _play_windup_tell() -> void:
+	DEMO_COMBAT_JUICE.spawn_enemy_attack_warning(self, global_position + Vector2(18.0 * float(direction), -4.0), direction, attack_range, attack_windup_time)
+	var original_scale := sprite.scale
+	var crouch_scale := Vector2(original_scale.x * 1.14, original_scale.y * 0.84)
+	var tween := create_tween()
+	tween.tween_property(sprite, "scale", crouch_scale, attack_windup_time * 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(sprite, "scale", original_scale, attack_windup_time * 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 func _play_hit_effect() -> void:

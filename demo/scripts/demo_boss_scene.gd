@@ -18,7 +18,6 @@ var phase_two_packed_scene: PackedScene
 func _ready() -> void:
 	get_tree().paused = false
 	GameState.set_input_locked(false)
-	_play_boss_music()
 	return_door = get_node_or_null("ReturnDoor") as Area2D
 	var wind := get_node_or_null("BossRoomWind") as AudioStreamPlayer
 	if wind != null and wind.stream != null:
@@ -45,6 +44,7 @@ func _on_demo_boss_intro_started(boss: Node) -> void:
 	boss_ref = boss as Node2D
 	_set_return_door_locked(true)
 	_focus_arena_audio(true)
+	_play_boss_music()
 
 
 func _complete_boss_fight() -> void:
@@ -68,10 +68,6 @@ func _start_phase_two_transition() -> void:
 	_set_return_door_locked(false)
 	_focus_arena_audio(false)
 	_shake_player_camera(phase_two_transition_shake_duration, phase_two_transition_shake_strength)
-	GameState.set_pending_transition_title("深海震動了……", "真正的本體，正在甦醒")
-	var ui := get_tree().get_first_node_in_group("game_ui")
-	if ui != null and ui.has_method("show_area_title"):
-		ui.show_area_title("深海震動了……", "真正的本體，正在甦醒")
 	await get_tree().create_timer(phase_two_transition_delay, true, false, true).timeout
 	var remaining_shake := maxf(phase_two_transition_shake_duration - phase_two_transition_delay, phase_two_entry_shake_min_duration)
 	GameState.set_pending_transition_shake(remaining_shake, phase_two_transition_shake_strength)

@@ -1,18 +1,18 @@
 extends Node2D
 class_name ShopNpc
 
-@export var display_name := "商人"
-@export_multiline var prompt_text := "按 E 互動"
+@export var display_name := "回收站商人"
+@export_multiline var prompt_text := "按 E 交談"
 @export var opens_shop := true
 @export var dialogue_lines: Array[String] = [
-	"這裡往上會通到第二層，路線會比前一張地圖更像十字路。",
-	"打倒敵人取得金錢後，可以回來買一些暫時道具。",
+	"這片海溝裡有很多被沖下來的寶特瓶。撿回來，我可以幫你換成補給。",
+	"別急著硬衝。先看清楚怪物的預備動作，再找空檔反擊。",
 ]
 @export var shop_items: Array[Dictionary] = [
-	{"name": "回復藥水", "price": 4, "description": "可回復部分血量"},
-	{"name": "粗糙護符", "price": 4, "description": "暫時用的護符道具，會放入背包。"},
-	{"name": "生命碎片", "price": 8, "description": "暫時用的生命道具，之後可接最大血量。"},
-	{"name": "破舊地圖", "price": 12, "description": "記錄附近房間配置的道具。"},
+	{"name": "回復藥水", "price": 4, "description": "補回一次生命。展演版最多可帶五瓶。"},
+	{"name": "粗糙護符", "price": 6, "description": "用回收零件拼成的護符，象徵把廢棄物重新利用。"},
+	{"name": "破舊地圖", "price": 8, "description": "標記附近通道，讓探索方向更清楚。"},
+	{"name": "旅行筆記", "price": 3, "description": "記錄海溝中的觀察與警示。"},
 ]
 
 var offered_shop_items: Array[Dictionary] = []

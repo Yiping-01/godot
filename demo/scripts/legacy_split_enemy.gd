@@ -22,6 +22,8 @@ const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 @export var attack_recovery_time := 0.55
 @export var attack_cooldown := 0.9
 @export var attack_speed := 260.0
+@export var coin_drop_amount := 3
+@export var coin_scene: PackedScene = preload("res://demo/scenes/coin_pickup.tscn")
 @export var monster_id: String = "WaterBlueBounceOctopus"
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -120,9 +122,26 @@ func _die() -> void:
 
 	if can_split:
 		call_deferred("split")
+	call_deferred("_drop_bottles")
 
 	await _fade_out_death(anim, death_fade_time)
 	queue_free()
+
+
+func _drop_bottles() -> void:
+	if coin_scene == null:
+		GameState.add_currency(coin_drop_amount)
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	for i in range(coin_drop_amount):
+		var pickup := coin_scene.instantiate()
+		parent.add_child(pickup)
+		if pickup.has_method("launch_from"):
+			pickup.call("launch_from", global_position)
+		elif pickup is Node2D:
+			pickup.global_position = global_position
 
 
 func _unlock_kill_achievement() -> void:

@@ -22,6 +22,7 @@ const THROW_FRAME_PATHS: Array[String] = [
 	"res://demo/assets/boss/boss_throw/boss_throw4.png",
 ]
 const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
+const SOLID_BODY_COLLISION_LAYER_NUMBER := 1
 
 @export var max_health: int = 10
 @export var monster_id: String = "Boss"
@@ -127,6 +128,8 @@ const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 @export var anti_pogo_damage_y_offset: float = -92.0
 @export var anti_pogo_damage: int = 1
 @export var anti_pogo_recover_time: float = 0.5
+@export var coin_drop_amount: int = 12
+@export var coin_scene: PackedScene = preload("res://demo/scenes/coin_pickup.tscn")
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
@@ -190,10 +193,13 @@ var dash_combo_left := 0
 var head_hit_count := 0
 var head_hit_timer := 0.0
 var anti_pogo_cooldown_left := 0.0
+var dash_afterimage_left := 0.0
+var quake_warning: Node2D
 
 
 func _ready() -> void:
 	health = max_health
+	set_collision_layer_value(SOLID_BODY_COLLISION_LAYER_NUMBER, true)
 	normal_collision_mask = collision_mask
 	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 	normal_collision_mask = collision_mask
@@ -334,6 +340,8 @@ func _begin_death_sequence() -> void:
 		body_contact_area.set_deferred("monitorable", false)
 	body_contact_targets.clear()
 	DEMO_COMBAT_JUICE.shake_camera(self, 1.15, 18.0)
+	DEMO_COMBAT_JUICE.spawn_boss_death_sequence(self, global_position, 1.08)
+	call_deferred("_drop_bottles")
 	_notify_boss_defeat_started()
 	_play_demo_defeat_sfx()
 	var tween := create_tween()
@@ -411,6 +419,7 @@ func _update_windup(delta: float) -> void:
 	_reset_sprite_pose()
 	state = &"dash"
 	state_timer = dash_time
+	dash_afterimage_left = 0.0
 	velocity.x = direction * dash_speed
 	_set_damage_area_enabled(true)
 	_start_dash_animation()
@@ -419,6 +428,10 @@ func _update_windup(delta: float) -> void:
 func _update_dash(delta: float) -> void:
 	state_timer -= delta
 	velocity.x = direction * dash_speed
+	dash_afterimage_left -= delta
+	if dash_afterimage_left <= 0.0:
+		dash_afterimage_left = 0.05
+		_spawn_dash_afterimage(0.22)
 	if state_timer > 0.0:
 		return
 
@@ -581,6 +594,7 @@ func _begin_attack_pause(next_attack: StringName = &"any") -> void:
 	_set_damage_area_enabled(false)
 	_set_quake_damage_area_enabled(false)
 	_clear_attack_telegraph()
+	_clear_quake_warning()
 	_reset_sprite_pose()
 	idle_decision_left = idle_decision_time
 	_set_windup_effect(false)
@@ -601,6 +615,7 @@ func _begin_rest() -> void:
 	_set_damage_area_enabled(false)
 	_set_quake_damage_area_enabled(false)
 	_clear_attack_telegraph()
+	_clear_quake_warning()
 	finished_attack_cycles_since_rest = 0
 	attack_cycles_before_rest = _roll_attack_cycles_before_rest()
 	_apply_rest_pose()
@@ -659,6 +674,7 @@ func _begin_quake_jump() -> void:
 	_configure_quake_damage_area()
 	_set_quake_damage_area_enabled(true)
 	_set_windup_effect(true, Color(1.0, 0.92, 0.42, 0.84))
+	_spawn_quake_warning()
 	state = &"quake_windup"
 	state_timer = quake_windup_time
 
@@ -735,12 +751,14 @@ func _launch_anti_pogo_counter() -> void:
 func _trigger_quake() -> void:
 	_clear_attack_telegraph()
 	_configure_quake_damage_area()
+	_flash_quake_warning()
 	_play_quake_impact_effect()
 	if target != null and target.has_method("_start_camera_shake"):
 		target.call("_start_camera_shake", quake_camera_shake_duration, quake_camera_shake_strength)
 	_damage_quake_area_overlaps()
 	await get_tree().create_timer(0.12).timeout
 	_set_quake_damage_area_enabled(false)
+	_clear_quake_warning()
 
 
 func _is_target_on_floor() -> bool:
@@ -798,7 +816,72 @@ func _spawn_quake_wave() -> void:
 	tween.tween_property(wave, "scale", Vector2(1.0, 1.0), quake_wave_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(wave, "modulate:a", 0.0, quake_wave_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.set_parallel(false)
-	tween.tween_callback(wave.queue_free)
+	tween.tween_callback(_queue_free_instance_id.bind(wave.get_instance_id()))
+
+
+func _spawn_quake_warning() -> void:
+	_clear_quake_warning()
+	var parent := get_parent()
+	if parent == null:
+		return
+	quake_warning = Node2D.new()
+	quake_warning.name = "BossQuakeWarning"
+	quake_warning.z_index = 265
+	parent.add_child(quake_warning)
+	quake_warning.global_position = global_position + Vector2(0.0, quake_wave_y_offset)
+
+	var zone := Polygon2D.new()
+	zone.name = "DamagePreview"
+	zone.color = Color(1.0, 0.4, 0.16, 0.2)
+	zone.polygon = PackedVector2Array([
+		Vector2(-quake_damage_width * 0.5, -quake_damage_hitbox_height * 0.5),
+		Vector2(quake_damage_width * 0.5, -quake_damage_hitbox_height * 0.5),
+		Vector2(quake_damage_width * 0.5, quake_damage_hitbox_height * 0.5),
+		Vector2(-quake_damage_width * 0.5, quake_damage_hitbox_height * 0.5),
+	])
+	quake_warning.add_child(zone)
+
+	var left_line := Line2D.new()
+	left_line.name = "DangerLine"
+	left_line.width = 5.0
+	left_line.default_color = Color(1.0, 0.74, 0.22, 0.78)
+	left_line.add_point(Vector2(-quake_damage_width * 0.5, 0.0))
+	left_line.add_point(Vector2(quake_damage_width * 0.5, 0.0))
+	quake_warning.add_child(left_line)
+
+	var tween := quake_warning.create_tween()
+	tween.set_loops()
+	tween.tween_property(quake_warning, "modulate:a", 0.35, 0.16)
+	tween.tween_property(quake_warning, "modulate:a", 0.85, 0.16)
+
+
+func _flash_quake_warning() -> void:
+	if quake_warning == null or not is_instance_valid(quake_warning):
+		return
+	quake_warning.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	quake_warning.scale = Vector2(1.0, 1.22)
+
+
+func _clear_quake_warning() -> void:
+	if quake_warning != null and is_instance_valid(quake_warning):
+		quake_warning.queue_free()
+	quake_warning = null
+
+
+func _drop_bottles() -> void:
+	if coin_scene == null:
+		GameState.add_currency(coin_drop_amount)
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	for i in range(coin_drop_amount):
+		var pickup := coin_scene.instantiate()
+		parent.add_child(pickup)
+		if pickup.has_method("launch_from"):
+			pickup.call("launch_from", global_position)
+		elif pickup is Node2D:
+			pickup.global_position = global_position
 
 
 func _build_ellipse_points(radius_x: float, radius_y: float, point_count: int) -> PackedVector2Array:
@@ -909,7 +992,7 @@ func _spawn_intro_ring() -> void:
 	tween.tween_property(burst, "scale", Vector2.ONE * intro_ring_max_scale, 0.72)
 	tween.tween_property(burst, "modulate:a", 0.0, 0.72)
 	tween.set_parallel(false)
-	tween.tween_callback(burst.queue_free)
+	tween.tween_callback(_queue_free_instance_id.bind(burst.get_instance_id()))
 
 
 func _build_ring_points(radius: float, point_count: int) -> PackedVector2Array:
@@ -974,9 +1057,15 @@ func _play_ink_sfx() -> void:
 	audio.stream = ink_sfx
 	audio.bus = "SFX"
 	audio.volume_db = ink_sfx_volume_db
-	audio.finished.connect(audio.queue_free)
+	audio.finished.connect(_queue_free_instance_id.bind(audio.get_instance_id()))
 	add_child(audio)
 	audio.play()
+
+
+func _queue_free_instance_id(instance_id: int) -> void:
+	var node := instance_from_id(instance_id)
+	if node is Node:
+		node.queue_free()
 
 
 func _build_intro_ring_gradient() -> Gradient:
@@ -1328,6 +1417,37 @@ func _start_dash_animation() -> void:
 	_apply_sprite_facing()
 	if not dash_frames.is_empty():
 		sprite.texture = dash_frames[dash_frame_index]
+	_spawn_dash_afterimage(0.32)
+
+
+func _spawn_dash_afterimage(duration: float) -> void:
+	if sprite == null or sprite.texture == null:
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	var scene := get_tree().current_scene
+	if scene == null or not scene.is_node_ready() or Engine.get_process_frames() < 3:
+		return
+
+	var ghost := Sprite2D.new()
+	ghost.name = "BossDashAfterimage"
+	ghost.texture = sprite.texture
+	ghost.centered = sprite.centered
+	ghost.flip_h = sprite.flip_h
+	ghost.global_position = sprite.global_position - Vector2(float(direction) * 28.0, 0.0)
+	ghost.global_rotation = sprite.global_rotation
+	ghost.global_scale = sprite.global_scale
+	ghost.z_index = z_index + 1
+	ghost.modulate = Color(1.0, 0.62, 0.36, 0.32)
+	parent.add_child(ghost)
+
+	var tween := ghost.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ghost, "global_position", ghost.global_position - Vector2(float(direction) * 52.0, 0.0), duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(ghost, "scale", ghost.scale * 1.04, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(Callable(ghost, "queue_free"))
 
 
 func _stop_dash_animation() -> void:
@@ -1588,6 +1708,10 @@ func _update_body_contact_damage(delta: float) -> void:
 	if not body_contact_area.monitoring:
 		return
 
+	for overlapping_area in body_contact_area.get_overlapping_areas():
+		if not body_contact_targets.has(overlapping_area):
+			body_contact_targets.append(overlapping_area)
+
 	for index in range(body_contact_targets.size() - 1, -1, -1):
 		var area := body_contact_targets[index]
 		if area == null or not is_instance_valid(area) or not area.is_inside_tree():
@@ -1601,6 +1725,7 @@ func _update_body_contact_damage(delta: float) -> void:
 
 	for area in body_contact_targets:
 		_damage_contact_target(area)
+	_damage_player_body_contact_if_overlapping()
 	body_contact_damage_cooldown = body_contact_damage_interval
 
 
@@ -1631,12 +1756,56 @@ func _damage_contact_target(target_area: Area2D) -> void:
 	receiver.call("take_damage", contact_damage, global_position)
 
 
+func _damage_player_body_contact_if_overlapping() -> void:
+	if not _is_body_contact_damage_active():
+		return
+	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
+		return
+	if not (target is Node2D):
+		return
+	if not _does_player_body_overlap_contact_zone(target):
+		return
+	target.call("take_damage", contact_damage, global_position)
+
+
+func _does_player_body_overlap_contact_zone(player_node: Node2D) -> bool:
+	var boss_rect := _shape_global_rect(body_contact_shape)
+	if boss_rect.size == Vector2.ZERO:
+		boss_rect = _shape_global_rect(collision_shape)
+	var player_shape := player_node.find_child("CollisionShape2D", true, false) as CollisionShape2D
+	var player_rect := _shape_global_rect(player_shape)
+	if boss_rect.size == Vector2.ZERO or player_rect.size == Vector2.ZERO:
+		return global_position.distance_to(player_node.global_position) <= 145.0
+	return boss_rect.intersects(player_rect, true)
+
+
+func _shape_global_rect(shape_node: CollisionShape2D) -> Rect2:
+	if shape_node == null or shape_node.shape == null:
+		return Rect2()
+
+	var shape_size := Vector2.ZERO
+	if shape_node.shape is RectangleShape2D:
+		shape_size = (shape_node.shape as RectangleShape2D).size
+	elif shape_node.shape is CapsuleShape2D:
+		var capsule := shape_node.shape as CapsuleShape2D
+		shape_size = Vector2(capsule.radius * 2.0, capsule.height)
+	elif shape_node.shape is CircleShape2D:
+		var circle := shape_node.shape as CircleShape2D
+		shape_size = Vector2(circle.radius * 2.0, circle.radius * 2.0)
+
+	if shape_size == Vector2.ZERO:
+		return Rect2()
+
+	var scaled_size := shape_size * shape_node.global_scale.abs()
+	return Rect2(shape_node.global_position - scaled_size * 0.5, scaled_size)
+
+
 func _is_falling_jump_body_contact() -> bool:
 	return (state == &"quake_jump" or state == &"anti_pogo_launch") and velocity.y >= 0.0
 
 
 func _is_body_contact_damage_active() -> bool:
-	return state == &"dash" or _is_falling_jump_body_contact()
+	return not is_defeated and intro_time_left <= 0.0
 
 
 func _damage_jump_body_collisions(was_falling_jump: bool) -> void:

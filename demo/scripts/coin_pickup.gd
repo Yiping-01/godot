@@ -41,9 +41,5 @@ func _on_pickup_area_body_entered(body: Node2D) -> void:
 			queue_free()
 			return
 
-		var localization: Node = get_node_or_null("/root/Localization")
-		var text: String = "取得金錢 +%d"
-		if localization != null and localization.has_method("text"):
-			text = String(localization.call("text", "TOAST_COIN"))
-		ui.show_toast(text % value)
+		ui.show_toast("回收寶特瓶 +%d" % value)
 	queue_free()

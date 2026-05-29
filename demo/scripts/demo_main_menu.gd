@@ -1,7 +1,6 @@
 extends Control
 
 const LEVEL1_SCENE := "res://demo/scenes/levels/demo_level_1.tscn"
-const TITLE_FONT_PATH := "res://demo/assets/hollow_import/fonts/TrajanPro-Regular.otf"
 const BODY_FONT_PATH := "res://demo/assets/hollow_import/fonts/NotoSerifCJKsc-Regular.otf"
 const TITLE_MUSIC_PATH := "res://demo/assets/audio/scores/bgtitle_music.wav"
 const UI_CONFIRM_PATH := "res://demo/assets/audio/scores/jump.wav"
@@ -31,6 +30,9 @@ func _ready() -> void:
 	var global_music := get_node_or_null("/root/MusicPlayer")
 	if global_music != null and global_music.has_method("stop_game_music"):
 		global_music.stop_game_music()
+	if subtitle_label != null:
+		subtitle_label.text = ""
+		subtitle_label.hide()
 	_apply_fonts()
 	_apply_menu_ui_art()
 	_build_audio()
@@ -118,9 +120,9 @@ func _show_continue_info_panel() -> void:
 		no_save_dialog.popup_centered()
 		return
 
-	var preview_scene_name := String(save_info.get("preview_scene_name", "未知地點"))
+	var preview_scene_name := String(save_info.get("preview_scene_name", "未知區域"))
 	save_preview_label.text = preview_scene_name
-	save_info_label.text = "上次地點：%s\n錢幣：%d\n存檔時間：%s" % [
+	save_info_label.text = "目前區域：%s\n回收寶特瓶：%d\n存檔時間：%s" % [
 		preview_scene_name,
 		int(save_info.get("coins", 0)),
 		String(save_info.get("saved_at", "未知")),
@@ -161,11 +163,18 @@ func _update_texts() -> void:
 	var localization := _get_localization()
 	var is_en := localization != null and String(localization.get("current_locale")) == "en"
 	subtitle_label.text = ""
-	start_button.text = "Start" if is_en else "開始"
-	continue_button.text = "Continue" if is_en else "繼續"
-	quit_button.text = "Quit" if is_en else "結束"
+	subtitle_label.hide()
+	start_button.text = "Start" if is_en else "開始遊戲"
+	continue_button.text = "Continue" if is_en else "繼續遊戲"
+	quit_button.text = "Quit" if is_en else "離開"
 	language_zh_button.text = "中文"
 	language_en_button.text = "English"
+	continue_load_button.text = "Load" if is_en else "載入"
+	continue_cancel_button.text = "Cancel" if is_en else "取消"
+	no_save_dialog.title = "No Save" if is_en else "沒有存檔"
+	no_save_dialog.dialog_text = "No saved game was found." if is_en else "目前沒有可繼續的存檔。"
+	overwrite_save_dialog.title = "Start New Game" if is_en else "開始新遊戲"
+	overwrite_save_dialog.dialog_text = "Starting over will overwrite the current save. Continue?" if is_en else "開始新遊戲會覆蓋目前存檔，要繼續嗎？"
 
 
 func _build_audio() -> void:
@@ -186,7 +195,7 @@ func _build_audio() -> void:
 
 
 func _connect_button_feedback() -> void:
-	for button in [start_button, continue_button, quit_button, language_zh_button, language_en_button]:
+	for button in [start_button, continue_button, quit_button, language_zh_button, language_en_button, continue_load_button, continue_cancel_button]:
 		button.mouse_entered.connect(_on_button_hovered.bind(button))
 		button.focus_entered.connect(_on_button_hovered.bind(button))
 		button.pressed.connect(_animate_button_press.bind(button))
@@ -216,26 +225,11 @@ func _apply_fonts() -> void:
 		_apply_font_to_control_tree(self, body_font)
 
 
-
-
 func _apply_font_to_control_tree(control: Control, font: Font) -> void:
 	control.add_theme_font_override("font", font)
 	for child in control.get_children():
 		if child is Control:
 			_apply_font_to_control_tree(child, font)
-
-
-func _text(key: String, en: String, zh: String) -> String:
-	var localization := _get_localization()
-	if localization != null and String(localization.get("current_locale")) != "en" and key.begins_with("DEMO_"):
-		return zh
-	if localization != null and localization.has_method("text"):
-		var localized := String(localization.call("text", key))
-		if localized != "" and localized != key:
-			return localized
-	if localization != null and String(localization.get("current_locale")) == "en":
-		return en
-	return zh
 
 
 func _get_localization() -> Node:

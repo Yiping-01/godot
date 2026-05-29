@@ -126,15 +126,15 @@ func _check_attack_window_rules() -> void:
 	var boss := boss_level.get_node_or_null("Boss") if boss_level != null else null
 	if boss != null:
 		boss.state = &"idle"
-		_expect(not bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be off while idle.")
+		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active while idle.")
 		boss.state = &"windup"
-		_expect(not bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be off during windup.")
+		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active during windup.")
 		boss.state = &"dash"
 		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active during dash.")
 		boss.state = &"quake_jump"
 		boss.velocity.y = -100.0
 		_expect(not bool(boss.call("can_receive_player_attack")), "Boss should reject player hits while rising in quake_jump.")
-		_expect(not bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be off while rising.")
+		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active while rising.")
 		boss.velocity.y = 100.0
 		_expect(bool(boss.call("can_receive_player_attack")), "Boss should become hittable while falling in quake_jump.")
 		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active while falling.")
@@ -196,16 +196,11 @@ func _check_damage_application_rules() -> void:
 	var boss := boss_level.get_node_or_null("Boss") if boss_level != null else null
 	if boss != null:
 		var probe := _new_probe_area()
-		for inactive_state in [&"idle", &"windup", &"recover", &"rest"]:
-			boss.state = inactive_state
+		for contact_state in [&"idle", &"windup", &"recover", &"rest", &"dash"]:
+			boss.state = contact_state
 			probe.damage_taken = 0
 			boss.call("_damage_contact_target", probe)
-			_expect(probe.damage_taken == 0, "Boss body contact damage should not apply during %s." % inactive_state)
-
-		boss.state = &"dash"
-		probe.damage_taken = 0
-		boss.call("_damage_contact_target", probe)
-		_expect(probe.damage_taken > 0, "Boss body contact damage should apply during dash.")
+			_expect(probe.damage_taken > 0, "Boss body contact damage should apply during %s." % contact_state)
 		probe.queue_free()
 	if boss_level != null:
 		boss_level.queue_free()

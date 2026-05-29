@@ -93,6 +93,7 @@ func _build_environment_layers() -> void:
 	_add_parallax_layer(root, "FarFrontLayer", art_background_texture_path, 0.085, Vector2(420.0, floor_y - 315.0), Vector2(0.78, 0.78), Color(0.72, 0.94, 0.98, 0.34), -30)
 	_add_tile_environment(root)
 	_add_foreground_decor(root)
+	_add_depth_fog(root)
 	_add_artificial_sun(root)
 	_add_environment_fx(root)
 
@@ -195,6 +196,39 @@ func _add_tile_strip_variants(parent: Node, textures: Array[Texture2D], node_nam
 func _add_environment_fx(parent: Node) -> void:
 	_add_air_motes(parent)
 	_add_water_glimmer(parent)
+
+
+func _add_depth_fog(parent: Node) -> void:
+	var fog_back := Color(0.18, 0.27, 0.31, 0.18)
+	var fog_front := Color(0.06, 0.12, 0.15, 0.30)
+	for index in range(4):
+		var veil := Line2D.new()
+		veil.name = "DemoDepthFog%d" % index
+		veil.width = 76.0 + float(index) * 24.0
+		veil.default_color = fog_back.lerp(fog_front, float(index) / 3.0)
+		veil.z_index = -22 + index * 30
+		veil.joint_mode = Line2D.LINE_JOINT_ROUND
+		var y := floor_y - 330.0 + float(index) * 145.0
+		for point_index in range(9):
+			var x := -240.0 + float(point_index) * (level_width + 480.0) / 8.0
+			var wave := sin(float(point_index) * 0.9 + float(index) * 1.7) * (28.0 + float(index) * 6.0)
+			veil.add_point(Vector2(x, y + wave))
+		parent.add_child(veil)
+		parallax_layers.append(veil)
+		veil.set_meta("parallax_factor", 0.015 + float(index) * 0.018)
+		veil.set_meta("base_position", Vector2.ZERO)
+
+	var floor_shadow := Polygon2D.new()
+	floor_shadow.name = "DemoFloorVignette"
+	floor_shadow.z_index = 115
+	floor_shadow.color = Color(0.02, 0.06, 0.08, 0.32)
+	floor_shadow.polygon = PackedVector2Array([
+		Vector2(-260.0, floor_y + 32.0),
+		Vector2(level_width + 260.0, floor_y + 32.0),
+		Vector2(level_width + 260.0, floor_y + 190.0),
+		Vector2(-260.0, floor_y + 190.0),
+	])
+	parent.add_child(floor_shadow)
 
 
 func _add_air_motes(parent: Node) -> void:

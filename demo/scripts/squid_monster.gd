@@ -26,6 +26,8 @@ const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 @export var visual_smoothing := 0.18
 @export var top_contact_damage_margin := 12.0
 @export var body_collision_ignore_time := 0.35
+@export var coin_drop_amount := 4
+@export var coin_scene: PackedScene = preload("res://demo/scenes/coin_pickup.tscn")
 @export var monster_id: String = "SlamSquid"
 
 @onready var attack_area: Area2D = $AttackArea
@@ -49,6 +51,7 @@ var normal_collision_layer := 0
 var body_collision_ignore_left := 0.0
 var state_timer := 0.0
 var normal_sprite_scale := Vector2.ONE
+var slam_warning: Node2D
 
 
 func _ready() -> void:
@@ -125,6 +128,7 @@ func start_slam_attack() -> void:
 	slam_target_position = Vector2(player.global_position.x, player.global_position.y - above_player_height)
 	attack_area.set_deferred("monitoring", false)
 	sprite.flip_h = player.global_position.x < global_position.x
+	_spawn_slam_landing_warning(player.global_position.x)
 
 
 func _update_move_above(delta: float) -> void:
@@ -152,6 +156,7 @@ func _update_slam_windup(delta: float) -> void:
 	sprite.scale = normal_sprite_scale
 	state = STATE_SLAM
 	attack_area.set_deferred("monitoring", true)
+	_flash_slam_warning()
 
 
 func _update_slam(delta: float) -> void:
@@ -162,6 +167,7 @@ func _update_slam(delta: float) -> void:
 
 	if global_position.y >= start_position.y:
 		global_position.y = start_position.y
+		_spawn_slam_impact_effect()
 		start_return()
 
 
@@ -171,6 +177,7 @@ func start_return() -> void:
 	sprite.modulate = Color.WHITE
 	sprite.scale = normal_sprite_scale
 	attack_area.set_deferred("monitoring", false)
+	_clear_slam_warning()
 
 
 func _update_return(delta: float) -> void:
@@ -187,6 +194,7 @@ func _update_return(delta: float) -> void:
 func start_cooldown() -> void:
 	state = STATE_COOLDOWN
 	velocity = Vector2.ZERO
+	_clear_slam_warning()
 
 	await get_tree().create_timer(cooldown_time).timeout
 	can_attack = true
@@ -324,7 +332,7 @@ func can_receive_player_attack(_attack_type: StringName = &"side", _attacker_pos
 
 
 func _is_contact_damage_active() -> bool:
-	return state == STATE_SLAM
+	return state == STATE_IDLE or state == STATE_SLAM
 
 
 func _find_damage_receiver(target_node: Node) -> Node:
@@ -334,6 +342,77 @@ func _find_damage_receiver(target_node: Node) -> Node:
 			return current
 		current = current.get_parent()
 	return null
+
+
+func _spawn_slam_landing_warning(target_x: float) -> void:
+	_clear_slam_warning()
+	var parent := get_parent()
+	if parent == null:
+		return
+	slam_warning = Node2D.new()
+	slam_warning.name = "SlamSquidWarning"
+	slam_warning.z_index = 260
+	parent.add_child(slam_warning)
+	slam_warning.global_position = Vector2(target_x, start_position.y - 2.0)
+
+	var danger_zone := Polygon2D.new()
+	danger_zone.name = "DangerZone"
+	danger_zone.color = Color(1.0, 0.32, 0.18, 0.22)
+	danger_zone.polygon = PackedVector2Array([
+		Vector2(-88.0, -8.0),
+		Vector2(88.0, -8.0),
+		Vector2(118.0, 22.0),
+		Vector2(-118.0, 22.0),
+	])
+	slam_warning.add_child(danger_zone)
+
+	var center_line := Line2D.new()
+	center_line.name = "LandingLine"
+	center_line.width = 5.0
+	center_line.default_color = Color(1.0, 0.72, 0.24, 0.82)
+	center_line.add_point(Vector2(-96.0, 0.0))
+	center_line.add_point(Vector2(96.0, 0.0))
+	slam_warning.add_child(center_line)
+
+	var tween := slam_warning.create_tween()
+	tween.set_loops()
+	tween.tween_property(slam_warning, "modulate:a", 0.38, 0.12)
+	tween.tween_property(slam_warning, "modulate:a", 0.92, 0.12)
+
+
+func _flash_slam_warning() -> void:
+	if slam_warning == null or not is_instance_valid(slam_warning):
+		return
+	slam_warning.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	slam_warning.scale = Vector2(1.08, 1.0)
+
+
+func _spawn_slam_impact_effect() -> void:
+	var parent := get_parent()
+	if parent == null:
+		return
+	var impact := Line2D.new()
+	impact.name = "SlamSquidImpact"
+	impact.width = 7.0
+	impact.default_color = Color(1.0, 0.86, 0.32, 0.78)
+	impact.z_index = 270
+	impact.global_position = Vector2(global_position.x, start_position.y + 8.0)
+	impact.add_point(Vector2(-110.0, 0.0))
+	impact.add_point(Vector2(0.0, -12.0))
+	impact.add_point(Vector2(110.0, 0.0))
+	parent.add_child(impact)
+	var tween := impact.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(impact, "width", 1.0, 0.18)
+	tween.tween_property(impact, "modulate:a", 0.0, 0.18)
+	tween.tween_property(impact, "scale", Vector2(1.3, 1.0), 0.18)
+	tween.finished.connect(Callable(impact, "queue_free"))
+
+
+func _clear_slam_warning() -> void:
+	if slam_warning != null and is_instance_valid(slam_warning):
+		slam_warning.queue_free()
+	slam_warning = null
 
 
 func take_damage(amount: int, _attacker_position := Vector2.ZERO) -> void:
@@ -359,9 +438,28 @@ func _die() -> void:
 	if hurt_box != null:
 		hurt_box.set_deferred("monitoring", false)
 		hurt_box.set_deferred("monitorable", false)
+	_clear_slam_warning()
+	DEMO_COMBAT_JUICE.spawn_death_burst(self, global_position, 0.9)
+	call_deferred("_drop_bottles")
 
 	await _fade_out_death(sprite, 0.45)
 	queue_free()
+
+
+func _drop_bottles() -> void:
+	if coin_scene == null:
+		GameState.add_currency(coin_drop_amount)
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	for i in range(coin_drop_amount):
+		var pickup := coin_scene.instantiate()
+		parent.add_child(pickup)
+		if pickup.has_method("launch_from"):
+			pickup.call("launch_from", global_position)
+		elif pickup is Node2D:
+			pickup.global_position = global_position
 
 
 func _unlock_kill_achievement() -> void:
@@ -370,16 +468,16 @@ func _unlock_kill_achievement() -> void:
 		achievement_manager.call("unlock_kill_achievement", monster_id)
 
 
-func _fade_out_death(target: CanvasItem, duration: float) -> void:
-	if target == null:
+func _fade_out_death(canvas_item: CanvasItem, duration: float) -> void:
+	if canvas_item == null:
 		return
 
-	target.material = null
-	target.modulate = Color(1.0, 0.35, 0.28, 0.9)
+	canvas_item.material = null
+	canvas_item.modulate = Color(1.0, 0.35, 0.28, 0.9)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(target, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(target, "scale", target.scale * 0.82, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(canvas_item, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(canvas_item, "scale", canvas_item.scale * 0.82, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tween.finished
 
 

@@ -11,12 +11,16 @@ collision_mask = 1
 script = ExtResource("1_coin")
 
 [node name="Visual" type="Polygon2D" parent="."]
-color = Color(1, 0.78, 0.25, 1)
-polygon = PackedVector2Array(0, -14, 10, -10, 14, 0, 10, 10, 0, 14, -10, 10, -14, 0, -10, -10)
+color = Color(0.38, 0.92, 0.76, 1)
+polygon = PackedVector2Array(-5, -17, 5, -17, 5, -11, 10, -8, 11, 12, 5, 17, -5, 17, -11, 12, -10, -8, -5, -11)
 
 [node name="Spark" type="Polygon2D" parent="."]
-color = Color(1, 0.96, 0.68, 1)
-polygon = PackedVector2Array(0, -7, 4, 0, 0, 7, -4, 0)
+color = Color(0.86, 1, 0.95, 0.9)
+polygon = PackedVector2Array(-3, -11, 3, -11, 3, -6, -3, -6)
+
+[node name="LabelBand" type="Polygon2D" parent="."]
+color = Color(0.13, 0.42, 0.37, 0.95)
+polygon = PackedVector2Array(-9, 1, 9, 1, 9, 7, -9, 7)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_coin")

@@ -20,6 +20,8 @@ signal respawned
 @export var speed: float = 390.0
 @export var jump_velocity: float = -575.0
 @export var jump_cut_multiplier: float = 0.55
+@export var jump_buffer_time: float = 0.12
+@export var coyote_time: float = 0.09
 @export var jump_gravity: float = 1200.0
 @export var fall_gravity: float = 1700.0
 @export var max_fall_speed: float = 600.0
@@ -32,7 +34,7 @@ signal respawned
 @export var dash_speed: float = 860.0
 @export var dash_duration: float = 0.18
 @export var dash_cooldown: float = 0.34
-@export var dash_trail_interval: float = 0.045
+@export var dash_trail_interval: float = 0.028
 @export var max_stamina: float = 100.0
 @export var dash_stamina_cost: float = 22.0
 @export var stamina_recovery_rate: float = 44.0
@@ -80,6 +82,8 @@ signal respawned
 @export var camera_follow_position := Vector2(80.0, -40.0)
 @export var camera_follow_zoom := Vector2(1.2, 1.2)
 @export var camera_follow_smoothing_speed: float = 8.0
+@export var camera_forward_lookahead: float = 44.0
+@export var camera_fall_lookahead: float = 26.0
 @export var use_map_wall_camera_limits := true
 
 @export_category("Lighting")
@@ -159,6 +163,8 @@ var shake_strength := 0.0
 
 var facing_direction := -1
 var jump_count := 0
+var jump_buffer_left := 0.0
+var coyote_time_left := 0.0
 var attack_time_left := 0.0
 var attack_state_recovery_left := 0.0
 var last_attack_time := -999.0
@@ -198,6 +204,8 @@ var underwater_dash_current_speed := 0.0
 var water_exit_animation_left := 0.0
 var double_jump_animation_left := 0.0
 var water_exit_camera_blend_left := 0.0
+var wall_slide_dust_left := 0.0
+var low_health_fx_left := 0.0
 var is_resting := false
 var normal_z_index := 0
 var normal_collision_mask := 0
@@ -263,6 +271,8 @@ func _physics_process(delta: float) -> void:
 		return
 
 	_update_stamina(delta)
+	_update_jump_assist_timers(delta)
+	_update_low_health_feedback(delta)
 
 	if far_attack_cooldown_left > 0.0:
 		far_attack_cooldown_left = maxf(far_attack_cooldown_left - delta, 0.0)
@@ -297,8 +307,11 @@ func _physics_process(delta: float) -> void:
 		_update_underwater_movement(delta)
 		return
 
+	var was_on_floor := is_on_floor()
+	var previous_y_velocity := velocity.y
 	if is_on_floor() and velocity.y >= 0.0:
 		jump_count = 0
+		coyote_time_left = coyote_time
 
 	_update_dash_cooldown(delta)
 	_handle_dash_input()
@@ -307,6 +320,7 @@ func _physics_process(delta: float) -> void:
 		_update_attack(delta)
 		move_and_slide()
 		_update_last_safe_position()
+		_update_ground_motion_feedback(was_on_floor, previous_y_velocity, delta)
 		_update_animation()
 		_update_camera_shake(delta)
 		return
@@ -321,6 +335,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_update_last_safe_position()
+	_update_ground_motion_feedback(was_on_floor, previous_y_velocity, delta)
 	_update_animation()
 	_update_camera_shake(delta)
 
@@ -517,18 +532,28 @@ func _handle_jump() -> void:
 	if hurt_lock_left > 0.0 or is_hurt_animating:
 		return
 
-	if Input.is_action_just_pressed("jump") and _can_wall_jump():
+	if Input.is_action_just_pressed("jump"):
+		jump_buffer_left = jump_buffer_time
+
+	var wants_jump := jump_buffer_left > 0.0
+	if wants_jump and _can_wall_jump():
 		_do_wall_jump()
+		jump_buffer_left = 0.0
 		return
 
-	if Input.is_action_just_pressed("jump") and (is_on_floor() or jump_count < max_jump_count):
+	if wants_jump and (is_on_floor() or coyote_time_left > 0.0 or jump_count < max_jump_count):
+		var is_ground_jump := is_on_floor() or coyote_time_left > 0.0
 		jump_count += 1
+		if is_ground_jump:
+			jump_count = 1
 		velocity.y = jump_velocity
 		if jump_count == 1:
+			coyote_time_left = 0.0
 			_play_audio(jump_audio)
 		else:
 			_start_double_jump_animation()
 			_play_audio(double_jump_audio)
+		jump_buffer_left = 0.0
 
 	if Input.is_action_just_released("jump") and velocity.y < 0.0:
 		velocity.y *= jump_cut_multiplier
@@ -629,6 +654,8 @@ func _try_attack() -> void:
 	_set_active_attack_enabled(true)
 	_play_attack_effect(active_attack_type)
 	_play_audio(attack_audio)
+	_start_camera_shake(0.055, 1.8)
+	DEMO_COMBAT_JUICE.spawn_attack_sweep(self, global_position + Vector2(50.0 * facing_direction, -4.0), facing_direction, active_attack_type)
 	_play_player_attack_animation(active_attack_type)
 
 
@@ -738,7 +765,13 @@ func _spawn_ultimate_effect(radius: float, effect_color: Color, ray_count: int) 
 	tween.tween_property(ring, "modulate:a", 0.0, 0.36).set_delay(0.16)
 	tween.tween_property(core, "scale", Vector2.ONE * 3.0, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(core, "modulate:a", 0.0, 0.32)
-	tween.finished.connect(root.queue_free)
+	tween.finished.connect(_queue_free_instance_id.bind(root.get_instance_id()))
+
+
+func _queue_free_instance_id(instance_id: int) -> void:
+	var node := instance_from_id(instance_id)
+	if node is Node:
+		node.queue_free()
 
 
 func _circle_points(radius: float, segments: int) -> PackedVector2Array:
@@ -776,7 +809,8 @@ func _try_charge_attack() -> void:
 	_set_active_attack_enabled(true)
 	_play_attack_effect(active_attack_type)
 	_play_audio(attack_audio)
-	_start_camera_shake(0.12, 5.0)
+	_start_camera_shake(0.16, 7.0)
+	DEMO_COMBAT_JUICE.spawn_attack_sweep(self, global_position + Vector2(68.0 * facing_direction, -4.0), facing_direction, active_attack_type)
 	_play_player_attack_animation(active_attack_type)
 
 
@@ -853,8 +887,8 @@ func _apply_attack_hits() -> void:
 		_play_audio(hit_audio)
 		var hit_position: Vector2 = receiver.global_position if receiver is Node2D else active_attack_area.global_position
 		_play_hit_effect(hit_position)
-		_start_camera_shake(0.14, 6.0 if active_attack_type == &"charge" else 3.5)
-		DEMO_COMBAT_JUICE.play_hit_pause(self)
+		_start_camera_shake(0.18, 8.0 if active_attack_type == &"charge" else 4.8)
+		DEMO_COMBAT_JUICE.play_hit_pause(self, 0.075 if active_attack_type == &"charge" else 0.052, 0.08)
 		DEMO_COMBAT_JUICE.spawn_hit_flash(self, hit_position, facing_direction)
 		match active_attack_type:
 			&"down":
@@ -1012,7 +1046,17 @@ func _do_wall_jump() -> void:
 	facing_direction = int(signf(wall_normal.x))
 	animated_sprite.flip_h = facing_direction > 0
 	_update_attack_area_side()
+	_spawn_wall_dust(-wall_normal)
 	_play_audio(jump_audio)
+
+
+func _update_jump_assist_timers(delta: float) -> void:
+	if jump_buffer_left > 0.0:
+		jump_buffer_left = maxf(jump_buffer_left - delta, 0.0)
+	if coyote_time_left > 0.0 and not is_on_floor():
+		coyote_time_left = maxf(coyote_time_left - delta, 0.0)
+	elif is_on_floor():
+		coyote_time_left = coyote_time
 
 
 func _get_wall_jump_surface_normal() -> Vector2:
@@ -1077,6 +1121,8 @@ func _handle_dash_input() -> void:
 	dash_trail_time_left = 0.0
 	dash_cooldown_left = dash_cooldown
 	velocity = Vector2(float(dash_direction) * dash_speed, 0.0)
+	_spawn_dash_trail(Vector2(float(dash_direction), 0.0), 4)
+	_spawn_dash_afterimage(Vector2(float(dash_direction), 0.0), 0.34)
 	_play_dash_animation(Vector2(float(dash_direction), 0.0))
 
 
@@ -1780,6 +1826,7 @@ func _start_camera_shake(duration: float, strength: float) -> void:
 
 
 func _update_camera_shake(delta: float) -> void:
+	_update_camera_lookahead(delta)
 	if shake_time_left <= 0.0:
 		camera.offset = camera_base_offset
 		shake_strength = 0.0
@@ -1788,6 +1835,21 @@ func _update_camera_shake(delta: float) -> void:
 	shake_time_left -= delta
 	var amount := shake_strength * (shake_time_left / maxf(shake_time_left + delta, 0.001))
 	camera.offset = camera_base_offset + Vector2(randf_range(-amount, amount), randf_range(-amount, amount))
+
+
+func _update_camera_lookahead(delta: float) -> void:
+	if camera == null:
+		return
+	var horizontal_input := _get_horizontal_input()
+	var lead_direction := horizontal_input
+	if is_zero_approx(lead_direction) and absf(velocity.x) > speed * 0.22:
+		lead_direction = signf(velocity.x)
+	if is_zero_approx(lead_direction):
+		lead_direction = float(facing_direction)
+	var fall_lead := clampf(velocity.y / maxf(max_fall_speed, 1.0), 0.0, 1.0) * camera_fall_lookahead
+	var target_position := camera_follow_position + Vector2(lead_direction * camera_forward_lookahead, fall_lead)
+	var blend := 1.0 - pow(2.0, -7.5 * delta)
+	camera.position = camera.position.lerp(target_position, blend)
 
 
 func _update_motion_animation_timers(delta: float) -> void:
@@ -1811,6 +1873,7 @@ func _start_water_exit_animation() -> void:
 
 func _start_double_jump_animation() -> void:
 	double_jump_animation_left = double_jump_animation_time
+	_spawn_double_jump_burst()
 	if animated_sprite.sprite_frames.has_animation(&"double_jump"):
 		animated_sprite.play(&"double_jump")
 
@@ -1843,6 +1906,69 @@ func _spawn_double_jump_burst() -> void:
 	)
 
 
+func _spawn_landing_dust(fall_speed: float) -> void:
+	var strength := clampf((fall_speed - 260.0) / 420.0, 0.25, 1.25)
+	_spawn_motion_particles(
+		AIR_JUMP_PARTICLE_TEXTURE,
+		global_position + Vector2(0.0, 34.0),
+		Color(0.72, 0.9, 1.0, 0.48),
+		4 + int(strength * 5.0),
+		Vector2(42.0 + strength * 24.0, 8.0),
+		Vector2(46.0, 14.0),
+		0.28 + strength * 0.08,
+		Vector2(0.09, 0.09),
+		Vector2(0.26, 0.22)
+	)
+
+
+func _spawn_wall_dust(wall_normal: Vector2) -> void:
+	var drift := Vector2(signf(wall_normal.x) * 42.0, 22.0)
+	_spawn_motion_particles(
+		AIR_JUMP_PARTICLE_TEXTURE,
+		global_position + Vector2(-signf(wall_normal.x) * 20.0, 4.0),
+		Color(0.72, 0.9, 1.0, 0.42),
+		3,
+		Vector2(10.0, 28.0),
+		drift,
+		0.24,
+		Vector2(0.07, 0.07),
+		Vector2(0.2, 0.2)
+	)
+
+
+func _update_ground_motion_feedback(was_on_floor: bool, previous_y_velocity: float, delta: float) -> void:
+	if not was_on_floor and is_on_floor() and previous_y_velocity > 260.0:
+		_spawn_landing_dust(previous_y_velocity)
+		if previous_y_velocity > 520.0:
+			_start_camera_shake(0.08, 2.3)
+
+	wall_slide_dust_left = maxf(wall_slide_dust_left - delta, 0.0)
+	if _can_wall_slide() and wall_slide_dust_left <= 0.0:
+		wall_slide_dust_left = 0.09
+		_spawn_wall_dust(_get_wall_jump_surface_normal())
+
+
+func _update_low_health_feedback(delta: float) -> void:
+	if current_health > maxf(1.0, float(max_health) * 0.35) or is_dead:
+		low_health_fx_left = 0.0
+		return
+	low_health_fx_left -= delta
+	if low_health_fx_left > 0.0:
+		return
+	low_health_fx_left = randf_range(0.55, 0.95)
+	_spawn_motion_particles(
+		AIR_JUMP_PARTICLE_TEXTURE,
+		global_position + Vector2(randf_range(-10.0, 10.0), randf_range(-16.0, 18.0)),
+		Color(1.0, 0.22, 0.24, 0.34),
+		1,
+		Vector2(4.0, 6.0),
+		Vector2(randf_range(-6.0, 6.0), 24.0),
+		0.5,
+		Vector2(0.06, 0.06),
+		Vector2(0.16, 0.16)
+	)
+
+
 func _play_dash_animation(direction_vector: Vector2) -> void:
 	var original_scale := animated_sprite.scale
 	var stretch := Vector2(original_scale.x * 1.18, original_scale.y * 0.82)
@@ -1853,8 +1979,48 @@ func _play_dash_animation(direction_vector: Vector2) -> void:
 	tween.tween_property(animated_sprite, "scale", original_scale, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
-func _update_dash_trail(_delta: float, _direction_vector: Vector2) -> void:
-	pass
+func _update_dash_trail(delta: float, direction_vector: Vector2) -> void:
+	dash_trail_time_left -= delta
+	if dash_trail_time_left > 0.0:
+		return
+
+	dash_trail_time_left = dash_trail_interval
+	_spawn_dash_trail(direction_vector, 2)
+	_spawn_dash_afterimage(direction_vector, 0.22)
+
+
+func _spawn_dash_afterimage(direction_vector: Vector2, duration: float) -> void:
+	if animated_sprite == null or animated_sprite.sprite_frames == null:
+		return
+	var texture := animated_sprite.sprite_frames.get_frame_texture(animated_sprite.animation, animated_sprite.frame)
+	if texture == null:
+		return
+	var parent := get_parent()
+	if parent == null:
+		return
+	var scene := get_tree().current_scene
+	if scene == null or not scene.is_node_ready() or Engine.get_process_frames() < 3:
+		return
+
+	var ghost := Sprite2D.new()
+	ghost.name = "DashAfterimage"
+	ghost.texture = texture
+	ghost.centered = true
+	ghost.flip_h = animated_sprite.flip_h
+	ghost.flip_v = animated_sprite.flip_v
+	ghost.global_position = animated_sprite.global_position - direction_vector.normalized() * 14.0
+	ghost.global_rotation = animated_sprite.global_rotation
+	ghost.global_scale = animated_sprite.global_scale
+	ghost.z_index = z_index + 2
+	ghost.modulate = Color(0.62, 0.94, 1.0, 0.42) if not is_underwater else Color(0.28, 0.86, 1.0, 0.52)
+	parent.add_child(ghost)
+
+	var tween := ghost.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ghost, "global_position", ghost.global_position - direction_vector.normalized() * 34.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(ghost, "scale", ghost.scale * 1.06, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(Callable(ghost, "queue_free"))
 
 
 func _spawn_dash_trail(direction_vector: Vector2, count: int) -> void:

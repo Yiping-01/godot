@@ -100,7 +100,7 @@ func _damage_current_attack_overlaps() -> void:
 
 
 func _damage_attack_body(body: Node2D) -> void:
-	if is_dead:
+	if is_dead or state != &"attack":
 		return
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(damage, global_position)

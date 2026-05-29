@@ -314,7 +314,7 @@ func show_area_title(main_title: String, sub_title: String) -> void:
 	area_title_tween.tween_property(area_title_panel, "modulate:a", 1.0, 0.45)
 	area_title_tween.tween_interval(2.0)
 	area_title_tween.tween_property(area_title_panel, "modulate:a", 0.0, 0.55)
-	area_title_tween.tween_callback(area_title_panel.hide)
+	area_title_tween.tween_callback(_hide_instance_id.bind(area_title_panel.get_instance_id()))
 
 
 func show_toast(text: String, duration: float = 2.0) -> void:
@@ -331,7 +331,7 @@ func show_toast(text: String, duration: float = 2.0) -> void:
 	toast_tween = create_tween()
 	toast_tween.tween_interval(duration)
 	toast_tween.tween_property(toast_label, "modulate:a", 0.0, 0.35)
-	toast_tween.tween_callback(toast_label.hide)
+	toast_tween.tween_callback(_hide_instance_id.bind(toast_label.get_instance_id()))
 
 
 func show_coin_gain(amount: int) -> void:
@@ -342,7 +342,7 @@ func show_coin_gain(amount: int) -> void:
 		coin_tween.kill()
 
 	_configure_demo_coin_hud()
-	hud_currency_label.text = "金幣 %d" % last_currency_amount
+	hud_currency_label.text = "寶特瓶：%d" % last_currency_amount
 	hud_currency_label.show()
 	hud_currency_label.modulate = Color(1.0, 0.92, 0.64, 1.0)
 	hud_currency_label.scale = Vector2.ONE
@@ -354,7 +354,7 @@ func show_coin_gain(amount: int) -> void:
 	coin_tween.tween_property(hud_currency_label, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	coin_tween.tween_interval(1.35)
 	coin_tween.tween_property(hud_currency_label, "modulate:a", 0.0, 0.45)
-	coin_tween.tween_callback(hud_currency_label.hide)
+	coin_tween.tween_callback(_hide_instance_id.bind(hud_currency_label.get_instance_id()))
 	last_currency_amount = GameState.currency
 
 
@@ -718,7 +718,7 @@ func _configure_demo_coin_hud() -> void:
 
 func _set_coin_counter_text(value: float) -> void:
 	if hud_currency_label != null:
-		hud_currency_label.text = "金幣 %d" % roundi(value)
+		hud_currency_label.text = "寶特瓶：%d" % roundi(value)
 
 
 func _show_coin_gain_pop(amount: int) -> void:
@@ -746,7 +746,19 @@ func _show_coin_gain_pop(amount: int) -> void:
 	tween.parallel().tween_property(coin_gain_label, "offset_top", -192.0, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.parallel().tween_property(coin_gain_label, "offset_bottom", -160.0, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(coin_gain_label, "modulate:a", 0.0, 0.25)
-	tween.tween_callback(coin_gain_label.queue_free)
+	tween.tween_callback(_queue_free_instance_id.bind(coin_gain_label.get_instance_id()))
+
+
+func _queue_free_instance_id(instance_id: int) -> void:
+	var node := instance_from_id(instance_id)
+	if node is Node:
+		node.queue_free()
+
+
+func _hide_instance_id(instance_id: int) -> void:
+	var control := instance_from_id(instance_id)
+	if control is CanvasItem:
+		control.hide()
 
 
 func _style_hint_label(label: Label, center_text: bool) -> void:
@@ -795,6 +807,34 @@ func _t(key: String) -> String:
 func _demo_text_override(key: String) -> String:
 	var localization: Node = _get_localization()
 	var is_en := localization != null and String(localization.get("current_locale")) == "en"
+	var exhibition_labels := {
+		"CURRENCY_AMOUNT": ["寶特瓶：%d", "Bottles: %d"],
+		"TOAST_COIN": ["回收寶特瓶 +%d", "Recycled bottle +%d"],
+		"INVENTORY_FIRST_HINT": ["按 I 可以查看背包與回收資源。", "Press I to check your bag and recycled resources."],
+		"DIALOGUE_NEXT_HINT": ["E：繼續 / Esc：離開", "E: Continue / Esc: Leave"],
+		"DIALOGUE_SHOP_HINT": ["E：查看補給 / Esc：離開", "E: Browse supplies / Esc: Leave"],
+		"SHOP_TITLE": ["%s 的回收補給站", "%s's Recycling Supply"],
+		"SHOP_INVENTORY_HINT": ["用回收寶特瓶交換補給。", "Trade recycled bottles for supplies."],
+		"SHOP_OWNED": ["已取得", "Owned"],
+		"SHOP_LIMIT": ["已達上限", "Limit reached"],
+		"SHOP_ITEM_LINE": ["%s\n需要 %d 個寶特瓶 %s\n%s", "%s\nCosts %d bottles %s\n%s"],
+		"SHOP_HINT": ["點選補給購買 / I 或 Esc：關閉", "Click an item to buy / I or Esc: Close"],
+		"SHOP_ALREADY_HAVE": ["已經擁有：%s", "Already owned: %s"],
+		"SHOP_POTION_LIMIT": ["回復藥水已達上限。", "Potion limit reached."],
+		"SHOP_NOT_ENOUGH_MONEY": ["寶特瓶不足。", "Not enough bottles."],
+		"SHOP_GOT_ITEM": ["取得：%s", "Got: %s"],
+		"ITEM_HEALTH_POTION": ["回復藥水", "Recovery Potion"],
+		"ITEM_HEALTH_POTION_DESC": ["補回一次生命。", "Restores one health."],
+		"ITEM_ROUGH_CHARM": ["粗糙護符", "Rough Charm"],
+		"ITEM_ROUGH_CHARM_DESC": ["由回收零件拼成的小護符。", "A small charm made from reused parts."],
+		"ITEM_OLD_MAP": ["破舊地圖", "Old Map"],
+		"ITEM_OLD_MAP_DESC": ["標記附近通道。", "Marks nearby paths."],
+		"ITEM_TRAVELER_NOTE": ["旅行筆記", "Traveler Note"],
+		"ITEM_TRAVELER_NOTE_DESC": ["記錄海溝中的觀察。", "Notes from the trench."],
+	}
+	if exhibition_labels.has(key):
+		var exhibition_pair: Array = exhibition_labels[key]
+		return String(exhibition_pair[1] if is_en else exhibition_pair[0])
 	var clean_labels := {
 		"CURRENCY_AMOUNT": ["金錢：%d", "Coins: %d"],
 		"INV_TAB_BAG": ["背包", "Bag"],
@@ -1169,7 +1209,7 @@ func _refresh_inventory_header() -> void:
 		inventory_skill_meta_label.text = ""
 	if inventory_profile_title_label != null:
 		inventory_profile_title_label.text = "角色資料"
-	inventory_profile_label.text = "生命值：%s / %s\n金錢：%d\n回復藥水：%d\n裝備技能格：%d" % [hp_text, max_hp_text, GameState.currency, GameState.get_health_potion_count(), EQUIPPED_SKILL_SLOT_COUNT]
+	inventory_profile_label.text = "生命值：%s / %s\n回收寶特瓶：%d\n回復藥水：%d\n裝備技能格：%d" % [hp_text, max_hp_text, GameState.currency, GameState.get_health_potion_count(), EQUIPPED_SKILL_SLOT_COUNT]
 	inventory_currency_label.text = _t("CURRENCY_AMOUNT") % GameState.currency
 	inventory_detail_title.text = "選取中的技能介紹" if is_skill_tab else _t("INV_TAB_BAG")
 	inventory_detail_type.text = ""
