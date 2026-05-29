@@ -48,6 +48,7 @@ script = ExtResource("1_scene_script")
 [node name="Atmosphere" type="Node2D" parent="." unique_id=1381228424]
 script = ExtResource("15_atmosphere")
 environment_tint = Color(0.26, 0.31, 0.35, 1)
+art_background_texture_path = "res://demo/assets/generated/exhibition_bg/boss_ocean_arena.png"
 player_glow_radius = 400.0
 level_width = 2300.0
 floor_y = 700.0

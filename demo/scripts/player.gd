@@ -229,6 +229,7 @@ func _ready() -> void:
 	normal_z_index = z_index
 	normal_collision_mask = collision_mask
 	normal_collision_layer = collision_layer
+	_set_enemy_body_collision_enabled(false)
 	attack_offset_x = absf(attack_area.position.x)
 	charge_attack_offset_x = absf(charge_attack_area.position.x)
 	current_attack_damage = attack_damage
@@ -843,6 +844,8 @@ func _apply_attack_hits() -> void:
 		if hit_targets.has(instance_id):
 			continue
 
+		if receiver.has_method("can_receive_player_attack") and not bool(receiver.call("can_receive_player_attack", active_attack_type, global_position, velocity)):
+			continue
 		hit_targets[instance_id] = true
 		receiver.call("take_damage", current_attack_damage, global_position)
 		if receiver.is_in_group("enemy"):
@@ -1300,6 +1303,7 @@ func respawn_from_void() -> void:
 	respawned.emit()
 	_start_camera_shake(0.18, 5.0)
 	_start_invincibility()
+	call_deferred("_refresh_water_zone_state")
 
 	await get_tree().process_frame
 	void_respawning = false
@@ -1344,7 +1348,7 @@ func _start_invincibility() -> void:
 func _finish_invincibility() -> void:
 	animated_sprite.modulate = Color.WHITE
 	invincible = false
-	_set_enemy_body_collision_enabled(true)
+	_set_enemy_body_collision_enabled(false)
 
 
 func _set_enemy_body_collision_enabled(enabled: bool) -> void:
@@ -1389,8 +1393,19 @@ func _respawn() -> void:
 	stamina_changed.emit(current_stamina, max_stamina)
 	respawned.emit()
 	_start_invincibility()
+	call_deferred("_refresh_water_zone_state")
 	
 	_respawn_room_enemies()
+
+
+func _refresh_water_zone_state() -> void:
+	await get_tree().physics_frame
+	if is_dead or not is_inside_tree():
+		return
+	for zone in get_tree().get_nodes_in_group("water_zone"):
+		if zone != null and zone.has_method("reapply_to_player_if_overlapping"):
+			zone.call("reapply_to_player_if_overlapping", self)
+	_update_animation()
 
 
 func _sync_runtime_status() -> void:

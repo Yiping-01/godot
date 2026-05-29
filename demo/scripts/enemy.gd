@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name TestEnemy
 
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 
 @export var max_health: int = 2
 @export var patrol_speed: float = 120.0
@@ -16,6 +17,13 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 @export var patrol_distance: float = 120.0
 @export var lock_to_spawn_height: bool = true
 @export var spawn_protection_time: float = 0.45
+@export var detection_range: float = 190.0
+@export var attack_range: float = 120.0
+@export var attack_windup_time: float = 0.28
+@export var attack_active_time: float = 0.22
+@export var attack_recovery_time: float = 0.55
+@export var attack_cooldown: float = 0.85
+@export var attack_speed: float = 300.0
 @export var monster_id: String = "NormalOctopus"
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
@@ -37,6 +45,11 @@ var can_take_damage := true
 var split_launch_velocity := Vector2.ZERO
 var split_launch_time_left := 0.0
 var split_launch_duration := 0.0
+var target: Node2D
+var state := &"patrol"
+var state_timer := 0.0
+var attack_cooldown_left := 0.0
+var attack_direction := -1
 
 
 func _ready() -> void:
@@ -45,6 +58,7 @@ func _ready() -> void:
 	hit_stun_left = 0.0
 	velocity = Vector2.ZERO
 	start_position = global_position
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 	visible = true
 	collision_layer = 4
 	add_to_group("enemy")
@@ -56,7 +70,7 @@ func _ready() -> void:
 	collision_shape.disabled = false
 	hurtbox.monitoring = true
 	hurtbox.monitorable = true
-	damage_area.monitoring = true
+	damage_area.monitoring = false
 	damage_area.monitorable = true
 	sprite.play("walk")
 	_sync_facing()
@@ -66,6 +80,8 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	_update_target()
+	attack_cooldown_left = maxf(attack_cooldown_left - delta, 0.0)
 	if lock_to_spawn_height:
 		_update_locked_height_patrol(delta)
 		return
@@ -76,8 +92,7 @@ func _physics_process(delta: float) -> void:
 		hit_stun_left -= delta
 		velocity.x = move_toward(velocity.x, 0.0, hurt_knockback * delta * 3.0)
 	else:
-		_turn_around_at_patrol_edge()
-		velocity.x = direction * patrol_speed
+		_update_combat_state(delta)
 
 	move_and_slide()
 	_keep_inside_patrol_range()
@@ -101,8 +116,7 @@ func _update_locked_height_patrol(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, hurt_knockback * delta * 3.0)
 	else:
 		sprite.position.y = 0.0
-		_turn_around_at_patrol_edge()
-		velocity.x = direction * patrol_speed
+		_update_combat_state(delta)
 
 	if split_launch_time_left <= 0.0:
 		next_position.x += velocity.x * delta
@@ -125,6 +139,7 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 	velocity.x = push_direction * hurt_knockback
 	velocity.y = minf(velocity.y, -80.0)
 	hit_stun_left = hit_stun_time
+	_cancel_attack()
 	_play_audio(damage_audio)
 	_play_hit_effect()
 	_flash()
@@ -241,6 +256,118 @@ func _turn_around_at_patrol_edge() -> void:
 	_sync_facing()
 
 
+func _update_target() -> void:
+	if target != null and is_instance_valid(target):
+		return
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player is Node2D:
+		target = player
+
+
+func _update_combat_state(delta: float) -> void:
+	match state:
+		&"attack_windup":
+			_update_attack_windup(delta)
+		&"attack":
+			_update_attack(delta)
+		&"attack_recovery":
+			_update_attack_recovery(delta)
+		_:
+			_update_patrol(delta)
+
+
+func _update_patrol(_delta: float) -> void:
+	if _can_begin_attack():
+		_begin_attack_windup()
+		return
+
+	sprite.modulate = Color.WHITE
+	_turn_around_at_patrol_edge()
+	velocity.x = direction * patrol_speed
+
+
+func _update_attack_windup(delta: float) -> void:
+	velocity.x = 0.0
+	state_timer -= delta
+	var progress := 1.0 - state_timer / maxf(attack_windup_time, 0.001)
+	sprite.modulate = Color(1.0, 0.82 + 0.18 * progress, 0.55 + 0.25 * progress, 1.0)
+	if state_timer > 0.0:
+		return
+
+	state = &"attack"
+	state_timer = attack_active_time
+	velocity.x = float(attack_direction) * attack_speed
+	damage_area.set_deferred("monitoring", true)
+	call_deferred("_damage_current_attack_overlaps")
+
+
+func _update_attack(delta: float) -> void:
+	velocity.x = float(attack_direction) * attack_speed
+	state_timer -= delta
+	if state_timer > 0.0:
+		return
+
+	state = &"attack_recovery"
+	state_timer = attack_recovery_time
+	velocity.x = 0.0
+	damage_area.set_deferred("monitoring", false)
+	sprite.modulate = Color.WHITE
+
+
+func _update_attack_recovery(delta: float) -> void:
+	velocity.x = 0.0
+	state_timer -= delta
+	if state_timer > 0.0:
+		return
+
+	state = &"patrol"
+
+
+func _can_begin_attack() -> bool:
+	if target == null or not is_instance_valid(target) or attack_cooldown_left > 0.0:
+		return false
+
+	var offset := target.global_position - global_position
+	if absf(offset.y) > 80.0:
+		return false
+	if absf(offset.x) > detection_range:
+		return false
+	if absf(offset.x) > attack_range and signf(offset.x) != float(direction):
+		return false
+	return true
+
+
+func _begin_attack_windup() -> void:
+	if target != null and is_instance_valid(target):
+		var offset_x := target.global_position.x - global_position.x
+		if not is_zero_approx(offset_x):
+			direction = int(signf(offset_x))
+
+	attack_direction = direction
+	attack_cooldown_left = attack_cooldown
+	state = &"attack_windup"
+	state_timer = attack_windup_time
+	velocity.x = 0.0
+	damage_area.set_deferred("monitoring", false)
+	_sync_facing()
+
+
+func _cancel_attack() -> void:
+	if state == &"attack" or state == &"attack_windup":
+		damage_area.set_deferred("monitoring", false)
+	state = &"patrol"
+	state_timer = 0.0
+	sprite.modulate = Color.WHITE
+
+
+func _damage_current_attack_overlaps() -> void:
+	if state != &"attack":
+		return
+	for area in damage_area.get_overlapping_areas():
+		_damage_attack_target(area)
+
+
 func _keep_inside_patrol_range() -> void:
 	var left_edge := start_position.x - patrol_distance
 	var right_edge := start_position.x + patrol_distance
@@ -274,7 +401,14 @@ func _play_audio(audio: AudioStreamPlayer2D) -> void:
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
-	if is_dead:
+	if is_dead or state != &"attack":
+		return
+
+	_damage_attack_target(area)
+
+
+func _damage_attack_target(area: Area2D) -> void:
+	if state != &"attack":
 		return
 
 	var receiver: Node = _find_damage_receiver(area)

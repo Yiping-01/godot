@@ -5,6 +5,7 @@ const TITLE_FONT_PATH := "res://demo/assets/hollow_import/fonts/TrajanPro-Regula
 const BODY_FONT_PATH := "res://demo/assets/hollow_import/fonts/NotoSerifCJKsc-Regular.otf"
 const TITLE_MUSIC_PATH := "res://demo/assets/audio/scores/bgtitle_music.wav"
 const UI_CONFIRM_PATH := "res://demo/assets/audio/scores/jump.wav"
+const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 
 @onready var start_button: Button = $Menu/StartButton
 @onready var continue_button: Button = $Menu/ContinueButton
@@ -31,6 +32,7 @@ func _ready() -> void:
 	if global_music != null and global_music.has_method("stop_game_music"):
 		global_music.stop_game_music()
 	_apply_fonts()
+	_apply_menu_ui_art()
 	_build_audio()
 	_connect_button_feedback()
 	start_button.pressed.connect(_start_new_flow)
@@ -48,6 +50,36 @@ func _ready() -> void:
 	continue_info_panel.hide()
 	_update_texts()
 	_fade_in()
+
+
+func _apply_menu_ui_art() -> void:
+	for button in [start_button, continue_button, quit_button]:
+		_apply_button_art(button, false)
+	for button in [language_zh_button, language_en_button, continue_load_button, continue_cancel_button]:
+		_apply_button_art(button, true)
+	if continue_info_panel != null:
+		continue_info_panel.add_theme_stylebox_override("panel", DEMO_MENU_UI_ART.panel_style("save"))
+
+
+func _apply_button_art(button: Button, small: bool) -> void:
+	if button == null:
+		return
+	button.add_theme_color_override("font_color", Color(0.92, 0.98, 1.0, 0.98))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.9, 0.55, 1.0))
+	button.add_theme_color_override("font_focus_color", Color.WHITE)
+	button.add_theme_constant_override("outline_size", 2)
+	button.add_theme_color_override("font_outline_color", Color(0.0, 0.04, 0.06, 0.78))
+	if small:
+		button.add_theme_stylebox_override("normal", DEMO_MENU_UI_ART.small_button_style("normal"))
+		button.add_theme_stylebox_override("hover", DEMO_MENU_UI_ART.small_button_style("hover"))
+		button.add_theme_stylebox_override("pressed", DEMO_MENU_UI_ART.small_button_style("pressed"))
+		button.add_theme_stylebox_override("focus", DEMO_MENU_UI_ART.small_button_style("focus"))
+	else:
+		button.add_theme_stylebox_override("normal", DEMO_MENU_UI_ART.main_button_style("normal"))
+		button.add_theme_stylebox_override("hover", DEMO_MENU_UI_ART.main_button_style("hover"))
+		button.add_theme_stylebox_override("pressed", DEMO_MENU_UI_ART.main_button_style("pressed"))
+		button.add_theme_stylebox_override("focus", DEMO_MENU_UI_ART.main_button_style("focus"))
 
 
 func _unhandled_input(event: InputEvent) -> void:

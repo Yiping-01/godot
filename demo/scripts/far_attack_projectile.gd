@@ -49,6 +49,8 @@ func _on_target_entered(target: Node) -> void:
 	var receiver := _find_damage_receiver(target)
 	if receiver == null or hit_targets.has(receiver.get_instance_id()):
 		return
+	if receiver.has_method("can_receive_player_attack") and not bool(receiver.call("can_receive_player_attack", &"far", global_position, Vector2.ZERO)):
+		return
 
 	hit_targets[receiver.get_instance_id()] = true
 	receiver.call("take_damage", damage, global_position)

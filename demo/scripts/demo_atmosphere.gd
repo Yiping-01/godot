@@ -12,10 +12,9 @@ class_name DemoAtmosphere
 @export_range(0.0, 1.0, 0.01) var artificial_sun_glow_alpha := 0.16
 
 const GLOW_TEXTURE_PATH := "res://demo/assets/hollow_import/effects/flash_round.png"
+const BUBBLE_TEXTURE_PATH := "res://demo/assets/hollow_import/effects/white_light_donut.png"
 const WATER_TEXTURE_PATH := "res://demo/assets/hollow_import/effects/water_footstep_particle.png"
-const FAR_BG_TEXTURE_PATH := "res://demo/assets/art/backgrounds/parallax_bg_far.png"
-const MID_BG_TEXTURE_PATH := "res://demo/assets/art/backgrounds/parallax_bg_mid.png"
-const NEAR_BG_TEXTURE_PATH := "res://demo/assets/art/backgrounds/parallax_bg_near.png"
+const DEFAULT_BG_TEXTURE_PATH := "res://demo/assets/art/backgrounds/parallax_bg_far.png"
 const FLOOR_TEXTURE_PATH := "res://demo/assets/art/backgrounds/base_floor_single.png"
 const PAINTED_FLOOR_TEXTURE_PATHS := [
 	"res://demo/assets/tiles/floor_stone_tile_01.png",
@@ -26,6 +25,12 @@ const PAINTED_FLOOR_TEXTURE_PATHS := [
 const WALL_TEXTURE_PATH := "res://demo/assets/art/backgrounds/base_wall_single.png"
 const CEILING_TEXTURE_PATH := "res://demo/assets/art/backgrounds/base_ceiling_single.png"
 const PLANT_TEXTURE_PATH := "res://demo/assets/art/backgrounds/deepsea_prop_plant.png"
+
+@export_file("*.png") var art_background_texture_path := DEFAULT_BG_TEXTURE_PATH
+@export_file("*.png") var foreground_decor_texture_path := ""
+@export_range(0.1, 1.2, 0.01) var foreground_decor_scale := 0.46
+@export var foreground_decor_bottom_offset := 72.0
+@export var underwater_bubbles_only := false
 
 var player_glow: PointLight2D
 var parallax_layers: Array[Node2D] = []
@@ -84,9 +89,10 @@ func _build_environment_layers() -> void:
 	parallax_layers.clear()
 	air_motes.clear()
 
-	_add_parallax_layer(root, "FarBackLayer", FAR_BG_TEXTURE_PATH, 0.03, Vector2(0.0, floor_y - 350.0), Vector2(1.82, 1.82), Color(0.42, 0.58, 0.60, 0.28), -31)
-	_add_parallax_layer(root, "FarFrontLayer", FAR_BG_TEXTURE_PATH, 0.085, Vector2(260.0, floor_y - 315.0), Vector2(1.48, 1.48), Color(0.34, 0.50, 0.52, 0.20), -28)
+	_add_parallax_layer(root, "FarBackLayer", art_background_texture_path, 0.025, Vector2(0.0, floor_y - 330.0), Vector2(0.9, 0.9), Color(0.92, 1.0, 1.0, 0.68), -34)
+	_add_parallax_layer(root, "FarFrontLayer", art_background_texture_path, 0.085, Vector2(420.0, floor_y - 315.0), Vector2(0.78, 0.78), Color(0.72, 0.94, 0.98, 0.34), -30)
 	_add_tile_environment(root)
+	_add_foreground_decor(root)
 	_add_artificial_sun(root)
 	_add_environment_fx(root)
 
@@ -132,6 +138,28 @@ func _add_tile_environment(parent: Node) -> void:
 				parent.add_child(wall)
 
 
+func _add_foreground_decor(parent: Node) -> void:
+	var texture := _load_texture_runtime(foreground_decor_texture_path)
+	if not texture is Texture2D:
+		return
+
+	var scale_value := foreground_decor_scale
+	var step := maxf(float(texture.get_width()) * scale_value * 0.98, 256.0)
+	var repeat_count := int(ceil((level_width + step * 2.0) / step)) + 2
+	var start_x := -step
+	var bottom_y := floor_y + foreground_decor_bottom_offset
+	var center_y := bottom_y - float(texture.get_height()) * scale_value * 0.5
+	for index in range(repeat_count):
+		var sprite := Sprite2D.new()
+		sprite.name = "LevelForegroundDecor"
+		sprite.texture = texture
+		sprite.z_index = 12
+		sprite.position = Vector2(start_x + float(index) * step, center_y)
+		sprite.scale = Vector2.ONE * scale_value
+		sprite.modulate = Color.WHITE
+		parent.add_child(sprite)
+
+
 func _add_tile_strip(parent: Node, texture: Texture2D, node_name: String, y: float, z: int, color: Color, scale_value: float) -> void:
 	var step := maxf(float(texture.get_width()) * scale_value, 64.0)
 	for x in range(-160, int(level_width) + 240, int(step)):
@@ -170,6 +198,10 @@ func _add_environment_fx(parent: Node) -> void:
 
 
 func _add_air_motes(parent: Node) -> void:
+	if underwater_bubbles_only:
+		_add_underwater_bubbles(parent)
+		return
+
 	var texture := load(GLOW_TEXTURE_PATH)
 	if not texture is Texture2D:
 		return
@@ -224,6 +256,16 @@ func _add_air_motes(parent: Node) -> void:
 	)
 
 
+func _add_underwater_bubbles(parent: Node) -> void:
+	var texture := load(BUBBLE_TEXTURE_PATH)
+	if not texture is Texture2D:
+		return
+
+	_add_air_mote_layer(parent, "DemoBubbleMotesBack", 18, -26, 0.04, false, 1.0, texture, Vector2(0.018, 0.034), Vector2(12.0, 26.0), Vector2(1.5, 6.0), Color(0.66, 0.92, 1.0, 1.0), Vector2(0.22, 0.42), Vector2(0.42, 0.66), true)
+	_add_air_mote_layer(parent, "DemoBubbleMotesMid", 16, 18, 0.1, false, 1.0, texture, Vector2(0.028, 0.052), Vector2(18.0, 38.0), Vector2(2.0, 8.0), Color(0.72, 0.96, 1.0, 1.0), Vector2(0.3, 0.5), Vector2(0.52, 0.78), true)
+	_add_air_mote_layer(parent, "DemoBubbleMotesFront", 8, 92, 0.0, true, 1.0, texture, Vector2(0.04, 0.075), Vector2(24.0, 52.0), Vector2(2.0, 9.0), Color(0.82, 0.98, 1.0, 1.0), Vector2(0.36, 0.56), Vector2(0.58, 0.84), true)
+
+
 func _add_air_mote_layer(
 	parent: Node,
 	layer_name: String,
@@ -238,7 +280,8 @@ func _add_air_mote_layer(
 	side_drift_range: Vector2,
 	color: Color,
 	alpha_min_range: Vector2,
-	alpha_max_range: Vector2
+	alpha_max_range: Vector2,
+	is_bubble: bool = false
 ) -> void:
 	var mote_root := Node2D.new()
 	mote_root.name = layer_name
@@ -265,7 +308,7 @@ func _add_air_mote_layer(
 
 		var glow := PointLight2D.new()
 		glow.texture = texture
-		glow.energy = randf_range(0.025, 0.09)
+		glow.energy = 0.0 if is_bubble else randf_range(0.025, 0.09)
 		glow.texture_scale = randf_range(0.12, 0.24)
 		glow.color = color
 		glow.blend_mode = Light2D.BLEND_MODE_ADD as Light2D.BlendMode
@@ -293,6 +336,7 @@ func _add_air_mote_layer(
 			"left_x": -140.0,
 			"right_x": level_width + 140.0,
 			"camera_relative": camera_relative,
+			"is_bubble": is_bubble,
 		})
 
 
@@ -337,6 +381,10 @@ func _update_air_motes() -> void:
 		var t := atmosphere_time * float(mote_data.get("side_speed", 1.0)) + phase
 		var idle_y := cos(t * 0.72) * float(mote_data.get("y_amp", 4.0)) if not goes_up else 0.0
 		mote.position = base + Vector2(parallax_offset + sin(t) * float(mote_data.get("x_amp", 8.0)), idle_y)
+		if bool(mote_data.get("is_bubble", false)):
+			dot.modulate.a = float(mote_data.get("max_alpha", 0.72))
+			glow.energy = 0.0
+			continue
 		var flicker := (sin(atmosphere_time * float(mote_data.get("flicker_speed", 2.0)) + phase * 1.7) + 1.0) * 0.5
 		dot.modulate.a = lerpf(float(mote_data.get("min_alpha", 0.4)), float(mote_data.get("max_alpha", 0.9)), flicker)
 		glow.energy = lerpf(float(mote_data.get("min_energy", 0.06)), float(mote_data.get("max_energy", 0.16)), flicker)
@@ -432,6 +480,8 @@ func _load_floor_textures() -> Array[Texture2D]:
 
 
 func _load_texture_runtime(path: String) -> Texture2D:
+	if path == "":
+		return null
 	if path.to_lower().ends_with(".png"):
 		var image := Image.new()
 		if image.load(ProjectSettings.globalize_path(path)) == OK:

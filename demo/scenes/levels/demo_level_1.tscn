@@ -50,6 +50,8 @@ script = ExtResource("1_level_script")
 [node name="Atmosphere" type="Node2D" parent="." unique_id=714651153]
 script = ExtResource("18_atmosphere")
 environment_tint = Color(0.3, 0.36, 0.39, 1)
+art_background_texture_path = "res://demo/assets/generated/exhibition_bg/level1_ocean_cave.png"
+foreground_decor_texture_path = ""
 player_glow_radius = 360.0
 level_width = 5700.0
 floor_y = 704.0
@@ -423,83 +425,11 @@ polygon = PackedVector2Array(-120, 738, 5840, 738, 5840, 1040, -120, 1040)
 [node name="BackgroundDecorations" type="Node2D" parent="MapPieces" unique_id=1097209902]
 z_index = -8
 
-[node name="BackCoralA" type="Sprite2D" parent="MapPieces/BackgroundDecorations" unique_id=1449601913]
-modulate = Color(0.14, 0.34, 0.31, 0.32)
-position = Vector2(640, 650)
-scale = Vector2(0.18, 0.18)
-texture = ExtResource("21_plant")
-
-[node name="BackCoralB" type="Sprite2D" parent="MapPieces/BackgroundDecorations" unique_id=1214335236]
-modulate = Color(0.14, 0.34, 0.31, 0.28)
-position = Vector2(1960, 640)
-scale = Vector2(-0.22, 0.22)
-texture = ExtResource("21_plant")
-
-[node name="BackCoralC" type="Sprite2D" parent="MapPieces/BackgroundDecorations" unique_id=2100128412]
-modulate = Color(0.14, 0.34, 0.31, 0.3)
-position = Vector2(3330, 648)
-scale = Vector2(0.2, 0.2)
-texture = ExtResource("21_plant")
-
-[node name="BackCoralD" type="Sprite2D" parent="MapPieces/BackgroundDecorations" unique_id=1329758626]
-modulate = Color(0.14, 0.34, 0.31, 0.29)
-position = Vector2(4920, 646)
-scale = Vector2(-0.19, 0.19)
-texture = ExtResource("21_plant")
-
 [node name="MidgroundDecorations" type="Node2D" parent="MapPieces" unique_id=1102995224]
 z_index = -1
 
-[node name="MidCoralA" type="Sprite2D" parent="MapPieces/MidgroundDecorations" unique_id=1198417864]
-modulate = Color(0.08, 0.23, 0.21, 0.58)
-position = Vector2(1160, 668)
-scale = Vector2(0.15, 0.15)
-texture = ExtResource("21_plant")
-
-[node name="MidCoralB" type="Sprite2D" parent="MapPieces/MidgroundDecorations" unique_id=2007868289]
-modulate = Color(0.08, 0.23, 0.21, 0.55)
-position = Vector2(2580, 668)
-scale = Vector2(-0.17, 0.17)
-texture = ExtResource("21_plant")
-
-[node name="MidCoralC" type="Sprite2D" parent="MapPieces/MidgroundDecorations" unique_id=79101985]
-modulate = Color(0.08, 0.23, 0.21, 0.56)
-position = Vector2(3890, 668)
-scale = Vector2(0.16, 0.16)
-texture = ExtResource("21_plant")
-
 [node name="ForegroundDecorations" type="Node2D" parent="MapPieces" unique_id=1431176327]
 z_index = 1
-
-[node name="CoralFrontA" type="Sprite2D" parent="MapPieces/ForegroundDecorations" unique_id=1826698017]
-modulate = Color(0.07, 0.19, 0.18, 0.82)
-position = Vector2(820, 760)
-scale = Vector2(0.09, 0.09)
-texture = ExtResource("21_plant")
-
-[node name="CoralFrontB" type="Sprite2D" parent="MapPieces/ForegroundDecorations" unique_id=447403645]
-modulate = Color(0.07, 0.19, 0.18, 0.72)
-position = Vector2(1720, 760)
-scale = Vector2(0.08, 0.08)
-texture = ExtResource("21_plant")
-
-[node name="CoralFrontC" type="Sprite2D" parent="MapPieces/ForegroundDecorations" unique_id=895471803]
-modulate = Color(0.07, 0.19, 0.18, 0.78)
-position = Vector2(2860, 768)
-scale = Vector2(0.1, 0.1)
-texture = ExtResource("21_plant")
-
-[node name="CoralFrontD" type="Sprite2D" parent="MapPieces/ForegroundDecorations" unique_id=782140095]
-modulate = Color(0.07, 0.19, 0.18, 0.74)
-position = Vector2(4210, 760)
-scale = Vector2(0.085, 0.085)
-texture = ExtResource("21_plant")
-
-[node name="CoralFrontE" type="Sprite2D" parent="MapPieces/ForegroundDecorations" unique_id=1097625348]
-modulate = Color(0.07, 0.19, 0.18, 0.8)
-position = Vector2(5520, 766)
-scale = Vector2(0.09, 0.09)
-texture = ExtResource("21_plant")
 
 [node name="Enemies" type="Node2D" parent="." unique_id=1557578064]
 

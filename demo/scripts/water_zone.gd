@@ -10,6 +10,7 @@ class_name WaterZone
 
 
 func _ready() -> void:
+	add_to_group("water_zone")
 	_sync_bounds_to_source()
 	call_deferred("_connect_body_signals")
 
@@ -72,6 +73,8 @@ func _on_body_entered(body: Node2D) -> void:
 func _on_body_exited(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return
+	if bool(body.get("is_dead")):
+		return
 
 	if body.has_method("set_underwater"):
 		body.set_underwater(false)
@@ -94,3 +97,10 @@ func _get_surface_y() -> float:
 		var shape_height := rect_shape.size.y * absf(shape_node.global_scale.y)
 		return shape_node.global_position.y - shape_height * 0.5
 	return global_position.y
+
+
+func reapply_to_player_if_overlapping(body: Node2D) -> void:
+	if not body.is_in_group("player"):
+		return
+	if get_overlapping_bodies().has(body):
+		_on_body_entered(body)

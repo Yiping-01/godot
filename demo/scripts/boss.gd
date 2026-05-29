@@ -195,6 +195,8 @@ var anti_pogo_cooldown_left := 0.0
 func _ready() -> void:
 	health = max_health
 	normal_collision_mask = collision_mask
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
+	normal_collision_mask = collision_mask
 	default_texture = sprite.texture
 	default_sprite_scale = sprite.scale
 	default_sprite_modulate = sprite.modulate
@@ -300,6 +302,12 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 		_record_head_pogo_hit()
 
 	DEMO_COMBAT_JUICE.play_hit_pause(self, 0.055, 0.08)
+
+
+func can_receive_player_attack(_attack_type: StringName = &"side", _attacker_position: Vector2 = Vector2.ZERO, _attacker_velocity: Vector2 = Vector2.ZERO) -> bool:
+	if state == &"quake_jump" or state == &"anti_pogo_launch":
+		return velocity.y >= 0.0
+	return true
 
 
 func _begin_death_sequence() -> void:
@@ -1580,14 +1588,17 @@ func _update_body_contact_damage(delta: float) -> void:
 	if not body_contact_area.monitoring:
 		return
 
-	body_contact_damage_cooldown -= delta
-	if body_contact_damage_cooldown > 0.0:
-		return
-
 	for index in range(body_contact_targets.size() - 1, -1, -1):
 		var area := body_contact_targets[index]
 		if area == null or not is_instance_valid(area) or not area.is_inside_tree():
 			body_contact_targets.remove_at(index)
+	if not _is_body_contact_damage_active():
+		return
+
+	body_contact_damage_cooldown -= delta
+	if body_contact_damage_cooldown > 0.0:
+		return
+
 	for area in body_contact_targets:
 		_damage_contact_target(area)
 	body_contact_damage_cooldown = body_contact_damage_interval
@@ -1599,7 +1610,8 @@ func _on_body_contact_area_entered(area: Area2D) -> void:
 	if not body_contact_targets.has(area):
 		body_contact_targets.append(area)
 	body_contact_damage_cooldown = body_contact_damage_interval
-	_damage_contact_target(area)
+	if _is_body_contact_damage_active():
+		_damage_contact_target(area)
 
 
 func _on_body_contact_area_exited(area: Area2D) -> void:
@@ -1607,6 +1619,8 @@ func _on_body_contact_area_exited(area: Area2D) -> void:
 
 
 func _damage_contact_target(target_area: Area2D) -> void:
+	if not _is_body_contact_damage_active():
+		return
 	if target_area == null or not is_instance_valid(target_area) or not target_area.is_inside_tree():
 		return
 
@@ -1619,6 +1633,10 @@ func _damage_contact_target(target_area: Area2D) -> void:
 
 func _is_falling_jump_body_contact() -> bool:
 	return (state == &"quake_jump" or state == &"anti_pogo_launch") and velocity.y >= 0.0
+
+
+func _is_body_contact_damage_active() -> bool:
+	return state == &"dash" or _is_falling_jump_body_contact()
 
 
 func _damage_jump_body_collisions(was_falling_jump: bool) -> void:

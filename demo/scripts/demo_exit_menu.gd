@@ -5,6 +5,7 @@ class_name DemoExitMenu
 
 const MUSIC_BUS := "Music"
 const SFX_BUS := "SFX"
+const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 
 var pause_dim: ColorRect
 var pause_panel: Panel
@@ -452,7 +453,8 @@ func _create_panel(panel_name: String, size: Vector2) -> Panel:
 	panel.offset_top = -size.y * 0.5
 	panel.offset_right = size.x * 0.5
 	panel.offset_bottom = size.y * 0.5
-	panel.add_theme_stylebox_override("panel", _panel_style(Color(0.012, 0.024, 0.03, 0.94), Color(0.52, 0.78, 0.82, 0.42)))
+	var panel_kind := "pause" if panel_name == "PausePanel" else "settings"
+	panel.add_theme_stylebox_override("panel", DEMO_MENU_UI_ART.panel_style(panel_kind))
 	add_child(panel)
 	return panel
 
@@ -520,17 +522,19 @@ func _secondary_button(text: String) -> Button:
 	button.focus_mode = Control.FOCUS_ALL
 	button.add_theme_font_size_override("font_size", 18)
 	button.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.94))
-	button.add_theme_stylebox_override("normal", _button_style(Color(0.025, 0.05, 0.06, 0.82), Color(0.42, 0.68, 0.72, 0.34)))
-	button.add_theme_stylebox_override("hover", _button_style(Color(0.08, 0.16, 0.18, 0.94), Color(0.72, 0.92, 0.92, 0.62)))
-	button.add_theme_stylebox_override("focus", _button_style(Color(0.08, 0.16, 0.18, 0.94), Color(1.0, 0.78, 0.24, 0.86)))
-	button.add_theme_stylebox_override("pressed", _button_style(Color(0.18, 0.24, 0.24, 0.96), Color(1.0, 0.82, 0.32, 0.78)))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_pressed_color", Color(1.0, 0.9, 0.55, 1.0))
+	button.add_theme_constant_override("outline_size", 2)
+	button.add_theme_color_override("font_outline_color", Color(0.0, 0.04, 0.06, 0.78))
+	button.add_theme_stylebox_override("normal", DEMO_MENU_UI_ART.small_button_style("normal"))
+	button.add_theme_stylebox_override("hover", DEMO_MENU_UI_ART.small_button_style("hover"))
+	button.add_theme_stylebox_override("focus", DEMO_MENU_UI_ART.small_button_style("focus"))
+	button.add_theme_stylebox_override("pressed", DEMO_MENU_UI_ART.small_button_style("pressed"))
 	return button
 
 
 func _apply_selected_button(button: Button, selected: bool) -> void:
-	var border := Color(1.0, 0.78, 0.24, 0.88) if selected else Color(0.42, 0.68, 0.72, 0.34)
-	var fill := Color(0.15, 0.11, 0.025, 0.92) if selected else Color(0.025, 0.05, 0.06, 0.82)
-	button.add_theme_stylebox_override("normal", _button_style(fill, border))
+	button.add_theme_stylebox_override("normal", DEMO_MENU_UI_ART.small_button_style("pressed" if selected else "normal"))
 
 
 func _panel_style(fill: Color, border: Color) -> StyleBoxFlat:
@@ -547,7 +551,7 @@ func _button_style(fill: Color, border: Color) -> StyleBoxFlat:
 	style.bg_color = fill
 	style.border_color = border
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
+	style.set_corner_radius_all(5)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	style.content_margin_top = 8.0

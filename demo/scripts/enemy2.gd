@@ -3,6 +3,7 @@ class_name Enemy2
 
 const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 
 @export_enum("melee", "ranged") var behavior_mode := "melee"
 @export var max_health: int = 3
@@ -64,6 +65,7 @@ func _ready() -> void:
 	health = max_health
 	spawn_y = global_position.y
 	normal_collision_layer = collision_layer
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 	add_to_group("enemy")
 	damage_area_offset_x = absf(damage_area.position.x)
 	damage_area.area_entered.connect(_on_damage_area_entered)
@@ -307,6 +309,8 @@ func _keep_inside_patrol_limits() -> void:
 
 
 func _resolve_player_top_contact() -> void:
+	if not _is_contact_damage_active():
+		return
 	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
 		return
 	if not _is_player_on_top(target):
@@ -458,23 +462,29 @@ func _on_damage_area_entered(area: Area2D) -> void:
 
 
 func _on_contact_damage_area_entered(area: Area2D) -> void:
-	if is_dead:
+	if is_dead or not _is_contact_damage_active():
 		return
 	_damage_contact_target(area)
 
 
 func _damage_current_contact_overlaps() -> void:
-	if is_dead or contact_damage_area == null:
+	if is_dead or contact_damage_area == null or not _is_contact_damage_active():
 		return
 	for area in contact_damage_area.get_overlapping_areas():
 		_damage_contact_target(area)
 
 
 func _damage_contact_target(area: Area2D) -> void:
+	if not _is_contact_damage_active():
+		return
 	var receiver := _find_damage_receiver(area)
 	if receiver == null:
 		return
 	receiver.call("take_damage", contact_damage, global_position)
+
+
+func _is_contact_damage_active() -> bool:
+	return state == &"dash"
 
 
 func _find_damage_receiver(target_node: Node) -> Node:

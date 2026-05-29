@@ -5,6 +5,7 @@ const ITEM_TEXTURE := preload("res://demo/assets/hollow_import/effects/glow_bug_
 const NOTE_TEXTURE := preload("res://demo/assets/art/legacy/useicon_white.png")
 const SKILL_TEXTURE := preload("res://demo/assets/art/legacy/player/attack_far/far_1.png")
 const MAP_DRAW_CANVAS_SCRIPT := preload("res://demo/scripts/map_draw_canvas.gd")
+const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 const INVENTORY_TAB_KEYS := ["INV_TAB_BAG", "INV_TAB_SKILLS", "INV_TAB_MAP"]
 const INVENTORY_CATEGORY_KEYS := ["INV_CAT_ALL", "INV_CAT_CONSUMABLE", "INV_CAT_MATERIAL", "INV_CAT_IMPORTANT"]
 const GRID_SLOT_COUNT := 40
@@ -921,7 +922,7 @@ func _build_inventory_window() -> void:
 	equipped_skill_slots.clear()
 
 	_center_control(inventory_panel, Vector2(1540.0, 820.0))
-	inventory_panel.add_theme_stylebox_override("panel", _make_style(Color(0.015, 0.017, 0.018, 0.88), Color(0.72, 0.72, 0.64, 0.48), 1, 2))
+	inventory_panel.add_theme_stylebox_override("panel", DEMO_MENU_UI_ART.inventory_panel_style())
 
 	var root := VBoxContainer.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -1329,9 +1330,12 @@ func _make_skill_node_button(skill: Dictionary) -> Button:
 	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	button.clip_text = true
 	button.add_theme_font_size_override("font_size", 13)
-	button.add_theme_stylebox_override("normal", _make_style(Color(0.04, 0.044, 0.042, 0.86), Color(0.62, 0.62, 0.54, 0.58), 1, 2))
-	button.add_theme_stylebox_override("hover", _make_style(Color(0.075, 0.078, 0.07, 0.94), Color(0.9, 0.86, 0.66, 0.9), 1, 2))
-	button.add_theme_stylebox_override("pressed", _make_style(Color(0.15, 0.12, 0.055, 0.96), Color(1.0, 0.82, 0.32, 1.0), 2, 2))
+	button.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.96))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+	button.add_theme_stylebox_override("normal", _make_style(Color(0.02, 0.035, 0.044, 0.84), Color(0.44, 0.68, 0.74, 0.5), 1, 5))
+	button.add_theme_stylebox_override("hover", _make_style(Color(0.05, 0.09, 0.105, 0.92), Color(0.68, 0.9, 0.95, 0.72), 1, 5))
+	button.add_theme_stylebox_override("pressed", _make_style(Color(0.13, 0.11, 0.05, 0.94), Color(1.0, 0.76, 0.28, 0.8), 1, 5))
+	button.add_theme_stylebox_override("focus", _make_style(Color(0.05, 0.09, 0.105, 0.92), Color(1.0, 0.8, 0.35, 0.88), 1, 5))
 	return button
 
 
@@ -1468,9 +1472,12 @@ func _make_tab_button(text: String) -> Button:
 	button.toggle_mode = true
 	button.custom_minimum_size = Vector2(150, 44)
 	button.add_theme_font_size_override("font_size", 16)
-	button.add_theme_stylebox_override("normal", _make_style(Color(0.035, 0.045, 0.055, 0.88), Color(0.34, 0.44, 0.5, 0.82), 1, 3))
-	button.add_theme_stylebox_override("hover", _make_style(Color(0.06, 0.078, 0.088, 0.94), Color(0.76, 0.86, 0.86, 0.86), 1, 3))
-	button.add_theme_stylebox_override("pressed", _make_style(Color(0.1, 0.08, 0.055, 0.96), Color(0.92, 0.76, 0.34, 1.0), 2, 3))
+	button.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.96))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+	button.add_theme_stylebox_override("normal", _make_style(Color(0.01, 0.018, 0.024, 0.72), Color(0.5, 0.78, 0.84, 0.42), 1, 3))
+	button.add_theme_stylebox_override("hover", _make_style(Color(0.04, 0.075, 0.09, 0.86), Color(0.7, 0.95, 1.0, 0.66), 1, 3))
+	button.add_theme_stylebox_override("pressed", _make_style(Color(0.12, 0.1, 0.04, 0.9), Color(1.0, 0.76, 0.28, 0.8), 1, 3))
+	button.add_theme_stylebox_override("focus", _make_style(Color(0.04, 0.075, 0.09, 0.86), Color(1.0, 0.8, 0.35, 0.86), 1, 3))
 	return button
 
 
@@ -1483,9 +1490,12 @@ func _make_slot_button(text: String, min_size: Vector2) -> Button:
 	button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	button.add_theme_font_size_override("font_size", 12)
-	button.add_theme_stylebox_override("normal", _make_style(Color(0.01, 0.012, 0.016, 0.85), Color(0.33, 0.39, 0.45, 0.9), 2, 2))
-	button.add_theme_stylebox_override("hover", _make_style(Color(0.045, 0.06, 0.075, 0.95), Color(0.78, 0.88, 0.95, 1.0), 2, 2))
-	button.add_theme_stylebox_override("pressed", _make_style(Color(0.11, 0.085, 0.035, 0.96), Color(1.0, 0.82, 0.28, 1.0), 2, 2))
+	button.add_theme_color_override("font_color", Color(0.88, 0.96, 1.0, 0.96))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 1.0, 1.0, 1.0))
+	button.add_theme_stylebox_override("normal", _make_style(Color(0.008, 0.012, 0.018, 0.72), Color(0.34, 0.46, 0.52, 0.56), 1, 2))
+	button.add_theme_stylebox_override("hover", _make_style(Color(0.035, 0.058, 0.07, 0.86), Color(0.62, 0.84, 0.9, 0.74), 1, 2))
+	button.add_theme_stylebox_override("pressed", _make_style(Color(0.11, 0.085, 0.035, 0.9), Color(1.0, 0.74, 0.26, 0.82), 1, 2))
+	button.add_theme_stylebox_override("focus", _make_style(Color(0.035, 0.058, 0.07, 0.86), Color(1.0, 0.8, 0.36, 0.88), 1, 2))
 	return button
 
 

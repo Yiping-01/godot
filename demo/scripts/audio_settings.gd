@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const MUSIC_BUS := "Music"
 const SFX_BUS := "SFX"
+const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 
 var music_volume := 1.0
 var sfx_volume := 1.0
@@ -59,12 +60,7 @@ func _build_window() -> void:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(320.0, 190.0)
 	panel.position = Vector2(480, 220)
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.08, 0.09, 0.11, 0.94)
-	panel_style.border_color = Color(0.7, 0.7, 0.7, 0.45)
-	panel_style.set_border_width_all(1)
-	panel_style.set_corner_radius_all(8)
-	panel.add_theme_stylebox_override("panel", panel_style)
+	panel.add_theme_stylebox_override("panel", DEMO_MENU_UI_ART.panel_style("settings"))
 	window_root.add_child(panel)
 
 	var margin := MarginContainer.new()
@@ -98,6 +94,15 @@ func _build_window() -> void:
 	content.add_child(sfx_slider)
 
 	close_button = Button.new()
+	close_button.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.94))
+	close_button.add_theme_color_override("font_hover_color", Color.WHITE)
+	close_button.add_theme_color_override("font_pressed_color", Color(1.0, 0.9, 0.55, 1.0))
+	close_button.add_theme_constant_override("outline_size", 2)
+	close_button.add_theme_color_override("font_outline_color", Color(0.0, 0.04, 0.06, 0.78))
+	close_button.add_theme_stylebox_override("normal", DEMO_MENU_UI_ART.small_button_style("normal"))
+	close_button.add_theme_stylebox_override("hover", DEMO_MENU_UI_ART.small_button_style("hover"))
+	close_button.add_theme_stylebox_override("focus", DEMO_MENU_UI_ART.small_button_style("focus"))
+	close_button.add_theme_stylebox_override("pressed", DEMO_MENU_UI_ART.small_button_style("pressed"))
 	close_button.pressed.connect(_hide_window)
 	content.add_child(close_button)
 
@@ -161,3 +166,25 @@ func _t(key: String) -> String:
 
 func _get_localization() -> Node:
 	return get_node_or_null("/root/Localization")
+
+
+func _panel_style(fill: Color, border: Color) -> StyleBoxFlat:
+	var style := _button_style(fill, border)
+	style.content_margin_left = 18.0
+	style.content_margin_right = 18.0
+	style.content_margin_top = 16.0
+	style.content_margin_bottom = 14.0
+	return style
+
+
+func _button_style(fill: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(5)
+	style.content_margin_left = 14.0
+	style.content_margin_right = 14.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 8.0
+	return style

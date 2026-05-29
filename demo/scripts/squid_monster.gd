@@ -4,10 +4,12 @@ const DEMO_COMBAT_JUICE := preload("res://demo/scripts/demo_combat_juice.gd")
 const GRAVITY := 900.0
 const STATE_IDLE := 0
 const STATE_MOVE_ABOVE := 1
-const STATE_SLAM := 2
-const STATE_RETURN := 3
-const STATE_COOLDOWN := 4
+const STATE_SLAM_WINDUP := 2
+const STATE_SLAM := 3
+const STATE_RETURN := 4
+const STATE_COOLDOWN := 5
 const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 
 @export var detect_range := 300.0
 @export var hp := 4
@@ -16,6 +18,7 @@ const ENEMY_BODY_COLLISION_LAYER_NUMBER := 3
 @export var move_above_speed := 520.0
 @export var return_speed := 620.0
 @export var slam_speed := 900.0
+@export var slam_windup_time := 0.35
 @export var above_player_height := 180.0
 @export var hurt_flash_time := 0.15
 @export var patrol_speed := 80.0
@@ -44,12 +47,15 @@ var hover_time := 0.0
 var visual_home_offset := Vector2.ZERO
 var normal_collision_layer := 0
 var body_collision_ignore_left := 0.0
+var state_timer := 0.0
+var normal_sprite_scale := Vector2.ONE
 
 
 func _ready() -> void:
 	home_position = global_position
 	add_to_group("enemy")
 	normal_collision_layer = collision_layer
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 	player = get_tree().get_first_node_in_group("player") as Node2D
 	attack_area.body_entered.connect(_on_attack_area_body_entered)
 	if contact_damage_area != null:
@@ -59,6 +65,7 @@ func _ready() -> void:
 	hurt_box.area_entered.connect(_on_hurt_box_area_entered)
 	attack_area.monitoring = false
 	visual_home_offset = sprite.position
+	normal_sprite_scale = sprite.scale
 
 
 func _physics_process(delta: float) -> void:
@@ -76,6 +83,8 @@ func _physics_process(delta: float) -> void:
 			_update_idle(delta)
 		STATE_MOVE_ABOVE:
 			_update_move_above(delta)
+		STATE_SLAM_WINDUP:
+			_update_slam_windup(delta)
 		STATE_SLAM:
 			_update_slam(delta)
 		STATE_RETURN:
@@ -125,8 +134,24 @@ func _update_move_above(delta: float) -> void:
 
 	if global_position.distance_to(slam_target_position) <= 8.0:
 		global_position = slam_target_position
-		state = STATE_SLAM
-		attack_area.set_deferred("monitoring", true)
+		state = STATE_SLAM_WINDUP
+		state_timer = slam_windup_time
+		attack_area.set_deferred("monitoring", false)
+
+
+func _update_slam_windup(delta: float) -> void:
+	velocity = Vector2.ZERO
+	state_timer -= delta
+	var progress := 1.0 - state_timer / maxf(slam_windup_time, 0.001)
+	sprite.modulate = Color(1.0, 0.82 + 0.18 * progress, 0.55 + 0.25 * progress, 1.0)
+	sprite.scale = normal_sprite_scale * (1.0 + 0.08 * progress)
+	if state_timer > 0.0:
+		return
+
+	sprite.modulate = Color.WHITE
+	sprite.scale = normal_sprite_scale
+	state = STATE_SLAM
+	attack_area.set_deferred("monitoring", true)
 
 
 func _update_slam(delta: float) -> void:
@@ -143,6 +168,8 @@ func _update_slam(delta: float) -> void:
 func start_return() -> void:
 	state = STATE_RETURN
 	velocity = Vector2.ZERO
+	sprite.modulate = Color.WHITE
+	sprite.scale = normal_sprite_scale
 	attack_area.set_deferred("monitoring", false)
 
 
@@ -191,17 +218,23 @@ func _damage_overlapping_players() -> void:
 func _on_contact_damage_area_entered(area: Area2D) -> void:
 	if hp <= 0:
 		return
+	if not _is_contact_damage_active():
+		return
 	_damage_contact_target(area)
 
 
 func _damage_current_contact_overlaps() -> void:
 	if hp <= 0 or contact_damage_area == null:
 		return
+	if not _is_contact_damage_active():
+		return
 	for area in contact_damage_area.get_overlapping_areas():
 		_damage_contact_target(area)
 
 
 func _damage_contact_target(area: Area2D) -> void:
+	if not _is_contact_damage_active():
+		return
 	var receiver := _find_damage_receiver(area)
 	if receiver == null:
 		return
@@ -209,6 +242,8 @@ func _damage_contact_target(area: Area2D) -> void:
 
 
 func _resolve_player_top_contact() -> void:
+	if not _is_contact_damage_active():
+		return
 	if player == null or not is_instance_valid(player) or not player.has_method("take_damage"):
 		return
 	if not _is_player_on_top(player):
@@ -275,11 +310,21 @@ func _set_body_collision_ignored(duration: float) -> void:
 
 func _on_hurt_box_area_entered(area: Area2D) -> void:
 	if area.name == "AttackArea" or area.name == "UpAttackArea" or area.name == "DownAttackArea" or area.name == "ChargeAttackArea":
+		if not can_receive_player_attack(&"side", area.global_position, Vector2.ZERO):
+			return
 		var attacker := area.get_parent()
 		var attacker_position := global_position
 		if attacker is Node2D:
 			attacker_position = attacker.global_position
 		take_damage(1, attacker_position)
+
+
+func can_receive_player_attack(_attack_type: StringName = &"side", _attacker_position: Vector2 = Vector2.ZERO, _attacker_velocity: Vector2 = Vector2.ZERO) -> bool:
+	return state != STATE_MOVE_ABOVE and state != STATE_SLAM_WINDUP
+
+
+func _is_contact_damage_active() -> bool:
+	return state == STATE_SLAM
 
 
 func _find_damage_receiver(target_node: Node) -> Node:

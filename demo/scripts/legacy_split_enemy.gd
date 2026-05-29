@@ -1,5 +1,7 @@
 extends CharacterBody2D
 
+const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
+
 @export var hp := 3
 @export var damage := 1
 @export var speed := 80.0
@@ -13,6 +15,13 @@ extends CharacterBody2D
 @export var small_enemy_scene_path := "res://demo/scenes/enemy.tscn"
 @export var respawn_scene_path := "res://demo/scenes/legacy_split_enemy.tscn"
 @export var spawn_protection_time := 0.35
+@export var detection_range := 180.0
+@export var attack_range := 120.0
+@export var attack_windup_time := 0.3
+@export var attack_active_time := 0.24
+@export var attack_recovery_time := 0.55
+@export var attack_cooldown := 0.9
+@export var attack_speed := 260.0
 @export var monster_id: String = "WaterBlueBounceOctopus"
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
@@ -23,10 +32,16 @@ var knockback_velocity := Vector2.ZERO
 var hurt_tween: Tween
 var can_take_damage := true
 var is_dead := false
+var target: Node2D
+var state := &"patrol"
+var state_timer := 0.0
+var attack_cooldown_left := 0.0
+var attack_direction := -1
 
 
 func _ready() -> void:
 	start_position = global_position
+	set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, false)
 	add_to_group("enemy")
 	anim.play("walk")
 	anim.flip_h = direction > 0
@@ -38,6 +53,9 @@ func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
 
+	_update_target()
+	attack_cooldown_left = maxf(attack_cooldown_left - delta, 0.0)
+
 	if not is_on_floor():
 		velocity += get_gravity() * delta
 
@@ -45,8 +63,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = knockback_velocity.x
 		knockback_velocity = knockback_velocity.move_toward(Vector2.ZERO, knockback_friction * delta)
 	else:
-		_turn_around_at_patrol_edge()
-		velocity.x = direction * speed
+		_update_combat_state(delta)
 
 	move_and_slide()
 	_keep_inside_patrol_range()
@@ -66,8 +83,9 @@ func _on_hurtbox_area_entered(area: Area2D) -> void:
 
 
 func _on_hurtbox_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") and body.has_method("take_damage"):
-		body.take_damage(damage, global_position)
+	if state != &"attack":
+		return
+	_damage_attack_body(body)
 
 
 func take_damage(amount: int, attacker_position: Vector2) -> void:
@@ -81,6 +99,7 @@ func take_damage(amount: int, attacker_position: Vector2) -> void:
 	else:
 		knockback_velocity = Vector2(-knockback_force, 0.0)
 
+	_cancel_attack()
 	_flash_hurt()
 
 	if hp <= 0:
@@ -189,6 +208,120 @@ func _turn_around_at_patrol_edge() -> void:
 func _turn_around() -> void:
 	direction *= -1
 	anim.flip_h = direction > 0
+
+
+func _update_target() -> void:
+	if target != null and is_instance_valid(target):
+		return
+
+	var player := get_tree().get_first_node_in_group("player")
+	if player is Node2D:
+		target = player
+
+
+func _update_combat_state(delta: float) -> void:
+	match state:
+		&"attack_windup":
+			_update_attack_windup(delta)
+		&"attack":
+			_update_attack(delta)
+		&"attack_recovery":
+			_update_attack_recovery(delta)
+		_:
+			_update_patrol()
+
+
+func _update_patrol() -> void:
+	if _can_begin_attack():
+		_begin_attack_windup()
+		return
+
+	anim.modulate = Color.WHITE
+	_turn_around_at_patrol_edge()
+	velocity.x = direction * speed
+
+
+func _update_attack_windup(delta: float) -> void:
+	velocity.x = 0.0
+	state_timer -= delta
+	var progress := 1.0 - state_timer / maxf(attack_windup_time, 0.001)
+	anim.modulate = Color(1.0, 0.82 + 0.18 * progress, 0.55 + 0.25 * progress, 1.0)
+	if state_timer > 0.0:
+		return
+
+	state = &"attack"
+	state_timer = attack_active_time
+	velocity.x = float(attack_direction) * attack_speed
+	call_deferred("_damage_current_attack_overlaps")
+
+
+func _update_attack(delta: float) -> void:
+	velocity.x = float(attack_direction) * attack_speed
+	state_timer -= delta
+	if state_timer > 0.0:
+		return
+
+	state = &"attack_recovery"
+	state_timer = attack_recovery_time
+	velocity.x = 0.0
+	anim.modulate = Color.WHITE
+
+
+func _update_attack_recovery(delta: float) -> void:
+	velocity.x = 0.0
+	state_timer -= delta
+	if state_timer > 0.0:
+		return
+
+	state = &"patrol"
+
+
+func _can_begin_attack() -> bool:
+	if target == null or not is_instance_valid(target) or attack_cooldown_left > 0.0:
+		return false
+
+	var offset := target.global_position - global_position
+	if absf(offset.y) > 96.0:
+		return false
+	if absf(offset.x) > detection_range:
+		return false
+	if absf(offset.x) > attack_range and signf(offset.x) != float(direction):
+		return false
+	return true
+
+
+func _begin_attack_windup() -> void:
+	if target != null and is_instance_valid(target):
+		var offset_x := target.global_position.x - global_position.x
+		if not is_zero_approx(offset_x):
+			direction = int(signf(offset_x))
+
+	attack_direction = direction
+	attack_cooldown_left = attack_cooldown
+	state = &"attack_windup"
+	state_timer = attack_windup_time
+	velocity.x = 0.0
+	anim.flip_h = direction > 0
+
+
+func _cancel_attack() -> void:
+	state = &"patrol"
+	state_timer = 0.0
+	anim.modulate = Color.WHITE
+
+
+func _damage_current_attack_overlaps() -> void:
+	if state != &"attack" or not has_node("HurtBox"):
+		return
+	for body in $HurtBox.get_overlapping_bodies():
+		_damage_attack_body(body)
+
+
+func _damage_attack_body(body: Node2D) -> void:
+	if state != &"attack":
+		return
+	if body.is_in_group("player") and body.has_method("take_damage"):
+		body.take_damage(damage, global_position)
 
 
 func _keep_inside_patrol_range() -> void:
