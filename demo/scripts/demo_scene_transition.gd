@@ -19,7 +19,12 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Label:
 			prompt_label = child
-			prompt_label.text = transition_label
+			prompt_label.text = "按 E " + transition_label
+			prompt_label.add_theme_color_override("font_color", Color(0.92, 0.82, 0.62, 1.0))
+			prompt_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.02, 0.01, 0.9))
+			prompt_label.add_theme_constant_override("shadow_offset_x", 3)
+			prompt_label.add_theme_constant_override("shadow_offset_y", 3)
+			prompt_label.add_theme_font_size_override("font_size", 28)
 			prompt_label.visible = false
 			break
 	body_entered.connect(_on_body_entered)
@@ -48,8 +53,8 @@ func _on_body_entered(body: Node2D) -> void:
 		if prompt_label != null:
 			prompt_label.visible = true
 		var ui := get_tree().get_first_node_in_group("game_ui")
-		if ui != null and ui.has_method("show_prompt"):
-			ui.show_prompt("按 E " + transition_label)
+		if ui != null and ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, true)
 		return
 
 	triggered = true
@@ -64,8 +69,8 @@ func _on_body_exited(body: Node2D) -> void:
 	if prompt_label != null:
 		prompt_label.visible = false
 	var ui := get_tree().get_first_node_in_group("game_ui")
-	if ui != null and ui.has_method("hide_prompt"):
-		ui.hide_prompt()
+	if ui != null and ui.has_method("set_world_prompt_active"):
+		ui.set_world_prompt_active(self, false)
 
 
 func _load_target_scene() -> void:
@@ -76,8 +81,8 @@ func _load_target_scene() -> void:
 	if prompt_label != null:
 		prompt_label.visible = false
 	var ui := get_tree().get_first_node_in_group("game_ui")
-	if ui != null and ui.has_method("hide_prompt"):
-		ui.hide_prompt()
+	if ui != null and ui.has_method("set_world_prompt_active"):
+		ui.set_world_prompt_active(self, false)
 	if ui != null and ui.has_method("close_all_windows"):
 		ui.close_all_windows()
 

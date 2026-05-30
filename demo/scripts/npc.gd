@@ -2,7 +2,7 @@ extends Node2D
 class_name ShopNpc
 
 @export var display_name := "回收站商人"
-@export_multiline var prompt_text := "按 E 交談"
+@export_multiline var prompt_text := "按 E 對話"
 @export var opens_shop := true
 @export var dialogue_lines: Array[String] = [
 	"這片海溝裡有很多被沖下來的寶特瓶。撿回來，我可以幫你換成補給。",
@@ -17,11 +17,14 @@ class_name ShopNpc
 
 var offered_shop_items: Array[Dictionary] = []
 var player_nearby := false
+@onready var prompt_label: Label = $PromptLabel
 
 
 func _ready() -> void:
 	GameState.clear_scene_health_potion_purchase()
 	_roll_shop_items()
+	prompt_label.text = prompt_text
+	prompt_label.hide()
 	$InteractArea.body_entered.connect(_on_body_entered)
 	$InteractArea.body_exited.connect(_on_body_exited)
 
@@ -45,6 +48,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not GameState.input_locked:
 		var ui := get_tree().get_first_node_in_group("game_ui")
 		if ui != null:
+			if ui.has_method("set_world_prompt_active"):
+				ui.set_world_prompt_active(self, false)
+			prompt_label.hide()
 			ui.open_npc_dialogue(self)
 			get_viewport().set_input_as_handled()
 
@@ -56,7 +62,10 @@ func _on_body_entered(body: Node2D) -> void:
 	player_nearby = true
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null:
-		ui.show_prompt(prompt_text)
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, true)
+	prompt_label.text = prompt_text
+	prompt_label.show()
 
 
 func _on_body_exited(body: Node2D) -> void:
@@ -66,4 +75,6 @@ func _on_body_exited(body: Node2D) -> void:
 	player_nearby = false
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null:
-		ui.hide_prompt()
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, false)
+	prompt_label.hide()

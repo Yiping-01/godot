@@ -6,12 +6,18 @@ class_name RestBench
 @export var seat_offset := Vector2(0.0, -34.0)
 @export var stand_offset := Vector2(72.0, -36.0)
 
+@onready var rest_label: Label = $RestLabel
+
 var player_nearby: PlayerController
 var seated_player: PlayerController
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	prompt_text = "按 E 休息"
+	seated_text = "按 E 起身"
+	rest_label.text = prompt_text
+	rest_label.hide()
 	$InteractArea.body_entered.connect(_on_body_entered)
 	$InteractArea.body_exited.connect(_on_body_exited)
 
@@ -47,7 +53,11 @@ func _sit_down() -> void:
 
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null:
-		ui.show_prompt(seated_text)
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, true)
+	rest_label.text = seated_text
+	rest_label.show()
+	if ui != null:
 		var localization: Node = get_node_or_null("/root/Localization")
 		var text: String = "你坐在長椅上休息。生命回滿，敵人重生。"
 		if localization != null and localization.has_method("text"):
@@ -65,7 +75,9 @@ func _stand_up() -> void:
 
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null:
-		ui.hide_prompt()
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, false)
+	rest_label.hide()
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -75,7 +87,10 @@ func _on_body_entered(body: Node2D) -> void:
 	player_nearby = body as PlayerController
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null:
-		ui.show_prompt(prompt_text)
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, true)
+	rest_label.text = prompt_text
+	rest_label.show()
 
 
 func _on_body_exited(body: Node2D) -> void:
@@ -85,4 +100,6 @@ func _on_body_exited(body: Node2D) -> void:
 	player_nearby = null
 	var ui := get_tree().get_first_node_in_group("game_ui")
 	if ui != null and seated_player == null:
-		ui.hide_prompt()
+		if ui.has_method("set_world_prompt_active"):
+			ui.set_world_prompt_active(self, false)
+	rest_label.hide()

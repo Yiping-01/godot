@@ -67,6 +67,8 @@ const SKILL_LIBRARY := [
 @onready var toast_label: Label = $ToastLabel
 @onready var hud_currency_label: Label = $CurrencyLabel
 @onready var dialogue_panel: Panel = $DialoguePanel
+@onready var dialogue_corner_icon: TextureRect = $DialoguePanel/CornerIcon
+@onready var dialogue_vbox: VBoxContainer = $DialoguePanel/VBoxContainer
 @onready var dialogue_name_label: Label = $DialoguePanel/VBoxContainer/NameLabel
 @onready var dialogue_text_label: Label = $DialoguePanel/VBoxContainer/DialogueLabel
 @onready var dialogue_hint_label: Label = $DialoguePanel/VBoxContainer/HintLabel
@@ -74,6 +76,8 @@ const SKILL_LIBRARY := [
 @onready var inventory_title_label: Label = $InventoryPanel/VBoxContainer/TitleLabel
 @onready var inventory_currency_label: Label = $InventoryPanel/VBoxContainer/CurrencyLabel
 @onready var shop_panel: Panel = $ShopPanel
+@onready var shop_corner_icon: TextureRect = $ShopPanel/CornerIcon
+@onready var shop_vbox: VBoxContainer = $ShopPanel/VBoxContainer
 @onready var shop_title_label: Label = $ShopPanel/VBoxContainer/TitleLabel
 @onready var shop_currency_label: Label = $ShopPanel/VBoxContainer/CurrencyLabel
 @onready var shop_item_buttons: Array[Button] = [
@@ -102,6 +106,7 @@ var area_title_tween: Tween
 var fade_tween: Tween
 var coin_tween: Tween
 var coin_gain_label: Label
+var world_prompt_sources: Dictionary = {}
 var map_display_mode := 0
 var inventory_profile_label: Label
 var inventory_grid_scroll: ScrollContainer
@@ -234,6 +239,7 @@ func open_npc_dialogue(npc: Node) -> void:
 	GameState.set_input_locked(true)
 
 	dialogue_name_label.text = _tr_raw(npc.display_name)
+	_apply_dialogue_layout()
 	dialogue_panel.show()
 	_show_dialogue_line()
 
@@ -290,7 +296,17 @@ func has_open_window() -> bool:
 
 
 func has_prompt() -> bool:
-	return prompt_label.visible
+	return prompt_label.visible or not world_prompt_sources.is_empty()
+
+
+func set_world_prompt_active(source: Object, active: bool) -> void:
+	if source == null:
+		return
+	var source_id := source.get_instance_id()
+	if active:
+		world_prompt_sources[source_id] = true
+	else:
+		world_prompt_sources.erase(source_id)
 
 
 func show_area_title(main_title: String, sub_title: String) -> void:
@@ -428,6 +444,7 @@ func _open_shop(npc: Node) -> void:
 		shop_items.assign(npc.shop_items)
 	shop_title_label.text = _t("SHOP_TITLE") % _tr_raw(npc.display_name)
 
+	_apply_shop_layout()
 	shop_panel.show()
 
 	GameState.has_shown_inventory_tutorial = true
@@ -553,16 +570,42 @@ func _set_control_rect(control: Control, rect: Rect2) -> void:
 
 
 func _center_control(control: Control, target_size: Vector2) -> void:
-	var viewport_size := get_viewport().get_visible_rect().size
-	var final_size := Vector2(
-		minf(target_size.x, maxf(360.0, viewport_size.x - 80.0)),
-		minf(target_size.y, maxf(320.0, viewport_size.y - 80.0))
-	)
+	var final_size := _fit_centered_size(target_size)
 	control.set_anchors_preset(Control.PRESET_CENTER)
 	control.offset_left = -final_size.x * 0.5
 	control.offset_top = -final_size.y * 0.5
 	control.offset_right = final_size.x * 0.5
 	control.offset_bottom = final_size.y * 0.5
+
+
+func _fit_centered_size(target_size: Vector2) -> Vector2:
+	var viewport_size := get_viewport().get_visible_rect().size
+	return Vector2(
+		minf(target_size.x, maxf(minf(360.0, target_size.x), viewport_size.x - 80.0)),
+		minf(target_size.y, maxf(minf(320.0, target_size.y), viewport_size.y - 80.0))
+	)
+
+
+func _apply_dialogue_layout() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var target_size := Vector2(
+		minf(960.0, maxf(560.0, viewport_size.x - 220.0)),
+		minf(250.0, maxf(210.0, viewport_size.y - 180.0))
+	)
+	var panel_size := _fit_centered_size(target_size)
+	_center_control(dialogue_panel, panel_size)
+	_set_control_rect(dialogue_corner_icon, Rect2(Vector2(16.0, 16.0), Vector2(34.0, 34.0)))
+	_set_control_rect(dialogue_vbox, Rect2(Vector2(66.0, 22.0), panel_size - Vector2(92.0, 44.0)))
+	dialogue_text_label.custom_minimum_size = Vector2(0.0, maxf(92.0, panel_size.y - 138.0))
+	dialogue_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	dialogue_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
+func _apply_shop_layout() -> void:
+	var panel_size := _fit_centered_size(Vector2(620.0, 454.0))
+	_center_control(shop_panel, panel_size)
+	_set_control_rect(shop_corner_icon, Rect2(Vector2(panel_size.x - 52.0, 16.0), Vector2(32.0, 32.0)))
+	_set_control_rect(shop_vbox, Rect2(Vector2(22.0, 18.0), panel_size - Vector2(44.0, 38.0)))
 
 
 func _add_map_empty_label() -> void:

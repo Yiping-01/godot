@@ -460,6 +460,13 @@ position = Vector2(5180, 654)
 
 [node name="Npc" type="Node2D" parent="." unique_id=1436082081]
 
+[node name="GuideNpc" parent="Npc" instance=ExtResource("29_shop_npc")]
+position = Vector2(360, 646)
+display_name = "引導員"
+prompt_text = "按 E 聽教學"
+opens_shop = false
+dialogue_lines = Array[String](["歡迎來到海底展演區。先記住基本操作：A / D 或方向鍵移動，W / S 或上下鍵調整方向。", "Z 是跳躍，空中再按一次 Z 可以二段跳；貼牆時按方向鍵再按 Z，可以蹬牆跳。", "X 是近戰攻擊，F 是遠距離水波，C 可進行衝刺。看到怪物準備攻擊時，先閃開再反擊。", "E 是互動鍵：靠近 NPC 可以對話，靠近長椅會看到「按 E 休息」。I 開背包，M 開地圖，R 切換技能組，P 調整聲音。"])
+
 [node name="RecyclingMerchant" parent="Npc" instance=ExtResource("29_shop_npc")]
 position = Vector2(3220, 646)
 
