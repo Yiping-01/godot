@@ -25,6 +25,8 @@ const POTION_POINTS := [
 	Vector2(388.0, 84.0),
 	Vector2(498.0, 84.0),
 ]
+const ACTIVE_SKILL_SLOT_COUNT := 1
+const RESERVE_SKILL_SLOT_COUNT := 0
 
 var hud_root: Control
 var health_fill: Polygon2D
@@ -36,6 +38,8 @@ var skill_icons: Array[Sprite2D] = []
 var back_skill_icons: Array[Sprite2D] = []
 var skill_slot_panels: Array[Panel] = []
 var back_skill_slot_panels: Array[Panel] = []
+var skill_cooldown_overlays: Array[ColorRect] = []
+var skill_cooldown_labels: Array[Label] = []
 var ultimate_fill: ColorRect
 var ultimate_charge_max := 100.0
 var ultimate_charge_current := 0.0
@@ -160,7 +164,7 @@ func _build_skill_hud() -> void:
 	ultimate_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ultimate_panel.add_child(ultimate_fill)
 
-	for i in range(2):
+	for i in range(RESERVE_SKILL_SLOT_COUNT):
 		var back_panel := Panel.new()
 		back_panel.name = "ReserveSkill%d" % (i + 1)
 		back_panel.position = _back_skill_position(i)
@@ -181,11 +185,12 @@ func _build_skill_hud() -> void:
 		back_panel.add_child(back_icon)
 		back_skill_icons.append(back_icon)
 
-	for i in range(2):
+	for i in range(ACTIVE_SKILL_SLOT_COUNT):
 		var panel := Panel.new()
 		panel.name = "ActiveSkill%d" % (i + 1)
 		panel.position = _front_skill_position(i)
 		panel.size = Vector2(66.0, 66.0)
+		panel.clip_contents = true
 		panel.scale = Vector2.ONE
 		panel.modulate = Color.WHITE
 		panel.add_theme_stylebox_override("panel", _round_style(Color(0.014, 0.025, 0.032, 0.72), Color(0.75, 0.9, 0.94, 0.74), 2, 33))
@@ -201,6 +206,33 @@ func _build_skill_hud() -> void:
 		_fit_skill_sprite(icon, 48.0)
 		panel.add_child(icon)
 		skill_icons.append(icon)
+
+		var cooldown_overlay := ColorRect.new()
+		cooldown_overlay.name = "CooldownOverlay"
+		cooldown_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+		cooldown_overlay.color = Color(0.01, 0.02, 0.025, 0.72)
+		cooldown_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cooldown_overlay.hide()
+		panel.add_child(cooldown_overlay)
+		skill_cooldown_overlays.append(cooldown_overlay)
+
+		var cooldown_label := Label.new()
+		cooldown_label.name = "CooldownLabel"
+		cooldown_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+		cooldown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cooldown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		cooldown_label.add_theme_font_size_override("font_size", 20)
+		cooldown_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.56, 1.0))
+		cooldown_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.82))
+		cooldown_label.add_theme_constant_override("shadow_offset_x", 2)
+		cooldown_label.add_theme_constant_override("shadow_offset_y", 2)
+		cooldown_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cooldown_label.hide()
+		panel.add_child(cooldown_label)
+		skill_cooldown_labels.append(cooldown_label)
+
+	if RESERVE_SKILL_SLOT_COUNT <= 0:
+		return
 
 	var switch_panel := Panel.new()
 	switch_panel.name = "SkillSwitchHint"
@@ -242,10 +274,14 @@ func _connect_player() -> void:
 		player.stamina_changed.connect(_on_stamina_changed)
 	if player.has_signal("respawned") and not player.respawned.is_connected(_on_player_respawned):
 		player.respawned.connect(_on_player_respawned)
+	if player.has_signal("far_attack_cooldown_changed") and not player.far_attack_cooldown_changed.is_connected(_on_far_attack_cooldown_changed):
+		player.far_attack_cooldown_changed.connect(_on_far_attack_cooldown_changed)
 	if player.get("current_health") != null and player.get("max_health") != null:
 		_on_health_changed(float(player.get("current_health")), int(player.get("max_health")))
 	if player.get("current_stamina") != null and player.get("max_stamina") != null:
 		_on_stamina_changed(float(player.get("current_stamina")), float(player.get("max_stamina")))
+	if player.get("far_attack_cooldown_left") != null and player.get("far_attack_cooldown") != null:
+		_on_far_attack_cooldown_changed(float(player.get("far_attack_cooldown_left")), float(player.get("far_attack_cooldown")))
 
 
 func _on_health_changed(current_health: float, max_health: int) -> void:
@@ -270,6 +306,24 @@ func _on_health_potions_changed(amount: int) -> void:
 
 func _on_player_respawned() -> void:
 	_on_health_potions_changed(GameState.get_health_potion_count())
+	_on_far_attack_cooldown_changed(0.0, 1.0)
+
+
+func _on_far_attack_cooldown_changed(time_left: float, max_time: float) -> void:
+	if skill_cooldown_overlays.is_empty() or skill_cooldown_labels.is_empty():
+		return
+	var overlay := skill_cooldown_overlays[0]
+	var label := skill_cooldown_labels[0]
+	if time_left <= 0.05 or max_time <= 0.0:
+		overlay.hide()
+		label.hide()
+		return
+	var ratio := clampf(time_left / max_time, 0.0, 1.0)
+	overlay.show()
+	overlay.position = Vector2(0.0, 66.0 * (1.0 - ratio))
+	overlay.size = Vector2(66.0, 66.0 * ratio)
+	label.text = "%.1f" % time_left
+	label.show()
 
 
 func _on_equipped_skills_changed(_paths: Array) -> void:

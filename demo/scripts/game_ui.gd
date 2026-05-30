@@ -9,56 +9,16 @@ const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 const INVENTORY_TAB_KEYS := ["INV_TAB_BAG", "INV_TAB_SKILLS", "INV_TAB_MAP"]
 const INVENTORY_CATEGORY_KEYS := ["INV_CAT_ALL", "INV_CAT_CONSUMABLE", "INV_CAT_MATERIAL", "INV_CAT_IMPORTANT"]
 const GRID_SLOT_COUNT := 40
-const EQUIPPED_SKILL_SLOT_COUNT := 4
+const EQUIPPED_SKILL_SLOT_COUNT := 1
 const DEMO_UI_FONT_PATH := "res://demo/assets/hollow_import/fonts/NotoSerifCJKsc-Regular.otf"
 const DEMO_TITLE_FONT_PATH := "res://demo/assets/hollow_import/fonts/TrajanPro-Regular.otf"
 const SKILL_LIBRARY := [
-	{
-		"id": "water_dash",
-		"name_key": "INV_SKILL_WATER_DASH",
-		"type_key": "INV_CAT_SKILL",
-		"description_key": "INV_SKILL_WATER_DASH_DESC",
-		"texture": "res://demo/assets/art/legacy/player/attack_far/far_1.png",
-		"cooldown": "0.45 秒",
-	},
-	{
-		"id": "wall_burst",
-		"name_key": "INV_SKILL_WALL_BURST",
-		"type_key": "INV_CAT_SKILL",
-		"description_key": "INV_SKILL_WALL_BURST_DESC",
-		"texture": "res://demo/assets/art/legacy/player/attack_far/far_2.png",
-		"cooldown": "0.34 秒",
-	},
 	{
 		"id": "water_shot",
 		"name_key": "INV_SKILL_WATER_SHOT",
 		"type_key": "INV_CAT_SKILL",
 		"description_key": "INV_SKILL_WATER_SHOT_DESC",
 		"texture": "res://demo/assets/art/legacy/player/attack_far/far_3.png",
-		"cooldown": "3 秒",
-	},
-	{
-		"id": "quick_map",
-		"name_key": "INV_SKILL_QUICK_MAP",
-		"type_key": "INV_CAT_SKILL",
-		"description_key": "INV_SKILL_QUICK_MAP_DESC",
-		"texture": "res://demo/assets/art/legacy/player/attack_far/far_4.png",
-		"cooldown": "無",
-	},
-	{
-		"id": "bubble_guard",
-		"name": "泡影護盾",
-		"type_key": "INV_CAT_SKILL",
-		"description": "暫時測試用技能。形成一層水泡護盾，之後可以接真正效果。",
-		"texture": "res://demo/assets/art/legacy/player/attack_far/far_5.png",
-		"cooldown": "6 秒",
-	},
-	{
-		"id": "flash_burst",
-		"name": "閃光爆裂",
-		"type_key": "INV_CAT_SKILL",
-		"description": "暫時測試用技能。快速爆出一團光效，適合之後做擊退。",
-		"texture": "res://demo/assets/hollow_import/effects/flash_round.png",
 		"cooldown": "3 秒",
 	},
 ]
@@ -337,7 +297,11 @@ func show_toast(text: String, duration: float = 2.0) -> void:
 	toast_label.text = _format_action_text(_tr_raw(text))
 	_style_hint_label(toast_label, true)
 	var viewport_size := get_viewport().get_visible_rect().size
-	_set_control_rect(toast_label, Rect2(Vector2((viewport_size.x - 560.0) * 0.5, 82.0), Vector2(560.0, 42.0)))
+	var toast_width := minf(1320.0, maxf(560.0, viewport_size.x - 240.0))
+	var toast_height := 72.0
+	toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	toast_label.clip_text = true
+	_set_control_rect(toast_label, Rect2(Vector2((viewport_size.x - toast_width) * 0.5, 72.0), Vector2(toast_width, toast_height)))
 	toast_label.show()
 
 	if toast_tween != null:
@@ -892,16 +856,16 @@ func _demo_text_override(key: String) -> String:
 		"INV_SKILL_SLOT": ["技能格 %d", "Skill Slot %d"],
 		"INV_SKILL_SLOT_EMPTY": ["技能格 %d\n未裝備", "Skill Slot %d\nEmpty"],
 		"INV_SKILL_SLOT_EQUIPPED": ["技能格 %d\n%s", "Skill Slot %d\n%s"],
-		"INV_HINT": ["先點裝備格，再點下方技能替換。I / Esc：關閉", "Click a slot, then click a skill to equip. I / Esc: Close"],
+		"INV_HINT": ["F 技能已安裝。I / Esc：關閉", "F skill equipped. I / Esc: Close"],
 		"INV_SELECT_ITEM": ["選擇一個項目", "Select an item"],
 		"INV_DEFAULT_DESC": ["背包物品與技能都會在這裡整理。", "Bag items and skills are managed here."],
-		"INV_SKILL_TREE": ["擁有的技能", "Owned Skills"],
+		"INV_SKILL_TREE": ["F 技能", "F Skill"],
 		"INV_SKILL_WATER_DASH": ["水中衝刺", "Underwater Dash"],
 		"INV_SKILL_WATER_DASH_DESC": ["按 C 可朝目前方向快速衝刺，適合穿越危險區域。", "Dash quickly underwater toward the held direction."],
 		"INV_SKILL_WALL_BURST": ["牆面爆發", "Wall Burst"],
 		"INV_SKILL_WALL_BURST_DESC": ["貼牆時按跳躍鍵 Z 可以借力彈開。", "Burst away while touching a wall."],
 		"INV_SKILL_WATER_SHOT": ["水槍", "Water Shot"],
-		"INV_SKILL_WATER_SHOT_DESC": ["按 F 發射遠距離水彈攻擊敵人。", "Fire a ranged water shot."],
+		"INV_SKILL_WATER_SHOT_DESC": ["按 F 發射直線水彈，適合在安全距離打斷或補刀敵人。使用後需等待 3 秒冷卻。", "Press F to fire a straight water shot. It is useful for safe ranged hits and has a 3-second cooldown."],
 		"INV_SKILL_QUICK_MAP": ["快速地圖", "Quick Map"],
 		"INV_SKILL_QUICK_MAP_DESC": ["按 M 可切換小地圖與完整地圖，地圖開啟時仍會更新玩家位置。", "Switch between mini map and full map."],
 		"MAP_TITLE": ["區域地圖", "Area Map"],
@@ -1183,6 +1147,10 @@ func _reset_equipped_skills() -> void:
 
 
 func _skill_for_saved_slot(index: int) -> Dictionary:
+	if index == 0:
+		for skill in SKILL_LIBRARY:
+			if String(skill.get("id", "")) == "water_shot":
+				return skill.duplicate(true)
 	var saved_id := String(GameState.equipped_skill_ids[index]) if index < GameState.equipped_skill_ids.size() else ""
 	var saved_icon := String(GameState.equipped_skill_icons[index]) if index < GameState.equipped_skill_icons.size() else ""
 	for skill in SKILL_LIBRARY:
@@ -1256,7 +1224,7 @@ func _refresh_inventory_header() -> void:
 	inventory_currency_label.text = _t("CURRENCY_AMOUNT") % GameState.currency
 	inventory_detail_title.text = "選取中的技能介紹" if is_skill_tab else _t("INV_TAB_BAG")
 	inventory_detail_type.text = ""
-	inventory_detail_description.text = _t("INV_DEFAULT_DESC") if is_bag_tab else "請先點擊一個裝備格，再點擊下方擁有的技能替換。"
+	inventory_detail_description.text = _t("INV_DEFAULT_DESC") if is_bag_tab else "目前只保留 F 的水槍技能，已安裝在技能欄位中。"
 	if inventory_detail_icon != null:
 		inventory_detail_icon.texture = null
 
@@ -1282,9 +1250,7 @@ func _refresh_equipped_skill_slots() -> void:
 		slot.toggle_mode = true
 		slot.button_pressed = i == selected_equip_slot_index
 		var skill: Dictionary = equipped_skills[i]
-		var group_number := floori(float(i) / 2.0) + 1
-		var slot_number := (i % 2) + 1
-		var slot_name := "第%d組-%d" % [group_number, slot_number]
+		var slot_name := "F 技能"
 		if skill.is_empty():
 			slot.text = "%s\n未裝備" % slot_name
 			slot.icon = null
@@ -1528,14 +1494,12 @@ func _equip_selected_skill_to_slot(index: int) -> void:
 	if index < 0 or index >= equipped_skills.size():
 		return
 	selected_equip_slot_index = index
-	var group_number := floori(float(index) / 2.0) + 1
-	var slot_number := (index % 2) + 1
-	inventory_detail_title.text = "第%d組-%d" % [group_number, slot_number]
-	inventory_detail_type.text = "等待替換"
+	inventory_detail_title.text = "F 技能欄"
+	inventory_detail_type.text = "已安裝"
 	if inventory_skill_meta_label != null:
 		inventory_skill_meta_label.visible = true
-		inventory_skill_meta_label.text = "分類：技能組\n冷卻時間：依技能而定"
-	inventory_detail_description.text = "已選取第 %d 組第 %d 格。請點擊左側「擁有的技能」中的技能來替換。" % [group_number, slot_number]
+		inventory_skill_meta_label.text = "分類：技能\n冷卻時間：3 秒"
+	inventory_detail_description.text = "這一格固定安裝 F 的水槍技能。按 F 發射後，遊戲內技能圖示會顯示冷卻倒數。"
 	if inventory_detail_icon != null:
 		inventory_detail_icon.texture = null
 	_refresh_equipped_skill_slots()

@@ -18,6 +18,8 @@ const HEALTH_POSITION_ITEM := "health_position"
 const STARTING_HEALTH_POTIONS := 3
 const MAX_HEALTH_POTIONS := 5
 const STARTER_ITEM := "旅行者筆記"
+const DEFAULT_SKILL_ID := "water_shot"
+const DEFAULT_SKILL_ICON := "res://demo/assets/art/legacy/player/attack_far/far_3.png"
 
 var demo_start_fresh := true
 var load_save_on_start := false
@@ -62,8 +64,8 @@ var has_pending_spawn := false
 var pending_spawn_marker_name := ""
 var current_map_scene := ""
 var current_map_room := ""
-var equipped_skill_icons: Array[String] = []
-var equipped_skill_ids: Array[String] = ["", "", "", ""]
+var equipped_skill_icons: Array[String] = [DEFAULT_SKILL_ICON, "", "", ""]
+var equipped_skill_ids: Array[String] = [DEFAULT_SKILL_ID, "", "", ""]
 var active_skill_group := 0
 var ultimate_charge := 0.0
 var ultimate_charge_max := 100.0
@@ -114,8 +116,8 @@ func reset_demo_state() -> void:
 	input_locked = false
 	current_map_scene = ""
 	current_map_room = ""
-	equipped_skill_icons.clear()
-	equipped_skill_ids = ["", "", "", ""]
+	equipped_skill_icons = [DEFAULT_SKILL_ICON, "", "", ""]
+	equipped_skill_ids = [DEFAULT_SKILL_ID, "", "", ""]
 	active_skill_group = 0
 	ultimate_charge = 0.0
 	map_rooms.clear()
@@ -497,8 +499,8 @@ func get_active_skill_ids() -> Array[String]:
 	return _get_active_pair(equipped_skill_ids)
 
 
-func set_active_skill_group(group_index: int) -> void:
-	var next_group := clampi(group_index, 0, 1)
+func set_active_skill_group(_group_index: int) -> void:
+	var next_group := 0
 	if active_skill_group == next_group:
 		return
 	active_skill_group = next_group

@@ -3,6 +3,7 @@ class_name PlayerController
 
 signal health_changed(current_health: float, max_health: int)
 signal stamina_changed(current_stamina: float, max_stamina: float)
+signal far_attack_cooldown_changed(time_left: float, max_time: float)
 signal died
 signal respawned
 
@@ -263,6 +264,7 @@ func _ready() -> void:
 	_sync_runtime_status()
 	health_changed.emit(current_health, max_health)
 	stamina_changed.emit(current_stamina, max_stamina)
+	far_attack_cooldown_changed.emit(far_attack_cooldown_left, far_attack_cooldown)
 
 
 func _physics_process(delta: float) -> void:
@@ -276,6 +278,7 @@ func _physics_process(delta: float) -> void:
 
 	if far_attack_cooldown_left > 0.0:
 		far_attack_cooldown_left = maxf(far_attack_cooldown_left - delta, 0.0)
+		far_attack_cooldown_changed.emit(far_attack_cooldown_left, far_attack_cooldown)
 	_update_hurt_animation_state(delta)
 	_update_motion_animation_timers(delta)
 	_update_attack_state_recovery(delta)
@@ -671,6 +674,7 @@ func _try_far_attack() -> void:
 
 	is_attacking = true
 	far_attack_cooldown_left = far_attack_cooldown
+	far_attack_cooldown_changed.emit(far_attack_cooldown_left, far_attack_cooldown)
 	active_attack_type = &"far"
 	_start_attack_state_recovery(&"attack", 0.0)
 	_spawn_far_attack_projectile()
@@ -1172,6 +1176,8 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 	health_changed.emit(current_health, max_health)
 	_cancel_attack_state()
 	_end_dash(false)
+	far_attack_cooldown_left = 0.0
+	far_attack_cooldown_changed.emit(far_attack_cooldown_left, far_attack_cooldown)
 	_cancel_attack_charge()
 	if is_underwater:
 		_apply_underwater_hurt_feedback(from_position)
