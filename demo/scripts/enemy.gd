@@ -70,8 +70,9 @@ func _ready() -> void:
 	collision_shape.disabled = false
 	hurtbox.monitoring = true
 	hurtbox.monitorable = true
-	damage_area.monitoring = false
+	damage_area.monitoring = true
 	damage_area.monitorable = true
+	call_deferred("_damage_current_attack_overlaps")
 	sprite.play("walk")
 	_sync_facing()
 
@@ -96,6 +97,7 @@ func _physics_process(delta: float) -> void:
 
 	move_and_slide()
 	_keep_inside_patrol_range()
+	_damage_current_attack_overlaps()
 
 	if is_on_wall():
 		_flip()
@@ -124,6 +126,7 @@ func _update_locked_height_patrol(delta: float) -> void:
 	_keep_inside_patrol_range()
 	global_position.x = roundf(global_position.x)
 	global_position.y = start_position.y
+	_damage_current_attack_overlaps()
 
 
 func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
@@ -279,10 +282,6 @@ func _update_combat_state(delta: float) -> void:
 
 
 func _update_patrol(_delta: float) -> void:
-	if _can_begin_attack():
-		_begin_attack_windup()
-		return
-
 	sprite.modulate = Color.WHITE
 	_turn_around_at_patrol_edge()
 	velocity.x = direction * patrol_speed
@@ -364,7 +363,7 @@ func _cancel_attack() -> void:
 
 
 func _damage_current_attack_overlaps() -> void:
-	if state != &"attack":
+	if is_dead:
 		return
 	for area in damage_area.get_overlapping_areas():
 		_damage_attack_target(area)
@@ -392,7 +391,6 @@ func _sync_facing() -> void:
 
 
 func _play_windup_tell() -> void:
-	DEMO_COMBAT_JUICE.spawn_enemy_attack_warning(self, global_position + Vector2(18.0 * float(direction), -4.0), direction, attack_range, attack_windup_time)
 	var original_scale := sprite.scale
 	var crouch_scale := Vector2(original_scale.x * 1.14, original_scale.y * 0.84)
 	var tween := create_tween()
@@ -412,14 +410,14 @@ func _play_audio(audio: AudioStreamPlayer2D) -> void:
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
-	if is_dead or state != &"attack":
+	if is_dead:
 		return
 
 	_damage_attack_target(area)
 
 
 func _damage_attack_target(area: Area2D) -> void:
-	if state != &"attack":
+	if is_dead:
 		return
 
 	var receiver: Node = _find_damage_receiver(area)

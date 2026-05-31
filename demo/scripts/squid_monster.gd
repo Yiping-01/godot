@@ -26,6 +26,7 @@ const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 @export var visual_smoothing := 0.18
 @export var top_contact_damage_margin := 12.0
 @export var body_collision_ignore_time := 0.35
+@export var cancel_player_upward_knockback_on_touch := true
 @export var coin_drop_amount := 4
 @export var coin_scene: PackedScene = preload("res://demo/scenes/coin_pickup.tscn")
 @export var monster_id: String = "SlamSquid"
@@ -94,6 +95,7 @@ func _physics_process(delta: float) -> void:
 			_update_return(delta)
 
 	_resolve_player_top_contact()
+	_damage_current_contact_overlaps()
 
 
 func _update_idle(delta: float) -> void:
@@ -208,7 +210,7 @@ func _on_attack_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		has_hit_player = true
 		if body.has_method("take_damage"):
-			body.take_damage(damage, global_position)
+			_damage_player(body)
 
 
 func _damage_overlapping_players() -> void:
@@ -219,7 +221,7 @@ func _damage_overlapping_players() -> void:
 		if body.is_in_group("player"):
 			has_hit_player = true
 			if body.has_method("take_damage"):
-				body.take_damage(damage, global_position)
+				_damage_player(body)
 			return
 
 
@@ -246,7 +248,7 @@ func _damage_contact_target(area: Area2D) -> void:
 	var receiver := _find_damage_receiver(area)
 	if receiver == null:
 		return
-	receiver.call("take_damage", damage, global_position)
+	_damage_player(receiver)
 
 
 func _resolve_player_top_contact() -> void:
@@ -257,7 +259,7 @@ func _resolve_player_top_contact() -> void:
 	if not _is_player_on_top(player):
 		return
 
-	player.call("take_damage", damage, global_position)
+	_damage_player(player)
 	_set_body_collision_ignored(body_collision_ignore_time)
 
 
@@ -332,7 +334,19 @@ func can_receive_player_attack(_attack_type: StringName = &"side", _attacker_pos
 
 
 func _is_contact_damage_active() -> bool:
-	return state == STATE_IDLE or state == STATE_SLAM
+	return hp > 0
+
+
+func _damage_player(receiver: Node) -> void:
+	if receiver == null or not receiver.has_method("take_damage"):
+		return
+
+	var was_invincible := bool(receiver.get("invincible")) if receiver.get("invincible") != null else false
+	var was_dashing := bool(receiver.get("is_dashing")) if receiver.get("is_dashing") != null else false
+	receiver.call("take_damage", damage, global_position)
+	if cancel_player_upward_knockback_on_touch and not was_invincible and not was_dashing and receiver is CharacterBody2D:
+		var body := receiver as CharacterBody2D
+		body.velocity.y = maxf(body.velocity.y, 0.0)
 
 
 func _find_damage_receiver(target_node: Node) -> Node:

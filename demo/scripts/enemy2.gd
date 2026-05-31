@@ -302,8 +302,6 @@ func _sync_facing() -> void:
 
 
 func _play_windup_tell() -> void:
-	var warning_length := ranged_range * 0.34 if behavior_mode == "ranged" else melee_range * 0.8
-	DEMO_COMBAT_JUICE.spawn_enemy_attack_warning(self, global_position + Vector2(20.0 * float(direction), -8.0), direction, warning_length, attack_windup_time)
 	var original_scale := sprite.scale
 	var wind_scale := Vector2(original_scale.x * 0.9, original_scale.y * 1.12) if behavior_mode == "ranged" else Vector2(original_scale.x * 1.16, original_scale.y * 0.86)
 	var tween := create_tween()
