@@ -10,6 +10,7 @@ extends "res://demo/scripts/enemy.gd"
 @export var pulse_active_time := 0.24
 @export var pulse_recovery_time := 0.48
 
+var pulse_state := &"pulse_idle"
 var pulse_timer := 0.0
 
 
@@ -17,7 +18,7 @@ func _ready() -> void:
 	super._ready()
 	lock_to_spawn_height = false
 	sprite.modulate = blue_modulate
-	state = &"pulse_idle"
+	pulse_state = &"pulse_idle"
 	pulse_timer = pulse_idle_time
 	damage_area.monitoring = false
 
@@ -50,49 +51,49 @@ func _physics_process(delta: float) -> void:
 
 func _update_damage_pulse(delta: float) -> void:
 	pulse_timer -= delta
-	match state:
+	match pulse_state:
 		&"pulse_windup":
 			var progress := 1.0 - pulse_timer / maxf(pulse_windup_time, 0.001)
 			sprite.modulate = blue_modulate.lerp(Color(1.0, 0.9, 0.5, 1.0), progress)
 			if pulse_timer <= 0.0:
-				state = &"attack"
+				pulse_state = &"attack"
 				pulse_timer = pulse_active_time
 				sprite.modulate = Color(1.0, 0.9, 0.5, 1.0)
 				damage_area.set_deferred("monitoring", true)
 				call_deferred("_damage_current_attack_overlaps")
 		&"attack":
 			if pulse_timer <= 0.0:
-				state = &"pulse_recovery"
+				pulse_state = &"pulse_recovery"
 				pulse_timer = pulse_recovery_time
 				damage_area.set_deferred("monitoring", false)
 				sprite.modulate = blue_modulate
 		&"pulse_recovery":
 			if pulse_timer <= 0.0:
-				state = &"pulse_idle"
+				pulse_state = &"pulse_idle"
 				pulse_timer = pulse_idle_time
 		_:
 			sprite.modulate = blue_modulate
 			damage_area.set_deferred("monitoring", false)
 			if pulse_timer <= 0.0:
-				state = &"pulse_windup"
+				pulse_state = &"pulse_windup"
 				pulse_timer = pulse_windup_time
 
 
 func _on_damage_area_entered(area: Area2D) -> void:
-	if is_dead or state != &"attack":
+	if is_dead or pulse_state != &"attack":
 		return
 	_damage_attack_target(area)
 
 
 func _damage_current_attack_overlaps() -> void:
-	if is_dead or state != &"attack" or damage_area == null:
+	if is_dead or pulse_state != &"attack" or damage_area == null:
 		return
 	for area in damage_area.get_overlapping_areas():
 		_damage_attack_target(area)
 
 
 func _damage_attack_target(area: Area2D) -> void:
-	if state != &"attack":
+	if pulse_state != &"attack":
 		return
 	var receiver: Node = _find_damage_receiver(area)
 	if receiver == null:

@@ -9,6 +9,7 @@ extends "res://demo/scripts/legacy_split_enemy.gd"
 @export var pulse_active_time := 0.28
 @export var pulse_recovery_time := 0.5
 
+var pulse_state := &"pulse_idle"
 var pulse_timer := 0.0
 
 
@@ -16,7 +17,7 @@ func _ready() -> void:
 	super._ready()
 	respawn_scene_path = "res://demo/scenes/blue_bounce_split_enemy.tscn"
 	anim.modulate = blue_modulate
-	state = &"pulse_idle"
+	pulse_state = &"pulse_idle"
 	pulse_timer = pulse_idle_time
 
 
@@ -54,28 +55,28 @@ func _physics_process(delta: float) -> void:
 
 func _update_damage_pulse(delta: float) -> void:
 	pulse_timer -= delta
-	match state:
+	match pulse_state:
 		&"pulse_windup":
 			var progress := 1.0 - pulse_timer / maxf(pulse_windup_time, 0.001)
 			anim.modulate = blue_modulate.lerp(Color(1.0, 0.9, 0.45, 1.0), progress)
 			if pulse_timer <= 0.0:
-				state = &"attack"
+				pulse_state = &"attack"
 				pulse_timer = pulse_active_time
 				anim.modulate = Color(1.0, 0.9, 0.45, 1.0)
 				call_deferred("_damage_current_attack_overlaps")
 		&"attack":
 			if pulse_timer <= 0.0:
-				state = &"pulse_recovery"
+				pulse_state = &"pulse_recovery"
 				pulse_timer = pulse_recovery_time
 				anim.modulate = blue_modulate
 		&"pulse_recovery":
 			if pulse_timer <= 0.0:
-				state = &"pulse_idle"
+				pulse_state = &"pulse_idle"
 				pulse_timer = pulse_idle_time
 		_:
 			anim.modulate = blue_modulate
 			if pulse_timer <= 0.0:
-				state = &"pulse_windup"
+				pulse_state = &"pulse_windup"
 				pulse_timer = pulse_windup_time
 
 
@@ -100,7 +101,7 @@ func _damage_current_attack_overlaps() -> void:
 
 
 func _damage_attack_body(body: Node2D) -> void:
-	if is_dead or state != &"attack":
+	if is_dead or pulse_state != &"attack":
 		return
 	if body.is_in_group("player") and body.has_method("take_damage"):
 		body.take_damage(damage, global_position)

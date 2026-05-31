@@ -238,7 +238,7 @@ func _ready() -> void:
 	normal_z_index = z_index
 	normal_collision_mask = collision_mask
 	normal_collision_layer = collision_layer
-	_set_enemy_body_collision_enabled(false)
+	_refresh_enemy_body_collision_state()
 	attack_offset_x = absf(attack_area.position.x)
 	charge_attack_offset_x = absf(charge_attack_area.position.x)
 	current_attack_damage = attack_damage
@@ -520,6 +520,7 @@ func _handle_underwater_dash_input() -> void:
 	dash_trail_time_left = 0.0
 	dash_cooldown_left = underwater_dash_cooldown
 	velocity = underwater_dash_direction * underwater_dash_current_speed
+	_refresh_enemy_body_collision_state()
 	_play_dash_animation(underwater_dash_direction)
 
 
@@ -1125,6 +1126,7 @@ func _handle_dash_input() -> void:
 	dash_trail_time_left = 0.0
 	dash_cooldown_left = dash_cooldown
 	velocity = Vector2(float(dash_direction) * dash_speed, 0.0)
+	_refresh_enemy_body_collision_state()
 	_spawn_dash_trail(Vector2(float(dash_direction), 0.0), 4)
 	_spawn_dash_afterimage(Vector2(float(dash_direction), 0.0), 0.34)
 	_play_dash_animation(Vector2(float(dash_direction), 0.0))
@@ -1145,6 +1147,7 @@ func _end_dash(keep_momentum: bool = true) -> void:
 	is_dashing = false
 	dash_time_left = 0.0
 	dash_trail_time_left = 0.0
+	_refresh_enemy_body_collision_state()
 	if keep_momentum:
 		velocity.x = float(dash_direction) * speed * 0.65
 
@@ -1168,7 +1171,7 @@ func _select_attack_area(attack_type: StringName) -> void:
 
 
 func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
-	if is_dead or invincible:
+	if is_dead or invincible or is_dashing:
 		return
 
 	current_health = maxf(current_health - float(amount), 0.0)
@@ -1197,7 +1200,7 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 
 
 func take_quake_damage(amount: int) -> void:
-	if is_dead or invincible:
+	if is_dead or invincible or is_dashing:
 		return
 
 	current_health = maxf(current_health - float(amount), 0.0)
@@ -1388,7 +1391,7 @@ func _apply_underwater_hurt_feedback(from_position: Vector2) -> void:
 
 func _start_invincibility() -> void:
 	invincible = true
-	_set_enemy_body_collision_enabled(false)
+	_refresh_enemy_body_collision_state()
 	var tween := create_tween()
 	var flash_count: int = maxi(1, int(round(invincible_time / 0.2)))
 	for i in range(flash_count):
@@ -1400,7 +1403,11 @@ func _start_invincibility() -> void:
 func _finish_invincibility() -> void:
 	animated_sprite.modulate = Color.WHITE
 	invincible = false
-	_set_enemy_body_collision_enabled(false)
+	_refresh_enemy_body_collision_state()
+
+
+func _refresh_enemy_body_collision_state() -> void:
+	_set_enemy_body_collision_enabled(not invincible and not is_dashing)
 
 
 func _set_enemy_body_collision_enabled(enabled: bool) -> void:
