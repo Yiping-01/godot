@@ -44,6 +44,7 @@ const SOLID_BODY_COLLISION_LAYER_NUMBER := 1
 @export var contact_damage: int = 1
 @export var body_contact_damage_enabled: bool = true
 @export var body_contact_damage_interval: float = 0.35
+@export var body_contact_damage_margin: float = 24.0
 @export var player_body_collision_ignore_time: float = 0.35
 @export var dash_telegraph_length: float = 720.0
 @export var dash_telegraph_y_offset: float = 95.0
@@ -1684,12 +1685,15 @@ func _setup_body_contact_area() -> void:
 
 	body_contact_area.collision_layer = 32
 	body_contact_area.collision_mask = 16
+	body_contact_area.set_collision_mask_value(PLAYER_BODY_COLLISION_LAYER_NUMBER, true)
 	body_contact_area.monitoring = true
 	body_contact_area.monitorable = false
 	if not body_contact_area.area_entered.is_connected(_on_body_contact_area_entered):
 		body_contact_area.area_entered.connect(_on_body_contact_area_entered)
 	if not body_contact_area.area_exited.is_connected(_on_body_contact_area_exited):
 		body_contact_area.area_exited.connect(_on_body_contact_area_exited)
+	if not body_contact_area.body_entered.is_connected(_on_body_contact_body_entered):
+		body_contact_area.body_entered.connect(_on_body_contact_body_entered)
 
 	body_contact_shape = body_contact_area.get_node_or_null("CollisionShape2D") as CollisionShape2D
 	if body_contact_shape == null and collision_shape != null and collision_shape.shape != null:
@@ -1719,14 +1723,24 @@ func _update_body_contact_damage(delta: float) -> void:
 	if not _is_body_contact_damage_active():
 		return
 
-	body_contact_damage_cooldown -= delta
+	body_contact_damage_cooldown = maxf(body_contact_damage_cooldown - delta, 0.0)
 	if body_contact_damage_cooldown > 0.0:
 		return
 
+	var damaged := false
 	for area in body_contact_targets:
-		_damage_contact_target(area)
-	_damage_player_body_contact_if_overlapping()
-	body_contact_damage_cooldown = body_contact_damage_interval
+		if _damage_contact_target(area):
+			damaged = true
+			break
+	if not damaged:
+		for body in body_contact_area.get_overlapping_bodies():
+			if _damage_body_contact_receiver(body):
+				damaged = true
+				break
+	if not damaged:
+		damaged = _damage_player_body_contact_if_overlapping()
+	if damaged:
+		body_contact_damage_cooldown = body_contact_damage_interval
 
 
 func _on_body_contact_area_entered(area: Area2D) -> void:
@@ -1734,44 +1748,65 @@ func _on_body_contact_area_entered(area: Area2D) -> void:
 		return
 	if not body_contact_targets.has(area):
 		body_contact_targets.append(area)
-	body_contact_damage_cooldown = body_contact_damage_interval
-	if _is_body_contact_damage_active():
-		_damage_contact_target(area)
+	if _is_body_contact_damage_active() and body_contact_damage_cooldown <= 0.0:
+		if _damage_contact_target(area):
+			body_contact_damage_cooldown = body_contact_damage_interval
 
 
 func _on_body_contact_area_exited(area: Area2D) -> void:
 	body_contact_targets.erase(area)
 
 
-func _damage_contact_target(target_area: Area2D) -> void:
+func _on_body_contact_body_entered(body: Node2D) -> void:
+	if intro_time_left > 0.0:
+		return
+	if _is_body_contact_damage_active() and body_contact_damage_cooldown <= 0.0:
+		if _damage_body_contact_receiver(body):
+			body_contact_damage_cooldown = body_contact_damage_interval
+
+
+func _damage_contact_target(target_area: Area2D) -> bool:
 	if not _is_body_contact_damage_active():
-		return
+		return false
 	if target_area == null or not is_instance_valid(target_area) or not target_area.is_inside_tree():
-		return
+		return false
 
 	var receiver := _find_damage_receiver(target_area)
 	if receiver == null or receiver == self:
-		return
+		return false
 
+	return _damage_body_contact_receiver(receiver)
+
+
+func _damage_body_contact_receiver(receiver: Node) -> bool:
+	if receiver == null or receiver == self or not is_instance_valid(receiver) or not receiver.has_method("take_damage"):
+		return false
 	receiver.call("take_damage", contact_damage, global_position)
+	if receiver == target or receiver.is_in_group("player"):
+		_set_player_body_collision_ignored(player_body_collision_ignore_time)
+	return true
 
 
-func _damage_player_body_contact_if_overlapping() -> void:
+func _damage_player_body_contact_if_overlapping() -> bool:
 	if not _is_body_contact_damage_active():
-		return
+		return false
 	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
-		return
+		target = _find_player()
+	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
+		return false
 	if not (target is Node2D):
-		return
+		return false
 	if not _does_player_body_overlap_contact_zone(target):
-		return
-	target.call("take_damage", contact_damage, global_position)
+		return false
+	return _damage_body_contact_receiver(target)
 
 
 func _does_player_body_overlap_contact_zone(player_node: Node2D) -> bool:
 	var boss_rect := _shape_global_rect(body_contact_shape)
 	if boss_rect.size == Vector2.ZERO:
 		boss_rect = _shape_global_rect(collision_shape)
+	if boss_rect.size != Vector2.ZERO:
+		boss_rect = boss_rect.grow(body_contact_damage_margin)
 	var player_shape := player_node.find_child("CollisionShape2D", true, false) as CollisionShape2D
 	var player_rect := _shape_global_rect(player_shape)
 	if boss_rect.size == Vector2.ZERO or player_rect.size == Vector2.ZERO:

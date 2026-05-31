@@ -202,7 +202,8 @@ scale = Vector2(0.91957295, 1.1753864)
 shape = SubResource("RectangleShape2D_boss")
 
 [node name="BodyContactArea" type="Area2D" parent="Boss" unique_id=565819749]
-position = Vector2(0, -12)
+position = Vector2(-19, 7)
+scale = Vector2(1.2, 1)
 collision_layer = 32
 collision_mask = 16
 monitorable = false
