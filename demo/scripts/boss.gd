@@ -44,7 +44,6 @@ const SOLID_BODY_COLLISION_LAYER_NUMBER := 1
 @export var contact_damage: int = 1
 @export var body_contact_damage_enabled: bool = true
 @export var body_contact_damage_interval: float = 0.35
-@export var body_contact_damage_margin: float = 24.0
 @export var player_body_collision_ignore_time: float = 0.35
 @export var dash_telegraph_length: float = 720.0
 @export var dash_telegraph_y_offset: float = 95.0
@@ -312,6 +311,8 @@ func take_damage(amount: int, from_position: Vector2 = Vector2.ZERO) -> void:
 
 
 func can_receive_player_attack(_attack_type: StringName = &"side", _attacker_position: Vector2 = Vector2.ZERO, _attacker_velocity: Vector2 = Vector2.ZERO) -> bool:
+	if is_defeated:
+		return false
 	if state == &"quake_jump" or state == &"anti_pogo_launch":
 		return velocity.y >= 0.0
 	return true
@@ -1737,8 +1738,6 @@ func _update_body_contact_damage(delta: float) -> void:
 			if _damage_body_contact_receiver(body):
 				damaged = true
 				break
-	if not damaged:
-		damaged = _damage_player_body_contact_if_overlapping()
 	if damaged:
 		body_contact_damage_cooldown = body_contact_damage_interval
 
@@ -1785,54 +1784,6 @@ func _damage_body_contact_receiver(receiver: Node) -> bool:
 	if receiver == target or receiver.is_in_group("player"):
 		_set_player_body_collision_ignored(player_body_collision_ignore_time)
 	return true
-
-
-func _damage_player_body_contact_if_overlapping() -> bool:
-	if not _is_body_contact_damage_active():
-		return false
-	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
-		target = _find_player()
-	if target == null or not is_instance_valid(target) or not target.has_method("take_damage"):
-		return false
-	if not (target is Node2D):
-		return false
-	if not _does_player_body_overlap_contact_zone(target):
-		return false
-	return _damage_body_contact_receiver(target)
-
-
-func _does_player_body_overlap_contact_zone(player_node: Node2D) -> bool:
-	var boss_rect := _shape_global_rect(body_contact_shape)
-	if boss_rect.size == Vector2.ZERO:
-		boss_rect = _shape_global_rect(collision_shape)
-	if boss_rect.size != Vector2.ZERO:
-		boss_rect = boss_rect.grow(body_contact_damage_margin)
-	var player_shape := player_node.find_child("CollisionShape2D", true, false) as CollisionShape2D
-	var player_rect := _shape_global_rect(player_shape)
-	if boss_rect.size == Vector2.ZERO or player_rect.size == Vector2.ZERO:
-		return global_position.distance_to(player_node.global_position) <= 145.0
-	return boss_rect.intersects(player_rect, true)
-
-
-func _shape_global_rect(shape_node: CollisionShape2D) -> Rect2:
-	if shape_node == null or shape_node.shape == null:
-		return Rect2()
-
-	var shape_size := Vector2.ZERO
-	if shape_node.shape is RectangleShape2D:
-		shape_size = (shape_node.shape as RectangleShape2D).size
-	elif shape_node.shape is CapsuleShape2D:
-		var capsule := shape_node.shape as CapsuleShape2D
-		shape_size = Vector2(capsule.radius * 2.0, capsule.height)
-	elif shape_node.shape is CircleShape2D:
-		var circle := shape_node.shape as CircleShape2D
-		shape_size = Vector2(circle.radius * 2.0, circle.radius * 2.0)
-
-	if shape_size == Vector2.ZERO:
-		return Rect2()
-
-	var scaled_size := shape_size * shape_node.global_scale.abs()
-	return Rect2(shape_node.global_position - scaled_size * 0.5, scaled_size)
 
 
 func _is_falling_jump_body_contact() -> bool:
@@ -1904,8 +1855,6 @@ func _snap_to_last_solid_floor_before_jump() -> void:
 	if global_position.y >= last_solid_floor_y - 24.0:
 		return
 
-	if target != null and target.has_method("take_damage"):
-		target.call("take_damage", contact_damage, global_position)
 	global_position.y = last_solid_floor_y
 
 

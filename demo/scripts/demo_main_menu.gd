@@ -52,6 +52,7 @@ func _ready() -> void:
 	continue_info_panel.hide()
 	_update_texts()
 	_fade_in()
+	start_button.grab_focus()
 
 
 func _apply_menu_ui_art() -> void:
@@ -128,10 +129,12 @@ func _show_continue_info_panel() -> void:
 		String(save_info.get("saved_at", "未知")),
 	]
 	continue_info_panel.show()
+	continue_load_button.grab_focus()
 
 
 func _hide_continue_info_panel() -> void:
 	continue_info_panel.hide()
+	continue_button.grab_focus()
 
 
 func _confirm_continue_game() -> void:

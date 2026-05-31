@@ -244,7 +244,7 @@ func _show_pause_panel() -> void:
 
 func _show_audio_panel() -> void:
 	_show_sub_panel(audio_panel)
-	audio_back_button.grab_focus()
+	music_slider.grab_focus()
 
 
 func _show_language_panel() -> void:
@@ -258,6 +258,18 @@ func _show_controls_panel() -> void:
 	waiting_for_action = ""
 	waiting_label.text = _tr("Select a row, press a new key. Esc returns.", "選擇一列後按新的按鍵，Esc 返回。")
 	_refresh_key_labels()
+	_focus_first_control_binding()
+
+
+func _focus_first_control_binding() -> void:
+	var settings := _get_input_settings()
+	var actions: Array = [] if settings == null else settings.call("get_actions")
+	if not actions.is_empty():
+		var first_action := String(actions[0].get("action", ""))
+		var first_button := key_buttons.get(first_action) as Button
+		if first_button != null:
+			first_button.grab_focus()
+			return
 	controls_back_button.grab_focus()
 
 

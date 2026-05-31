@@ -13,6 +13,7 @@ signal map_room_changed(scene_path: String, room_id: String)
 const SAVE_PATH := "user://save.cfg"
 const CONTINUE_SCENE_SAVE_PATH := "user://continue_scene.cfg"
 const DEFAULT_START_SCENE := "res://demo/scenes/levels/demo_level_1.tscn"
+const PURIFIED_EPILOGUE_SCENE := "res://demo/scenes/levels/demo_purified_epilogue.tscn"
 const HEALTH_POTION_ITEM := "Health Potion"
 const HEALTH_POSITION_ITEM := "health_position"
 const STARTING_HEALTH_POTIONS := 3
@@ -20,6 +21,13 @@ const MAX_HEALTH_POTIONS := 5
 const STARTER_ITEM := "旅行者筆記"
 const DEFAULT_SKILL_ID := "water_shot"
 const DEFAULT_SKILL_ICON := "res://demo/assets/art/legacy/player/attack_far/far_3.png"
+const DEFAULT_SKILL_IDS: Array[String] = ["water_shot", "water_dash", "wall_burst", "quick_map"]
+const DEFAULT_SKILL_ICONS: Array[String] = [
+	"res://demo/assets/art/legacy/player/attack_far/far_3.png",
+	"res://demo/assets/art/legacy/player/attack_far/far_1.png",
+	"res://demo/assets/art/legacy/player/attack_far/far_2.png",
+	"res://demo/assets/art/legacy/player/attack_far/far_4.png",
+]
 
 var demo_start_fresh := true
 var load_save_on_start := false
@@ -44,15 +52,15 @@ var item_database: Dictionary = {
 	},
 	"粗糙護符": {
 		"display_name": "粗糙護符",
-		"description": "商人販售的暫時道具，目前只會收進背包。",
+		"description": "由回收零件拼成的小護符。",
 	},
 	"生命碎片": {
 		"display_name": "生命碎片",
-		"description": "暫時的血量道具，之後可以改成提升最大生命。",
+		"description": "凝聚海溝生命力的碎片，仍帶著微弱暖意。",
 	},
 	"破舊地圖": {
 		"display_name": "破舊地圖",
-		"description": "記錄附近房間配置的道具，之後可接上地圖 UI。",
+		"description": "標記附近通道與房間配置。",
 	},
 }
 var input_locked := false
@@ -64,8 +72,8 @@ var has_pending_spawn := false
 var pending_spawn_marker_name := ""
 var current_map_scene := ""
 var current_map_room := ""
-var equipped_skill_icons: Array[String] = [DEFAULT_SKILL_ICON, "", "", ""]
-var equipped_skill_ids: Array[String] = [DEFAULT_SKILL_ID, "", "", ""]
+var equipped_skill_icons: Array[String] = DEFAULT_SKILL_ICONS.duplicate()
+var equipped_skill_ids: Array[String] = DEFAULT_SKILL_IDS.duplicate()
 var active_skill_group := 0
 var ultimate_charge := 0.0
 var ultimate_charge_max := 100.0
@@ -86,17 +94,18 @@ var pending_transition_shake_duration := 0.0
 var pending_transition_shake_strength := 0.0
 var pending_transition_title := ""
 var pending_transition_subtitle := ""
+var run_started_unix_time := 0.0
+var player_death_count := 0
+var region_purified := false
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if demo_start_fresh:
 		reset_demo_state()
-		load_game()
+		load_game(false)
 	merge_health_potion_items()
-	currency_changed.emit(currency)
-	inventory_changed.emit(inventory)
-	health_potions_changed.emit(get_health_potion_count())
+	_emit_loaded_state()
 
 
 func reset_demo_state() -> void:
@@ -116,8 +125,8 @@ func reset_demo_state() -> void:
 	input_locked = false
 	current_map_scene = ""
 	current_map_room = ""
-	equipped_skill_icons = [DEFAULT_SKILL_ICON, "", "", ""]
-	equipped_skill_ids = [DEFAULT_SKILL_ID, "", "", ""]
+	equipped_skill_icons = DEFAULT_SKILL_ICONS.duplicate()
+	equipped_skill_ids = DEFAULT_SKILL_IDS.duplicate()
 	active_skill_group = 0
 	ultimate_charge = 0.0
 	map_rooms.clear()
@@ -127,6 +136,9 @@ func reset_demo_state() -> void:
 	clear_pending_transition_shake()
 	clear_pending_transition_title()
 	clear_player_runtime_status()
+	run_started_unix_time = Time.get_unix_time_from_system()
+	player_death_count = 0
+	region_purified = false
 	inventory_changed.emit(inventory)
 	health_potions_changed.emit(get_health_potion_count())
 	equipped_skills_changed.emit(equipped_skill_icons)
@@ -196,6 +208,28 @@ func clear_player_runtime_status() -> void:
 	player_max_health = 0
 	player_current_stamina = -1.0
 	player_max_stamina = 0.0
+
+
+func record_player_death() -> void:
+	if region_purified:
+		return
+	player_death_count += 1
+	save_game()
+
+
+func get_run_elapsed_seconds() -> int:
+	if run_started_unix_time <= 0.0:
+		return 0
+	return maxi(0, floori(Time.get_unix_time_from_system() - run_started_unix_time))
+
+
+func mark_region_purified() -> void:
+	region_purified = true
+	has_saved_respawn = false
+	saved_respawn_position = Vector2.ZERO
+	clear_player_runtime_status()
+	save_continue_scene(PURIFIED_EPILOGUE_SCENE, Vector2.ZERO, false, "purified_entry")
+	save_game()
 
 
 func add_currency(amount: int) -> void:
@@ -540,6 +574,16 @@ func _normalize_skill_array(values: Array[String]) -> Array[String]:
 	return normalized
 
 
+func _normalize_loaded_skill_array(value: Variant, fallback: Array[String]) -> Array[String]:
+	if not value is Array:
+		return _normalize_skill_array(fallback)
+
+	var loaded_values: Array[String] = []
+	for entry in value:
+		loaded_values.append(String(entry))
+	return _normalize_skill_array(loaded_values)
+
+
 func _get_active_pair(values: Array[String]) -> Array[String]:
 	var normalized := _normalize_skill_array(values)
 	var start_index := active_skill_group * 2
@@ -562,6 +606,21 @@ func save_game() -> void:
 	config.set_value("player", "scene_rough_charm_purchases", scene_rough_charm_purchases)
 	config.set_value("player", "has_respawn", has_saved_respawn)
 	config.set_value("player", "respawn_position", saved_respawn_position)
+	config.set_value("player", "equipped_skill_ids", equipped_skill_ids)
+	config.set_value("player", "equipped_skill_icons", equipped_skill_icons)
+	config.set_value("player", "active_skill_group", active_skill_group)
+	config.set_value("player", "ultimate_charge", ultimate_charge)
+	config.set_value("player", "visited_rooms", visited_rooms)
+	config.set_value("player", "current_map_scene", current_map_scene)
+	config.set_value("player", "current_map_room", current_map_room)
+	config.set_value("player", "has_shown_inventory_tutorial", has_shown_inventory_tutorial)
+	config.set_value("runtime", "current_health", player_current_health)
+	config.set_value("runtime", "max_health", player_max_health)
+	config.set_value("runtime", "current_stamina", player_current_stamina)
+	config.set_value("runtime", "max_stamina", player_max_stamina)
+	config.set_value("progress", "run_started_unix_time", run_started_unix_time)
+	config.set_value("progress", "player_death_count", player_death_count)
+	config.set_value("progress", "region_purified", region_purified)
 	var scene_path := _get_current_scene_path()
 	var player_position := _get_current_player_position()
 	config.set_value("save", "current_scene", scene_path)
@@ -722,7 +781,7 @@ func clear_continue_scene() -> void:
 		DirAccess.remove_absolute(CONTINUE_SCENE_SAVE_PATH)
 
 
-func load_game() -> void:
+func load_game(emit_signals := true) -> void:
 	var config := ConfigFile.new()
 	var error := config.load(SAVE_PATH)
 	if error != OK:
@@ -747,6 +806,43 @@ func load_game() -> void:
 	if loaded_position is Vector2:
 		saved_respawn_position = loaded_position
 
+	equipped_skill_ids = _normalize_loaded_skill_array(config.get_value("player", "equipped_skill_ids", equipped_skill_ids), equipped_skill_ids)
+	equipped_skill_icons = _normalize_loaded_skill_array(config.get_value("player", "equipped_skill_icons", equipped_skill_icons), equipped_skill_icons)
+	active_skill_group = clampi(int(config.get_value("player", "active_skill_group", active_skill_group)), 0, 1)
+	ultimate_charge = clampf(float(config.get_value("player", "ultimate_charge", ultimate_charge)), 0.0, ultimate_charge_max)
+	has_shown_inventory_tutorial = bool(config.get_value("player", "has_shown_inventory_tutorial", has_shown_inventory_tutorial))
+	current_map_scene = String(config.get_value("player", "current_map_scene", current_map_scene))
+	current_map_room = String(config.get_value("player", "current_map_room", current_map_room))
+
+	var loaded_visited_rooms: Variant = config.get_value("player", "visited_rooms", visited_rooms)
+	if loaded_visited_rooms is Dictionary:
+		visited_rooms = loaded_visited_rooms
+
+	player_current_health = float(config.get_value("runtime", "current_health", -1.0))
+	player_max_health = int(config.get_value("runtime", "max_health", 0))
+	player_current_stamina = float(config.get_value("runtime", "current_stamina", -1.0))
+	player_max_stamina = float(config.get_value("runtime", "max_stamina", 0.0))
+	if not has_player_runtime_status():
+		clear_player_runtime_status()
+
+	run_started_unix_time = float(config.get_value("progress", "run_started_unix_time", run_started_unix_time))
+	if run_started_unix_time <= 0.0:
+		run_started_unix_time = Time.get_unix_time_from_system()
+	player_death_count = maxi(0, int(config.get_value("progress", "player_death_count", player_death_count)))
+	region_purified = bool(config.get_value("progress", "region_purified", region_purified))
+
+	if emit_signals:
+		_emit_loaded_state()
+
+
+func _emit_loaded_state() -> void:
+	currency_changed.emit(currency)
+	inventory_changed.emit(inventory)
+	health_potions_changed.emit(get_health_potion_count())
+	equipped_skills_changed.emit(equipped_skill_icons)
+	active_skill_group_changed.emit(active_skill_group)
+	ultimate_charge_changed.emit(ultimate_charge, ultimate_charge_max)
+
 
 func get_scene_display_name(scene_path: String) -> String:
 	match scene_path:
@@ -758,6 +854,8 @@ func get_scene_display_name(scene_path: String) -> String:
 			return "Boss 房間"
 		"res://demo/scenes/levels/demo_boss_phase_2.tscn":
 			return "Boss 第二階段"
+		PURIFIED_EPILOGUE_SCENE:
+			return "淨化後的海溝"
 		_:
 			if scene_path == "":
 				return "未知地點"

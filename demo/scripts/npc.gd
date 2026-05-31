@@ -9,7 +9,7 @@ class_name ShopNpc
 	"別急著硬衝。先看清楚怪物的預備動作，再找空檔反擊。",
 ]
 @export var shop_items: Array[Dictionary] = [
-	{"name": "回復藥水", "price": 4, "description": "補回一次生命。展演版最多可帶五瓶。"},
+	{"name": "回復藥水", "price": 4, "description": "補回一次生命。最多可攜帶五瓶。"},
 	{"name": "粗糙護符", "price": 6, "description": "用回收零件拼成的護符，象徵把廢棄物重新利用。"},
 	{"name": "破舊地圖", "price": 8, "description": "標記附近通道，讓探索方向更清楚。"},
 	{"name": "旅行筆記", "price": 3, "description": "記錄海溝中的觀察與警示。"},

@@ -14,6 +14,7 @@ var sfx_label: Label
 var music_slider: HSlider
 var sfx_slider: HSlider
 var close_button: Button
+var input_was_locked := false
 
 
 func _ready() -> void:
@@ -32,6 +33,9 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("audio_settings"):
 		_toggle_window()
+		get_viewport().set_input_as_handled()
+	elif window_root.visible and event.is_action_pressed("ui_cancel"):
+		_hide_window()
 		get_viewport().set_input_as_handled()
 
 
@@ -120,11 +124,18 @@ func _create_slider(value: float) -> HSlider:
 
 
 func _toggle_window() -> void:
-	window_root.visible = not window_root.visible
+	if window_root.visible:
+		_hide_window()
+		return
+	input_was_locked = GameState.input_locked
+	GameState.set_input_locked(true)
+	window_root.show()
+	music_slider.grab_focus()
 
 
 func _hide_window() -> void:
-	window_root.visible = false
+	window_root.hide()
+	GameState.set_input_locked(input_was_locked)
 
 
 func _on_music_volume_changed(value: float) -> void:

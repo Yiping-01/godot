@@ -22,7 +22,6 @@ const PAINTED_FLOOR_TEXTURE_PATHS := [
 	"res://demo/assets/tiles/floor_stone_tile_03.png",
 	"res://demo/assets/tiles/floor_stone_tile_04.png",
 ]
-const WALL_TEXTURE_PATH := "res://demo/assets/art/backgrounds/base_wall_single.png"
 const CEILING_TEXTURE_PATH := "res://demo/assets/art/backgrounds/base_ceiling_single.png"
 const PLANT_TEXTURE_PATH := "res://demo/assets/art/backgrounds/deepsea_prop_plant.png"
 
@@ -89,8 +88,10 @@ func _build_environment_layers() -> void:
 	parallax_layers.clear()
 	air_motes.clear()
 
-	_add_parallax_layer(root, "FarBackLayer", art_background_texture_path, 0.025, Vector2(0.0, floor_y - 330.0), Vector2(0.9, 0.9), Color(0.92, 1.0, 1.0, 0.68), -34)
-	_add_parallax_layer(root, "FarFrontLayer", art_background_texture_path, 0.085, Vector2(420.0, floor_y - 315.0), Vector2(0.78, 0.78), Color(0.72, 0.94, 0.98, 0.34), -30)
+	var far_back_alpha := 0.86 if underwater_bubbles_only else 0.68
+	_add_parallax_layer(root, "FarBackLayer", art_background_texture_path, 0.025, Vector2(0.0, floor_y - 330.0), Vector2(0.9, 0.9), Color(0.92, 1.0, 1.0, far_back_alpha), -34)
+	if not underwater_bubbles_only:
+		_add_parallax_layer(root, "FarFrontLayer", art_background_texture_path, 0.085, Vector2(420.0, floor_y - 315.0), Vector2(0.78, 0.78), Color(0.72, 0.94, 0.98, 0.18), -30)
 	_add_tile_environment(root)
 	_add_foreground_decor(root)
 	_add_depth_fog(root)
@@ -122,21 +123,11 @@ func _add_parallax_layer(parent: Node, layer_name: String, texture_path: String,
 
 
 func _add_tile_environment(parent: Node) -> void:
-	var wall_texture := _load_texture_runtime(WALL_TEXTURE_PATH)
+	if underwater_bubbles_only:
+		return
 	var ceiling_texture := _load_texture_runtime(CEILING_TEXTURE_PATH)
 	if ceiling_texture is Texture2D:
 		_add_tile_strip(parent, ceiling_texture, "CeilingTile", floor_y - 610.0, -4, Color(0.52, 0.65, 0.66, 0.70), 1.0)
-	if wall_texture is Texture2D:
-		for x in [-72.0, level_width + 64.0]:
-			for y in range(int(floor_y - 520.0), int(floor_y + 120.0), 96):
-				var wall := Sprite2D.new()
-				wall.name = "WallTile"
-				wall.texture = wall_texture
-				wall.z_index = 16
-				wall.position = Vector2(x, float(y))
-				wall.scale = Vector2.ONE
-				wall.modulate = Color(0.45, 0.58, 0.60, 0.74)
-				parent.add_child(wall)
 
 
 func _add_foreground_decor(parent: Node) -> void:
@@ -199,12 +190,12 @@ func _add_environment_fx(parent: Node) -> void:
 
 
 func _add_depth_fog(parent: Node) -> void:
-	var fog_back := Color(0.18, 0.27, 0.31, 0.18)
-	var fog_front := Color(0.06, 0.12, 0.15, 0.30)
+	var fog_back := Color(0.18, 0.27, 0.31, 0.07 if underwater_bubbles_only else 0.18)
+	var fog_front := Color(0.06, 0.12, 0.15, 0.12 if underwater_bubbles_only else 0.30)
 	for index in range(4):
 		var veil := Line2D.new()
 		veil.name = "DemoDepthFog%d" % index
-		veil.width = 76.0 + float(index) * 24.0
+		veil.width = (42.0 + float(index) * 14.0) if underwater_bubbles_only else (76.0 + float(index) * 24.0)
 		veil.default_color = fog_back.lerp(fog_front, float(index) / 3.0)
 		veil.z_index = -22 + index * 30
 		veil.joint_mode = Line2D.LINE_JOINT_ROUND
@@ -218,17 +209,18 @@ func _add_depth_fog(parent: Node) -> void:
 		veil.set_meta("parallax_factor", 0.015 + float(index) * 0.018)
 		veil.set_meta("base_position", Vector2.ZERO)
 
-	var floor_shadow := Polygon2D.new()
-	floor_shadow.name = "DemoFloorVignette"
-	floor_shadow.z_index = 115
-	floor_shadow.color = Color(0.02, 0.06, 0.08, 0.32)
-	floor_shadow.polygon = PackedVector2Array([
-		Vector2(-260.0, floor_y + 32.0),
-		Vector2(level_width + 260.0, floor_y + 32.0),
-		Vector2(level_width + 260.0, floor_y + 190.0),
-		Vector2(-260.0, floor_y + 190.0),
-	])
-	parent.add_child(floor_shadow)
+	if not underwater_bubbles_only:
+		var floor_shadow := Polygon2D.new()
+		floor_shadow.name = "DemoFloorVignette"
+		floor_shadow.z_index = 115
+		floor_shadow.color = Color(0.02, 0.06, 0.08, 0.32)
+		floor_shadow.polygon = PackedVector2Array([
+			Vector2(-260.0, floor_y + 32.0),
+			Vector2(level_width + 260.0, floor_y + 32.0),
+			Vector2(level_width + 260.0, floor_y + 190.0),
+			Vector2(-260.0, floor_y + 190.0),
+		])
+		parent.add_child(floor_shadow)
 
 
 func _add_air_motes(parent: Node) -> void:

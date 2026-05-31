@@ -14,12 +14,36 @@ const DEMO_UI_FONT_PATH := "res://demo/assets/hollow_import/fonts/NotoSerifCJKsc
 const DEMO_TITLE_FONT_PATH := "res://demo/assets/hollow_import/fonts/TrajanPro-Regular.otf"
 const SKILL_LIBRARY := [
 	{
+		"id": "water_dash",
+		"name_key": "INV_SKILL_WATER_DASH",
+		"type_key": "INV_CAT_SKILL",
+		"description_key": "INV_SKILL_WATER_DASH_DESC",
+		"texture": "res://demo/assets/art/legacy/player/attack_far/far_1.png",
+		"cooldown": "常駐",
+	},
+	{
+		"id": "wall_burst",
+		"name_key": "INV_SKILL_WALL_BURST",
+		"type_key": "INV_CAT_SKILL",
+		"description_key": "INV_SKILL_WALL_BURST_DESC",
+		"texture": "res://demo/assets/art/legacy/player/attack_far/far_2.png",
+		"cooldown": "常駐",
+	},
+	{
 		"id": "water_shot",
 		"name_key": "INV_SKILL_WATER_SHOT",
 		"type_key": "INV_CAT_SKILL",
 		"description_key": "INV_SKILL_WATER_SHOT_DESC",
 		"texture": "res://demo/assets/art/legacy/player/attack_far/far_3.png",
 		"cooldown": "3 秒",
+	},
+	{
+		"id": "quick_map",
+		"name_key": "INV_SKILL_QUICK_MAP",
+		"type_key": "INV_CAT_SKILL",
+		"description_key": "INV_SKILL_QUICK_MAP_DESC",
+		"texture": "res://demo/assets/art/legacy/player/attack_far/far_4.png",
+		"cooldown": "常駐",
 	},
 ]
 
@@ -92,11 +116,13 @@ var equipped_skills: Array[Dictionary] = []
 var selected_skill_for_equip: Dictionary = {}
 var selected_equip_slot_index := -1
 var selected_inventory_grid_index := -1
+var selected_inventory_category_focus_index := -1
 var selected_inventory_tab_key := "INV_TAB_BAG"
 var selected_inventory_category_key := "INV_CAT_ALL"
 var last_currency_amount := 0
 var current_prompt_text := ""
 var current_toast_text := ""
+var selected_shop_index := -1
 
 const MAP_MODE_CLOSED := 0
 const MAP_MODE_MINI := 1
@@ -143,6 +169,8 @@ func _ready() -> void:
 
 	for i in range(shop_item_buttons.size()):
 		shop_item_buttons[i].pressed.connect(_on_shop_item_pressed.bind(i))
+		shop_item_buttons[i].focus_mode = Control.FOCUS_ALL
+		shop_item_buttons[i].add_theme_stylebox_override("focus", _make_style(Color(0.08, 0.12, 0.13, 0.96), Color(1.0, 0.8, 0.35, 0.94), 2, 4))
 
 	_on_currency_changed(GameState.currency)
 	_on_inventory_changed(GameState.inventory)
@@ -168,11 +196,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if shop_panel.visible and _handle_shop_navigation(event):
+		get_viewport().set_input_as_handled()
+		return
+
 	if event.is_action_pressed("ui_cancel"):
 		close_all_windows()
 		get_viewport().set_input_as_handled()
 
-	if event.is_action_pressed("interact") and dialogue_panel.visible:
+	if (event.is_action_pressed("interact") or event.is_action_pressed("ui_accept")) and dialogue_panel.visible:
 		_advance_dialogue()
 		get_viewport().set_input_as_handled()
 
@@ -197,6 +229,7 @@ func open_npc_dialogue(npc: Node) -> void:
 	if npc == null:
 		return
 
+	_hide_area_title_for_window()
 	active_npc = npc
 	dialogue_lines.assign(npc.dialogue_lines)
 	dialogue_index = 0
@@ -216,6 +249,7 @@ func toggle_inventory() -> void:
 		return
 
 	hide_prompt()
+	_hide_area_title_for_window()
 	GameState.set_input_locked(true)
 	_update_inventory_text(GameState.inventory)
 	inventory_panel.show()
@@ -232,6 +266,7 @@ func toggle_map() -> void:
 
 func _show_mini_map() -> void:
 	hide_prompt()
+	_hide_area_title_for_window()
 	GameState.set_input_locked(false)
 	_apply_map_layout(MAP_MODE_MINI)
 	_rebuild_map()
@@ -240,6 +275,7 @@ func _show_mini_map() -> void:
 
 func _show_full_map() -> void:
 	hide_prompt()
+	_hide_area_title_for_window()
 	GameState.set_input_locked(false)
 	_apply_map_layout(MAP_MODE_FULL)
 	_rebuild_map()
@@ -254,6 +290,7 @@ func close_all_windows() -> void:
 	_apply_map_layout(MAP_MODE_CLOSED)
 
 	active_npc = null
+	selected_shop_index = -1
 	GameState.set_input_locked(false)
 
 
@@ -297,6 +334,12 @@ func show_area_title(main_title: String, sub_title: String) -> void:
 	area_title_tween.tween_interval(2.0)
 	area_title_tween.tween_property(area_title_panel, "modulate:a", 0.0, 0.55)
 	area_title_tween.tween_callback(_hide_instance_id.bind(area_title_panel.get_instance_id()))
+
+
+func _hide_area_title_for_window() -> void:
+	if area_title_tween != null:
+		area_title_tween.kill()
+	area_title_panel.hide()
 
 
 func show_toast(text: String, duration: float = 2.0) -> void:
@@ -422,6 +465,7 @@ func _open_shop(npc: Node) -> void:
 	show_toast(_t("SHOP_INVENTORY_HINT"), 3.0)
 
 	_update_shop()
+	_focus_first_available_shop_item()
 
 
 func _update_shop() -> void:
@@ -461,6 +505,51 @@ func _update_shop() -> void:
 		]
 
 	shop_close_hint_label.text = _format_action_text(_t("SHOP_HINT"))
+
+
+func _handle_shop_navigation(event: InputEvent) -> bool:
+	if not event.is_pressed() or event.is_echo():
+		return false
+	if event.is_action_pressed("ui_up"):
+		_focus_shop_item(-1)
+		return true
+	if event.is_action_pressed("ui_down"):
+		_focus_shop_item(1)
+		return true
+	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
+		if selected_shop_index >= 0:
+			_on_shop_item_pressed(selected_shop_index)
+		return true
+	return false
+
+
+func _focus_first_available_shop_item() -> void:
+	selected_shop_index = -1
+	for i in range(shop_item_buttons.size()):
+		var button := shop_item_buttons[i]
+		if button.visible and not button.disabled:
+			selected_shop_index = i
+			button.grab_focus()
+			return
+	for i in range(shop_item_buttons.size()):
+		var button := shop_item_buttons[i]
+		if button.visible:
+			selected_shop_index = i
+			button.grab_focus()
+			return
+
+
+func _focus_shop_item(direction: int) -> void:
+	if shop_item_buttons.is_empty():
+		return
+	var index := selected_shop_index
+	for _step in range(shop_item_buttons.size()):
+		index = wrapi(index + direction, 0, shop_item_buttons.size())
+		var button := shop_item_buttons[index]
+		if button.visible and not button.disabled:
+			selected_shop_index = index
+			button.grab_focus()
+			return
 
 
 func _rebuild_map() -> void:
@@ -699,6 +788,7 @@ func _on_shop_item_pressed(index: int) -> void:
 
 	show_toast(_t("SHOP_GOT_ITEM") % GameState.get_item_display_name(purchase_item_name))
 	_update_shop()
+	_focus_first_available_shop_item()
 
 
 func _on_currency_changed(amount: int) -> void:
@@ -825,14 +915,14 @@ func _demo_text_override(key: String) -> String:
 		"CURRENCY_AMOUNT": ["寶特瓶：%d", "Bottles: %d"],
 		"TOAST_COIN": ["回收寶特瓶 +%d", "Recycled bottle +%d"],
 		"INVENTORY_FIRST_HINT": ["按 {inventory} 可以查看背包與回收資源。", "Press {inventory} to check your bag and recycled resources."],
-		"DIALOGUE_NEXT_HINT": ["{interact}：繼續 / Esc：離開", "{interact}: Continue / Esc: Leave"],
-		"DIALOGUE_SHOP_HINT": ["{interact}：查看補給 / Esc：離開", "{interact}: Browse supplies / Esc: Leave"],
+		"DIALOGUE_NEXT_HINT": ["Enter 或 {interact}：繼續 / Esc：離開", "Enter or {interact}: Continue / Esc: Leave"],
+		"DIALOGUE_SHOP_HINT": ["Enter 或 {interact}：查看補給 / Esc：離開", "Enter or {interact}: Browse supplies / Esc: Leave"],
 		"SHOP_TITLE": ["%s 的回收補給站", "%s's Recycling Supply"],
 		"SHOP_INVENTORY_HINT": ["用回收寶特瓶交換補給。", "Trade recycled bottles for supplies."],
 		"SHOP_OWNED": ["已取得", "Owned"],
 		"SHOP_LIMIT": ["已達上限", "Limit reached"],
 		"SHOP_ITEM_LINE": ["%s\n需要 %d 個寶特瓶 %s\n%s", "%s\nCosts %d bottles %s\n%s"],
-		"SHOP_HINT": ["點選補給購買 / {inventory} 或 Esc：關閉", "Click an item to buy / {inventory} or Esc: Close"],
+		"SHOP_HINT": ["方向鍵選擇 / Enter 或 {interact}：購買 / {inventory} 或 Esc：關閉", "Arrow keys: Select / Enter or {interact}: Buy / {inventory} or Esc: Close"],
 		"SHOP_ALREADY_HAVE": ["已經擁有：%s", "Already owned: %s"],
 		"SHOP_POTION_LIMIT": ["回復藥水已達上限。", "Potion limit reached."],
 		"SHOP_NOT_ENOUGH_MONEY": ["寶特瓶不足。", "Not enough bottles."],
@@ -863,10 +953,11 @@ func _demo_text_override(key: String) -> String:
 		"INV_SKILL_SLOT": ["技能格 %d", "Skill Slot %d"],
 		"INV_SKILL_SLOT_EMPTY": ["技能格 %d\n未裝備", "Skill Slot %d\nEmpty"],
 		"INV_SKILL_SLOT_EQUIPPED": ["技能格 %d\n%s", "Skill Slot %d\n%s"],
-		"INV_HINT": ["{far_attack} 技能已安裝。{inventory} / Esc：關閉", "{far_attack} skill equipped. {inventory} / Esc: Close"],
+		"INV_HINT": ["Tab：換頁 / 方向鍵：選擇 / Enter：裝備 / {inventory} 或 Esc：關閉", "Tab: Page / Arrow keys: Select / Enter: Equip / {inventory} or Esc: Close"],
 		"INV_SELECT_ITEM": ["選擇一個項目", "Select an item"],
 		"INV_DEFAULT_DESC": ["背包物品與技能都會在這裡整理。", "Bag items and skills are managed here."],
-		"INV_SKILL_TREE": ["{far_attack} 技能", "{far_attack} Skill"],
+		"INV_SKILL_TREE": ["潮汐模組", "Tide Modules"],
+		"INV_SKILL_TREE_DESC": ["每組兩個模組會產生共鳴。能量蓄滿後，長按 {far_attack} 釋放組合技。", "Each pair resonates as a set. When charged, hold {far_attack} to release its combo skill."],
 		"INV_SKILL_WATER_DASH": ["水中衝刺", "Underwater Dash"],
 		"INV_SKILL_WATER_DASH_DESC": ["按 {dash} 可朝目前方向快速衝刺，適合穿越危險區域。", "Press {dash} to dash quickly underwater toward the held direction."],
 		"INV_SKILL_WALL_BURST": ["牆面爆發", "Wall Burst"],
@@ -896,7 +987,7 @@ func _demo_text_override(key: String) -> String:
 		"INV_SKILL_SLOT": ["技能 %d", "Skill %d"],
 		"INV_SKILL_SLOT_EMPTY": ["技能 %d\n未裝備", "Skill %d\nEmpty"],
 		"INV_SKILL_SLOT_EQUIPPED": ["技能 %d\n%s", "Skill %d\n%s"],
-		"INV_HINT": ["I / Esc：關閉\n點選技能：裝備", "I / Esc: Close\nClick a skill: Equip"],
+		"INV_HINT": ["Tab：切換頁面 / 方向鍵：選擇 / Enter 或 E：裝備 / I 或 Esc：關閉", "Tab: Switch page / Arrow keys: Select / Enter or E: Equip / I or Esc: Close"],
 		"INV_SELECT_ITEM": ["選擇一個項目", "Select an item"],
 		"INV_DEFAULT_DESC": ["背包物品與技能都會在這裡整理。", "Bag items and skills are managed here."],
 		"INV_SKILL_TREE": ["技能欄", "Skill Loadout"],
@@ -1162,10 +1253,6 @@ func _reset_equipped_skills() -> void:
 
 
 func _skill_for_saved_slot(index: int) -> Dictionary:
-	if index == 0:
-		for skill in SKILL_LIBRARY:
-			if String(skill.get("id", "")) == "water_shot":
-				return skill.duplicate(true)
 	var saved_id := String(GameState.equipped_skill_ids[index]) if index < GameState.equipped_skill_ids.size() else ""
 	var saved_icon := String(GameState.equipped_skill_icons[index]) if index < GameState.equipped_skill_icons.size() else ""
 	for skill in SKILL_LIBRARY:
@@ -1173,11 +1260,16 @@ func _skill_for_saved_slot(index: int) -> Dictionary:
 			return skill.duplicate(true)
 		if saved_icon != "" and String(skill.get("texture", "")) == saved_icon:
 			return skill.duplicate(true)
+	if index == 0:
+		for skill in SKILL_LIBRARY:
+			if String(skill.get("id", "")) == "water_shot":
+				return skill.duplicate(true)
 	return {}
 
 
 func _select_inventory_tab(tab_key: String) -> void:
 	selected_inventory_tab_key = tab_key
+	selected_inventory_category_focus_index = -1
 	if tab_key != "INV_TAB_SKILLS":
 		selected_equip_slot_index = -1
 	if tab_key == "INV_TAB_MAP":
@@ -1356,10 +1448,16 @@ func _make_skill_tree_panel() -> Control:
 	panel.add_theme_constant_override("separation", 16)
 
 	var title := Label.new()
-	title.text = _t("INV_SKILL_TREE")
+	title.text = _format_action_text(_t("INV_SKILL_TREE"))
 	title.add_theme_font_size_override("font_size", 22)
 	title.add_theme_color_override("font_color", Color(0.9, 0.96, 0.96, 0.92))
 	panel.add_child(title)
+
+	var description := Label.new()
+	description.text = _format_action_text(_t("INV_SKILL_TREE_DESC"))
+	description.add_theme_font_size_override("font_size", 15)
+	description.add_theme_color_override("font_color", Color(0.72, 0.88, 0.9, 0.82))
+	panel.add_child(description)
 
 	var grid := GridContainer.new()
 	grid.columns = 4
@@ -1424,20 +1522,21 @@ func _make_inventory_cell(entry: Dictionary) -> Button:
 	return button
 
 
-func _select_first_inventory_entry() -> void:
+func _select_first_inventory_entry(activate := true) -> void:
 	if inventory_current_entries.is_empty():
 		selected_inventory_grid_index = -1
 		return
-	_select_inventory_entry_at(0)
+	_select_inventory_entry_at(0, activate)
 
 
-func _select_inventory_entry_at(index: int) -> void:
+func _select_inventory_entry_at(index: int, activate := true) -> void:
 	if index < 0 or index >= inventory_current_entries.size():
 		return
+	selected_inventory_category_focus_index = -1
 	selected_inventory_grid_index = index
 	for i in range(inventory_entry_buttons.size()):
 		inventory_entry_buttons[i].set_pressed_no_signal(i == selected_inventory_grid_index)
-	_on_inventory_entry_pressed(inventory_current_entries[index])
+	_on_inventory_entry_pressed(inventory_current_entries[index], activate)
 	if index < inventory_entry_buttons.size():
 		inventory_entry_buttons[index].grab_focus()
 
@@ -1446,15 +1545,33 @@ func _handle_inventory_navigation(event: InputEvent) -> bool:
 	if not event.is_pressed() or event.is_echo():
 		return false
 
-	if selected_inventory_tab_key == "INV_TAB_SKILLS" and selected_equip_slot_index >= 0:
+	if event.is_action_pressed("ui_focus_next"):
+		_cycle_inventory_tab(1)
+		return true
+	if event.is_action_pressed("ui_focus_prev"):
+		_cycle_inventory_tab(-1)
+		return true
+
+	if selected_inventory_tab_key == "INV_TAB_BAG" and selected_inventory_category_focus_index >= 0:
 		if event.is_action_pressed("ui_left"):
-			_equip_selected_skill_to_slot(maxi(selected_equip_slot_index - 1, 0))
+			_focus_inventory_category(selected_inventory_category_focus_index - 1)
 			return true
 		if event.is_action_pressed("ui_right"):
-			_equip_selected_skill_to_slot(mini(selected_equip_slot_index + 1, equipped_skill_slots.size() - 1))
+			_focus_inventory_category(selected_inventory_category_focus_index + 1)
 			return true
 		if event.is_action_pressed("ui_down"):
-			_select_first_inventory_entry()
+			_select_first_inventory_entry(false)
+			return true
+
+	if selected_inventory_tab_key == "INV_TAB_SKILLS" and selected_equip_slot_index >= 0 and _is_equipped_skill_slot_focused():
+		if event.is_action_pressed("ui_left"):
+			_focus_equipped_skill_slot(selected_equip_slot_index - 1)
+			return true
+		if event.is_action_pressed("ui_right"):
+			_focus_equipped_skill_slot(selected_equip_slot_index + 1)
+			return true
+		if event.is_action_pressed("ui_down"):
+			_select_first_inventory_entry(false)
 			return true
 
 	var columns := 4 if selected_inventory_tab_key == "INV_TAB_SKILLS" else 3
@@ -1464,17 +1581,53 @@ func _handle_inventory_navigation(event: InputEvent) -> bool:
 	elif event.is_action_pressed("ui_right"):
 		delta = 1
 	elif event.is_action_pressed("ui_up"):
+		if selected_inventory_grid_index < columns:
+			if selected_inventory_tab_key == "INV_TAB_SKILLS":
+				_focus_equipped_skill_slot(0)
+			elif selected_inventory_tab_key == "INV_TAB_BAG":
+				_focus_inventory_category(0)
+			return true
 		delta = -columns
 	elif event.is_action_pressed("ui_down"):
 		delta = columns
+	elif event.is_action_pressed("ui_accept") or event.is_action_pressed("interact"):
+		if selected_inventory_grid_index >= 0 and selected_inventory_grid_index < inventory_current_entries.size():
+			_on_inventory_entry_pressed(inventory_current_entries[selected_inventory_grid_index], true)
+		return true
 	else:
 		return false
 
 	if inventory_current_entries.is_empty():
 		return true
 	var next_index := clampi(maxi(selected_inventory_grid_index, 0) + delta, 0, inventory_current_entries.size() - 1)
-	_select_inventory_entry_at(next_index)
+	_select_inventory_entry_at(next_index, false)
 	return true
+
+
+func _is_equipped_skill_slot_focused() -> bool:
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	return focus_owner != null and equipped_skill_slots.has(focus_owner)
+
+
+func _cycle_inventory_tab(direction: int) -> void:
+	var tab_index := INVENTORY_TAB_KEYS.find(selected_inventory_tab_key)
+	_select_inventory_tab(INVENTORY_TAB_KEYS[wrapi(tab_index + direction, 0, INVENTORY_TAB_KEYS.size())])
+
+
+func _focus_inventory_category(index: int) -> void:
+	if inventory_category_buttons.is_empty():
+		return
+	selected_inventory_category_focus_index = wrapi(index, 0, inventory_category_buttons.size())
+	_select_inventory_category(INVENTORY_CATEGORY_KEYS[selected_inventory_category_focus_index])
+	selected_inventory_category_focus_index = wrapi(index, 0, inventory_category_buttons.size())
+	inventory_category_buttons[selected_inventory_category_focus_index].grab_focus()
+
+
+func _focus_equipped_skill_slot(index: int) -> void:
+	if equipped_skill_slots.is_empty():
+		return
+	_equip_selected_skill_to_slot(clampi(index, 0, equipped_skill_slots.size() - 1))
+	equipped_skill_slots[selected_equip_slot_index].grab_focus()
 
 
 func _make_empty_cell() -> Panel:
@@ -1484,7 +1637,7 @@ func _make_empty_cell() -> Panel:
 	return panel
 
 
-func _on_inventory_entry_pressed(entry: Dictionary) -> void:
+func _on_inventory_entry_pressed(entry: Dictionary, activate := true) -> void:
 	var is_skill: bool = entry.get("kind") == "skill"
 	inventory_detail_title.text = _entry_name(entry)
 	inventory_detail_type.text = "" if is_skill else _entry_type(entry)
@@ -1496,12 +1649,13 @@ func _on_inventory_entry_pressed(entry: Dictionary) -> void:
 		inventory_detail_icon.texture = _load_texture(String(entry.get("texture", "")), SKILL_TEXTURE if is_skill else ITEM_TEXTURE)
 	if is_skill:
 		selected_skill_for_equip = entry.duplicate(true)
-		if selected_equip_slot_index >= 0 and selected_equip_slot_index < equipped_skills.size():
+		if activate and selected_equip_slot_index >= 0 and selected_equip_slot_index < equipped_skills.size():
 			var equipped_slot_index := selected_equip_slot_index
 			equipped_skills[equipped_slot_index] = selected_skill_for_equip.duplicate(true)
 			selected_equip_slot_index = -1
 			_refresh_equipped_skill_slots()
 			GameState.set_active_skill_group(floori(float(equipped_slot_index) / 2.0))
+			GameState.save_game()
 			inventory_detail_type.text = "已裝備"
 
 
@@ -1526,6 +1680,7 @@ func _clear_equipped_skill(index: int) -> void:
 	equipped_skills[index] = {}
 	selected_equip_slot_index = -1
 	_refresh_equipped_skill_slots()
+	GameState.save_game()
 
 
 func _make_tab_button(text: String) -> Button:

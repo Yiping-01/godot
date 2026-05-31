@@ -417,7 +417,7 @@ func _on_damage_area_entered(area: Area2D) -> void:
 
 
 func _damage_attack_target(area: Area2D) -> void:
-	if is_dead:
+	if is_dead or state != &"attack":
 		return
 
 	var receiver: Node = _find_damage_receiver(area)

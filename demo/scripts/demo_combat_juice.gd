@@ -242,6 +242,103 @@ static func spawn_intro_ring(context: Node, position: Vector2, radius := 92.0, c
 	tween.chain().tween_callback(_queue_free_instance_id.bind(ring.get_instance_id()))
 
 
+static func spawn_water_dash_burst(context: Node, position: Vector2, direction: Vector2, wall_burst := false) -> void:
+	if not is_enabled(context):
+		return
+
+	var root := _effect_root(context)
+	var shock_texture := load(DONUT_TEXTURE_PATH)
+	if root == null or shock_texture == null:
+		return
+
+	var dash_direction := direction.normalized()
+	if dash_direction == Vector2.ZERO:
+		dash_direction = Vector2.RIGHT
+	var cross_direction := Vector2(-dash_direction.y, dash_direction.x)
+	var burst_scale := 1.28 if wall_burst else 1.0
+
+	var ring := Sprite2D.new()
+	ring.name = "DemoWaterDashRing"
+	ring.texture = shock_texture
+	ring.global_position = position - dash_direction * 8.0
+	ring.global_rotation = dash_direction.angle()
+	ring.scale = Vector2(0.045, 0.12) * burst_scale
+	ring.z_index = 346
+	ring.modulate = Color(0.38, 0.94, 1.0, 0.72)
+	root.add_child(ring)
+
+	var ring_tween := ring.create_tween()
+	ring_tween.set_parallel(true)
+	ring_tween.tween_property(ring, "scale", Vector2(0.38, 0.18) * burst_scale, 0.24).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	ring_tween.tween_property(ring, "global_position", ring.global_position - dash_direction * 38.0, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	ring_tween.tween_property(ring, "modulate:a", 0.0, 0.24)
+	ring_tween.chain().tween_callback(_queue_free_instance_id.bind(ring.get_instance_id()))
+
+	var line_count := 8 if wall_burst else 5
+	for index in range(line_count):
+		var ratio := 0.5 if line_count == 1 else float(index) / float(line_count - 1)
+		var offset := cross_direction * lerpf(-30.0, 30.0, ratio) * burst_scale
+		var stream := Line2D.new()
+		stream.name = "DemoWaterDashStream"
+		stream.width = randf_range(1.8, 3.6) * burst_scale
+		stream.default_color = Color(0.52, 0.95, 1.0, randf_range(0.34, 0.58))
+		stream.z_index = 345
+		stream.global_position = position
+		stream.add_point(offset - dash_direction * randf_range(8.0, 18.0))
+		stream.add_point(offset - dash_direction * randf_range(72.0, 128.0) * burst_scale)
+		root.add_child(stream)
+
+		var stream_tween := stream.create_tween()
+		stream_tween.set_parallel(true)
+		stream_tween.tween_property(stream, "global_position", stream.global_position - dash_direction * 56.0, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		stream_tween.tween_property(stream, "width", 0.6, 0.22)
+		stream_tween.tween_property(stream, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		stream_tween.chain().tween_callback(_queue_free_instance_id.bind(stream.get_instance_id()))
+
+
+static func spawn_skill_group_switch(context: Node, position: Vector2, group_index: int) -> void:
+	if not is_enabled(context):
+		return
+
+	var root := _effect_root(context)
+	var flash_texture := load(FLASH_TEXTURE_PATH)
+	if root == null or flash_texture == null:
+		return
+
+	var color := Color(0.38, 0.92, 1.0, 0.76) if group_index == 0 else Color(1.0, 0.78, 0.3, 0.78)
+	for index in range(2):
+		var ring := Line2D.new()
+		ring.name = "DemoSkillGroupRing"
+		ring.closed = true
+		ring.width = 4.2 - float(index)
+		ring.default_color = color
+		ring.z_index = 347
+		ring.global_position = position
+		ring.points = _circle_points(22.0 + float(index) * 8.0, 40)
+		root.add_child(ring)
+
+		var ring_tween := ring.create_tween()
+		ring_tween.set_parallel(true)
+		ring_tween.tween_property(ring, "scale", Vector2.ONE * (2.8 + float(index) * 0.45), 0.28 + float(index) * 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		ring_tween.tween_property(ring, "modulate:a", 0.0, 0.28 + float(index) * 0.05)
+		ring_tween.chain().tween_callback(_queue_free_instance_id.bind(ring.get_instance_id()))
+
+	var flash := PointLight2D.new()
+	flash.name = "DemoSkillGroupLight"
+	flash.texture = flash_texture
+	flash.global_position = position
+	flash.energy = 0.72
+	flash.texture_scale = 0.2
+	flash.color = Color(color.r, color.g, color.b, 1.0)
+	root.add_child(flash)
+
+	var flash_tween := flash.create_tween()
+	flash_tween.set_parallel(true)
+	flash_tween.tween_property(flash, "energy", 0.0, 0.2)
+	flash_tween.tween_property(flash, "texture_scale", 0.42, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	flash_tween.chain().tween_callback(_queue_free_instance_id.bind(flash.get_instance_id()))
+
+
 static func _spawn_particle_burst(root: Node, position: Vector2, texture: Texture2D, amount: int, lifetime: float, velocity: float, color: Color) -> void:
 	if texture == null:
 		return

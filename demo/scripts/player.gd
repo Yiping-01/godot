@@ -346,6 +346,7 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("skill_group_switch") and not GameState.input_locked and not is_dead:
 		GameState.toggle_active_skill_group()
+		DEMO_COMBAT_JUICE.spawn_skill_group_switch(self, global_position, GameState.active_skill_group)
 		get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("interact") and _try_use_health_potion():
@@ -521,6 +522,10 @@ func _handle_underwater_dash_input() -> void:
 	dash_cooldown_left = underwater_dash_cooldown
 	velocity = underwater_dash_direction * underwater_dash_current_speed
 	_refresh_enemy_body_collision_state()
+	DEMO_COMBAT_JUICE.spawn_water_dash_burst(self, global_position, underwater_dash_direction, is_wall_dash)
+	_spawn_dash_trail(underwater_dash_direction, 8 if is_wall_dash else 5)
+	_spawn_dash_afterimage(underwater_dash_direction, 0.34 if is_wall_dash else 0.28)
+	_start_camera_shake(0.1 if is_wall_dash else 0.065, 3.2 if is_wall_dash else 1.4)
 	_play_dash_animation(underwater_dash_direction)
 
 
@@ -1149,7 +1154,10 @@ func _end_dash(keep_momentum: bool = true) -> void:
 	dash_trail_time_left = 0.0
 	_refresh_enemy_body_collision_state()
 	if keep_momentum:
-		velocity.x = float(dash_direction) * speed * 0.65
+		if is_underwater and underwater_dash_direction != Vector2.ZERO:
+			velocity = underwater_dash_direction * underwater_swim_speed * 0.68
+		else:
+			velocity.x = float(dash_direction) * speed * 0.65
 
 
 func _select_attack_area(attack_type: StringName) -> void:
@@ -1324,6 +1332,7 @@ func die() -> void:
 	animated_sprite.visible = false
 	death_effect.visible = false
 	_start_camera_shake(0.4, 10.0)
+	GameState.record_player_death()
 	died.emit()
 
 	await get_tree().create_timer(respawn_delay).timeout
@@ -1335,6 +1344,7 @@ func respawn_from_void() -> void:
 		return
 
 	void_respawning = true
+	GameState.record_player_death()
 	velocity = Vector2.ZERO
 	is_underwater = false
 	has_water_surface_y = false
@@ -2039,12 +2049,14 @@ func _spawn_dash_afterimage(direction_vector: Vector2, duration: float) -> void:
 func _spawn_dash_trail(direction_vector: Vector2, count: int) -> void:
 	if direction_vector == Vector2.ZERO:
 		direction_vector = Vector2(float(facing_direction), 0.0)
+	if is_underwater:
+		_spawn_underwater_dash_wake(direction_vector, count)
+		return
 	var opposite := -direction_vector.normalized()
-	var color := Color(0.72, 0.95, 1.0, 0.66) if not is_underwater else Color(0.36, 0.9, 1.0, 0.74)
 	_spawn_motion_particles(
 		AIR_JUMP_PARTICLE_TEXTURE,
 		global_position + opposite * 28.0 + Vector2(0.0, -2.0),
-		color,
+		Color(0.72, 0.95, 1.0, 0.66),
 		count,
 		Vector2(18.0, 20.0),
 		opposite * 78.0 + Vector2(0.0, 8.0),
@@ -2052,6 +2064,29 @@ func _spawn_dash_trail(direction_vector: Vector2, count: int) -> void:
 		Vector2(0.1, 0.1),
 		Vector2(0.34, 0.34)
 	)
+
+
+func _spawn_underwater_dash_wake(direction_vector: Vector2, count: int) -> void:
+	var parent := get_parent()
+	var scene := get_tree().current_scene
+	if parent == null or scene == null or not scene.is_node_ready() or Engine.get_process_frames() < 3:
+		return
+
+	var opposite := -direction_vector.normalized()
+	var cross := Vector2(-opposite.y, opposite.x)
+	for _index in range(count):
+		var particle := Sprite2D.new()
+		particle.name = "UnderwaterDashWake"
+		particle.texture = WATER_EXIT_PARTICLE_TEXTURE
+		particle.centered = true
+		particle.modulate = Color(0.36, 0.9, 1.0, randf_range(0.48, 0.76))
+		particle.scale = Vector2.ONE * randf_range(0.08, 0.15)
+		particle.global_position = global_position + opposite * randf_range(20.0, 34.0) + cross * randf_range(-18.0, 18.0)
+		particle.z_index = z_index + 4
+
+		var target_position := particle.global_position + opposite * randf_range(54.0, 96.0) + cross * randf_range(-16.0, 16.0)
+		var target_scale := particle.scale * randf_range(1.8, 2.7)
+		call_deferred("_attach_motion_particle", parent, particle, target_position, randf_range(0.2, 0.32), target_scale)
 
 
 func _spawn_motion_particles(

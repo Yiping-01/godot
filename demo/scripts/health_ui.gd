@@ -44,7 +44,10 @@ var ultimate_fill: ColorRect
 var ultimate_charge_max := 100.0
 var ultimate_charge_current := 0.0
 var skill_swap_tween: Tween
+var skill_switch_panel: Panel
 var skill_switch_label: Label
+var skill_group_panel: Panel
+var skill_group_label: Label
 
 
 func _ready() -> void:
@@ -236,13 +239,13 @@ func _build_skill_hud() -> void:
 	if RESERVE_SKILL_SLOT_COUNT <= 0:
 		return
 
-	var switch_panel := Panel.new()
-	switch_panel.name = "SkillSwitchHint"
-	switch_panel.position = Vector2(207.0, 45.0)
-	switch_panel.size = Vector2(28.0, 28.0)
-	switch_panel.add_theme_stylebox_override("panel", _round_style(Color(0.018, 0.024, 0.03, 0.82), Color(0.72, 0.9, 0.94, 0.82), 2, 14))
-	switch_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	skill_hud.add_child(switch_panel)
+	skill_switch_panel = Panel.new()
+	skill_switch_panel.name = "SkillSwitchHint"
+	skill_switch_panel.position = Vector2(207.0, 45.0)
+	skill_switch_panel.size = Vector2(28.0, 28.0)
+	skill_switch_panel.add_theme_stylebox_override("panel", _round_style(Color(0.018, 0.024, 0.03, 0.82), Color(0.72, 0.9, 0.94, 0.82), 2, 14))
+	skill_switch_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skill_hud.add_child(skill_switch_panel)
 
 	skill_switch_label = Label.new()
 	skill_switch_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER as HorizontalAlignment
@@ -251,7 +254,23 @@ func _build_skill_hud() -> void:
 	skill_switch_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	skill_switch_label.add_theme_font_size_override("font_size", 13)
 	skill_switch_label.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.95))
-	switch_panel.add_child(skill_switch_label)
+	skill_switch_panel.add_child(skill_switch_label)
+
+	skill_group_panel = Panel.new()
+	skill_group_panel.name = "SkillGroupBadge"
+	skill_group_panel.position = Vector2(207.0, 9.0)
+	skill_group_panel.size = Vector2(38.0, 26.0)
+	skill_group_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skill_hud.add_child(skill_group_panel)
+
+	skill_group_label = Label.new()
+	skill_group_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	skill_group_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	skill_group_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	skill_group_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skill_group_label.add_theme_font_size_override("font_size", 14)
+	skill_group_panel.add_child(skill_group_label)
+	_refresh_skill_group_badge()
 
 
 func _connect_game_state() -> void:
@@ -323,11 +342,17 @@ func _on_player_respawned() -> void:
 func _on_far_attack_cooldown_changed(time_left: float, max_time: float) -> void:
 	if skill_cooldown_overlays.is_empty() or skill_cooldown_labels.is_empty():
 		return
-	var overlay := skill_cooldown_overlays[0]
-	var label := skill_cooldown_labels[0]
-	if time_left <= 0.05 or max_time <= 0.0:
+	for overlay in skill_cooldown_overlays:
 		overlay.hide()
+	for label in skill_cooldown_labels:
 		label.hide()
+	var active_skill_ids := GameState.get_active_skill_ids()
+	var slot_index := active_skill_ids.find("water_shot")
+	if slot_index < 0 or slot_index >= skill_cooldown_overlays.size():
+		return
+	var overlay := skill_cooldown_overlays[slot_index]
+	var label := skill_cooldown_labels[slot_index]
+	if time_left <= 0.05 or max_time <= 0.0:
 		return
 	var ratio := clampf(time_left / max_time, 0.0, 1.0)
 	overlay.show()
@@ -342,6 +367,7 @@ func _on_equipped_skills_changed(_paths: Array) -> void:
 
 
 func _on_active_skill_group_changed(_group_index: int) -> void:
+	_refresh_skill_group_badge()
 	_update_skill_icons(true)
 
 
@@ -382,8 +408,9 @@ func _set_skill_icon_group(icons: Array[Sprite2D], paths: Array[String], is_rese
 		icon.modulate = Color(1.0, 1.0, 1.0, 0.48 if is_reserve else 0.94)
 		_fit_skill_sprite(icon, 38.0 if is_reserve else 48.0)
 
+	var border_color := _active_skill_group_color(0.74)
 	for panel in skill_slot_panels:
-		panel.add_theme_stylebox_override("panel", _round_style(Color(0.014, 0.025, 0.032, 0.72), Color(0.75, 0.9, 0.94, 0.74), 2, 33))
+		panel.add_theme_stylebox_override("panel", _round_style(Color(0.014, 0.025, 0.032, 0.72), border_color, 2, 33))
 
 
 func _get_reserve_skill_icons() -> Array[String]:
@@ -414,6 +441,28 @@ func _play_skill_group_swap_animation() -> void:
 		skill_swap_tween.tween_property(back_panel, "position", _back_skill_position(i), 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		skill_swap_tween.tween_property(back_panel, "scale", Vector2.ONE * 0.86, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		skill_swap_tween.tween_property(back_panel, "modulate", Color(0.62, 0.78, 0.82, 0.45), 0.18)
+	if skill_group_panel != null:
+		skill_group_panel.scale = Vector2.ONE * 0.76
+		skill_group_panel.pivot_offset = skill_group_panel.size * 0.5
+		skill_swap_tween.tween_property(skill_group_panel, "scale", Vector2.ONE * 1.18, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		skill_swap_tween.chain().tween_property(skill_group_panel, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if skill_switch_panel != null:
+		skill_switch_panel.pivot_offset = skill_switch_panel.size * 0.5
+		skill_swap_tween.tween_property(skill_switch_panel, "rotation", 0.16, 0.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		skill_swap_tween.chain().tween_property(skill_switch_panel, "rotation", 0.0, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func _refresh_skill_group_badge() -> void:
+	if skill_group_panel == null or skill_group_label == null:
+		return
+	var border_color := _active_skill_group_color(0.92)
+	skill_group_label.text = "I" if GameState.active_skill_group == 0 else "II"
+	skill_group_label.add_theme_color_override("font_color", Color(border_color.r, border_color.g, border_color.b, 1.0))
+	skill_group_panel.add_theme_stylebox_override("panel", _round_style(Color(0.018, 0.024, 0.03, 0.88), border_color, 2, 10))
+
+
+func _active_skill_group_color(alpha: float) -> Color:
+	return Color(0.42, 0.9, 1.0, alpha) if GameState.active_skill_group == 0 else Color(1.0, 0.76, 0.3, alpha)
 
 
 func _front_skill_position(index: int) -> Vector2:

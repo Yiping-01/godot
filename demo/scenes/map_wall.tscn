@@ -8,8 +8,20 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Visual" type="Polygon2D" parent="."]
-color = Color(0.095, 0.115, 0.13, 1)
+color = Color(0.055, 0.12, 0.16, 1)
 polygon = PackedVector2Array(-24, -110, 24, -110, 24, 110, -24, 110)
+
+[node name="InnerShade" type="Polygon2D" parent="."]
+color = Color(0.09, 0.25, 0.31, 0.72)
+polygon = PackedVector2Array(-18, -104, 13, -104, 13, 104, -18, 104)
+
+[node name="EdgeHighlight" type="Polygon2D" parent="."]
+color = Color(0.38, 0.78, 0.84, 0.78)
+polygon = PackedVector2Array(-24, -110, -18, -104, -18, 104, -24, 110)
+
+[node name="OppositeEdge" type="Polygon2D" parent="."]
+color = Color(0.015, 0.055, 0.075, 0.9)
+polygon = PackedVector2Array(13, -104, 24, -110, 24, 110, 13, 104)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_wall")

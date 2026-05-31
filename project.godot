@@ -19,6 +19,7 @@ config/icon="res://demo/assets/project/icon.svg"
 [autoload]
 
 GameState="*res://demo/scripts/game_state.gd"
+ExhibitionCompletion="*res://demo/scripts/exhibition_completion.gd"
 AchievementManager="*res://demo/scripts/AchievementManager.gd"
 AchievementPopup="*res://demo/scenes/ui/AchievementPopup.tscn"
 MusicPlayer="*res://demo/scripts/music_player.gd"

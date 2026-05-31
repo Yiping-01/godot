@@ -69,8 +69,8 @@ func _check_player_collision_rule() -> void:
 		return
 
 	_expect(
-		not player.get_collision_mask_value(ENEMY_BODY_COLLISION_LAYER_NUMBER),
-		"Player should ignore enemy body collision by default."
+		player.get_collision_mask_value(ENEMY_BODY_COLLISION_LAYER_NUMBER),
+		"Player should collide with enemy bodies until dash or invincibility disables contact."
 	)
 	player.queue_free()
 
@@ -107,7 +107,7 @@ func _check_attack_window_rules() -> void:
 		_expect(bool(squid.call("can_receive_player_attack")), "Squid should become hittable during slam active/recovery windows.")
 		_expect(bool(squid.call("_is_contact_damage_active")), "Squid contact damage should only be active during the slam.")
 		squid.state = 4
-		_expect(not bool(squid.call("_is_contact_damage_active")), "Squid contact damage should turn off after the slam.")
+		_expect(bool(squid.call("_is_contact_damage_active")), "Squid contact damage should remain active while it is alive.")
 		squid.queue_free()
 
 	var dash_squid := _instantiate("res://demo/scenes/enemy2.tscn")
@@ -138,16 +138,18 @@ func _check_attack_window_rules() -> void:
 		boss.velocity.y = 100.0
 		_expect(bool(boss.call("can_receive_player_attack")), "Boss should become hittable while falling in quake_jump.")
 		_expect(bool(boss.call("_is_body_contact_damage_active")), "Boss body contact damage should be active while falling.")
+		boss.is_defeated = true
+		_expect(not bool(boss.call("can_receive_player_attack")), "Defeated Boss should reject player hits.")
+		_expect(not bool(boss.call("_is_body_contact_damage_active")), "Defeated Boss contact damage should be off.")
 	if boss_level != null:
 		boss_level.queue_free()
 
 
 func _check_damage_application_rules() -> void:
-	_check_area_contact_damage(
+	_check_area_contact_damage_in_states(
 		"res://demo/scenes/squid_monster.tscn",
 		"state",
-		[1, 2, 4, 5],
-		3,
+		[1, 2, 3, 4, 5],
 		"_damage_contact_target",
 		"Squid contact damage"
 	)
@@ -175,19 +177,17 @@ func _check_damage_application_rules() -> void:
 		"_damage_attack_body",
 		"Legacy split enemy body damage"
 	)
-	_check_body_contact_damage(
+	_check_body_contact_damage_in_states(
 		"res://demo/scenes/blue_bounce_split_enemy.tscn",
 		"state",
-		[&"pulse_idle", &"pulse_windup", &"pulse_recovery"],
-		&"attack",
+		[&"pulse_idle", &"pulse_windup", &"attack", &"pulse_recovery"],
 		"_damage_attack_body",
 		"Blue bounce split enemy body damage"
 	)
-	_check_area_contact_damage(
+	_check_area_contact_damage_in_states(
 		"res://demo/scenes/blue_bounce_small_enemy.tscn",
 		"state",
-		[&"pulse_idle", &"pulse_windup", &"pulse_recovery"],
-		&"attack",
+		[&"pulse_idle", &"pulse_windup", &"attack", &"pulse_recovery"],
 		"_damage_attack_target",
 		"Blue bounce small enemy damage"
 	)
@@ -201,6 +201,14 @@ func _check_damage_application_rules() -> void:
 			probe.damage_taken = 0
 			boss.call("_damage_contact_target", probe)
 			_expect(probe.damage_taken > 0, "Boss body contact damage should apply during %s." % contact_state)
+		boss.state = &"idle"
+		probe.damage_taken = 0
+		boss.call("_on_damage_area_entered", probe)
+		_expect(probe.damage_taken == 0, "Boss dash hitbox should not apply while idle.")
+		boss.state = &"dash"
+		probe.damage_taken = 0
+		boss.call("_on_damage_area_entered", probe)
+		_expect(probe.damage_taken > 0, "Boss dash hitbox should apply during dash.")
 		probe.queue_free()
 	if boss_level != null:
 		boss_level.queue_free()
@@ -243,6 +251,38 @@ func _check_body_contact_damage(scene_path: String, state_property: String, inac
 	probe.damage_taken = 0
 	enemy.call(damage_method, probe)
 	_expect(probe.damage_taken > 0, "%s should apply during %s." % [label, active_state])
+
+	probe.queue_free()
+	enemy.queue_free()
+
+
+func _check_area_contact_damage_in_states(scene_path: String, state_property: String, active_states: Array, damage_method: StringName, label: String) -> void:
+	var enemy := _instantiate(scene_path)
+	if enemy == null:
+		return
+
+	var probe := _new_probe_area()
+	for active_state in active_states:
+		enemy.set(state_property, active_state)
+		probe.damage_taken = 0
+		enemy.call(damage_method, probe)
+		_expect(probe.damage_taken > 0, "%s should apply during %s." % [label, active_state])
+
+	probe.queue_free()
+	enemy.queue_free()
+
+
+func _check_body_contact_damage_in_states(scene_path: String, state_property: String, active_states: Array, damage_method: StringName, label: String) -> void:
+	var enemy := _instantiate(scene_path)
+	if enemy == null:
+		return
+
+	var probe := _new_probe_body()
+	for active_state in active_states:
+		enemy.set(state_property, active_state)
+		probe.damage_taken = 0
+		enemy.call(damage_method, probe)
+		_expect(probe.damage_taken > 0, "%s should apply during %s." % [label, active_state])
 
 	probe.queue_free()
 	enemy.queue_free()

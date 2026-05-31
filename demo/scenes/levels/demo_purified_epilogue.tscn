@@ -1,0 +1,138 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://demo/scripts/demo_purified_epilogue.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://demo/assets/background/bosslevel_bgtitle/boss_end_bg.png" id="2_background"]
+[ext_resource type="Script" uid="uid://kga12lvq78rr" path="res://demo/scripts/health_ui.gd" id="3_health_ui"]
+[ext_resource type="PackedScene" uid="uid://dgcm5rlgbtx5k" path="res://demo/scenes/game_ui.tscn" id="4_game_ui"]
+[ext_resource type="Script" uid="uid://cnimtrmkiocnm" path="res://demo/scripts/demo_exit_menu.gd" id="5_exit_menu"]
+[ext_resource type="PackedScene" uid="uid://skg25sikhd5u" path="res://demo/scenes/player.tscn" id="6_player"]
+[ext_resource type="Script" uid="uid://cxg250go8p8y7" path="res://demo/scripts/demo_scene_transition.gd" id="7_transition"]
+[ext_resource type="Script" uid="uid://hid4uidnrebp" path="res://demo/scripts/respawn_point.gd" id="8_respawn"]
+[ext_resource type="PackedScene" path="res://demo/scenes/map_passage_marker.tscn" id="9_passage"]
+[ext_resource type="Script" uid="uid://byewjrqi0yxp" path="res://demo/scripts/debug_hitbox_overlay.gd" id="12_debug_overlay"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(2200, 120)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(170, 300)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_side"]
+size = Vector2(100, 1200)
+
+[node name="PurifiedEpilogue" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+layer = -100
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_background")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 2
+
+[node name="PurifiedLight" type="CanvasModulate" parent="."]
+color = Color(0.78, 0.9, 1, 1)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_health_ui")
+
+[node name="HealthPips" type="HBoxContainer" parent="HUD"]
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 360.0
+offset_bottom = 70.0
+theme_override_constants/separation = 2
+
+[node name="HealthLabel" type="Label" parent="HUD"]
+offset_left = 28.0
+offset_top = 72.0
+offset_right = 270.0
+offset_bottom = 104.0
+theme_override_font_sizes/font_size = 18
+
+[node name="ExitMenu" type="CanvasLayer" parent="."]
+process_mode = 3
+script = ExtResource("5_exit_menu")
+
+[node name="GameUI" parent="." instance=ExtResource("4_game_ui")]
+
+[node name="DebugHitboxes" type="Node2D" parent="."]
+script = ExtResource("12_debug_overlay")
+
+[node name="Markers" type="Node2D" parent="."]
+
+[node name="purified_entry" type="Marker2D" parent="Markers" groups=["spawn_marker"]]
+position = Vector2(420, 760)
+script = ExtResource("8_respawn")
+
+[node name="Player" parent="." instance=ExtResource("6_player")]
+position = Vector2(420, 760)
+camera_follow_position = Vector2(0, 0)
+camera_follow_zoom = Vector2(1, 1)
+camera_follow_smoothing_speed = 8.5
+camera_forward_lookahead = 0.0
+camera_fall_lookahead = 0.0
+use_map_wall_camera_limits = false
+
+[node name="MapPieces" type="Node2D" parent="."]
+
+[node name="FloorCollision" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(960, 950)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/FloorCollision"]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="LeftBoundary" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(-50, 540)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/LeftBoundary"]
+shape = SubResource("RectangleShape2D_side")
+
+[node name="RightBoundary" type="StaticBody2D" parent="MapPieces"]
+position = Vector2(1970, 540)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapPieces/RightBoundary"]
+shape = SubResource("RectangleShape2D_side")
+
+[node name="ReturnDoor" type="Area2D" parent="."]
+position = Vector2(1710, 760)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("7_transition")
+target_scene = "res://demo/scenes/levels/demo_water.tscn"
+target_spawn_marker_name = "water_boss_return"
+transition_label = "返回沉水廊道"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ReturnDoor"]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="DoorVisual" parent="ReturnDoor" instance=ExtResource("9_passage")]
+modulate = Color(0.68, 1, 0.92, 0.96)
+scale = Vector2(1.08, 1.42)
+
+[node name="DoorGlow" type="Polygon2D" parent="ReturnDoor"]
+z_index = 1
+color = Color(0.18, 0.92, 0.86, 0.28)
+polygon = PackedVector2Array(-68, -106, 68, -106, 68, 106, -68, 106)
+
+[node name="PromptLabel" type="Label" parent="ReturnDoor"]
+z_index = 8
+offset_left = -150.0
+offset_top = -202.0
+offset_right = 150.0
+offset_bottom = -164.0
+theme_override_colors/font_color = Color(0.78, 1, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.01, 0.03, 0.04, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 20
+text = "返回沉水廊道"
+horizontal_alignment = 1

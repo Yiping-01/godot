@@ -8,8 +8,28 @@ collision_layer = 1
 collision_mask = 0
 
 [node name="Visual" type="Polygon2D" parent="."]
-color = Color(0.08, 0.31, 0.34, 1)
+color = Color(0.055, 0.24, 0.3, 1)
 polygon = PackedVector2Array(-24, -110, 24, -110, 24, 110, -24, 110)
+
+[node name="InnerGlow" type="Polygon2D" parent="."]
+color = Color(0.12, 0.48, 0.54, 0.86)
+polygon = PackedVector2Array(-17, -104, 15, -104, 15, 104, -17, 104)
+
+[node name="ClimbEdge" type="Polygon2D" parent="."]
+color = Color(0.52, 0.98, 1, 0.94)
+polygon = PackedVector2Array(-24, -110, -17, -104, -17, 104, -24, 110)
+
+[node name="DepthEdge" type="Polygon2D" parent="."]
+color = Color(0.02, 0.1, 0.14, 0.92)
+polygon = PackedVector2Array(15, -104, 24, -110, 24, 110, 15, 104)
+
+[node name="CurrentMarkTop" type="Polygon2D" parent="."]
+color = Color(0.58, 0.96, 1, 0.78)
+polygon = PackedVector2Array(-14, -54, 12, -62, 12, -54, -14, -46)
+
+[node name="CurrentMarkBottom" type="Polygon2D" parent="."]
+color = Color(0.58, 0.96, 1, 0.62)
+polygon = PackedVector2Array(-14, 36, 12, 28, 12, 36, -14, 44)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_wall_jump")
