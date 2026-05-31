@@ -23,6 +23,7 @@ func _ready() -> void:
 	if wind != null and wind.stream != null:
 		wind.play()
 	phase_two_packed_scene = load(phase_two_scene) as PackedScene
+	_play_boss_music()
 	set_process(true)
 
 
