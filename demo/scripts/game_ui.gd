@@ -9,7 +9,7 @@ const DEMO_MENU_UI_ART := preload("res://demo/scripts/demo_menu_ui_art.gd")
 const INVENTORY_TAB_KEYS := ["INV_TAB_BAG", "INV_TAB_SKILLS", "INV_TAB_MAP"]
 const INVENTORY_CATEGORY_KEYS := ["INV_CAT_ALL", "INV_CAT_CONSUMABLE", "INV_CAT_MATERIAL", "INV_CAT_IMPORTANT"]
 const GRID_SLOT_COUNT := 40
-const EQUIPPED_SKILL_SLOT_COUNT := 1
+const EQUIPPED_SKILL_SLOT_COUNT := 4
 const DEMO_UI_FONT_PATH := "res://demo/assets/hollow_import/fonts/NotoSerifCJKsc-Regular.otf"
 const DEMO_TITLE_FONT_PATH := "res://demo/assets/hollow_import/fonts/TrajanPro-Regular.otf"
 const SKILL_LIBRARY := [
@@ -95,6 +95,8 @@ var selected_inventory_grid_index := -1
 var selected_inventory_tab_key := "INV_TAB_BAG"
 var selected_inventory_category_key := "INV_CAT_ALL"
 var last_currency_amount := 0
+var current_prompt_text := ""
+var current_toast_text := ""
 
 const MAP_MODE_CLOSED := 0
 const MAP_MODE_MINI := 1
@@ -135,6 +137,9 @@ func _ready() -> void:
 	var localization: Node = _get_localization()
 	if localization != null:
 		localization.connect("language_changed", Callable(self, "_refresh_localized_texts"))
+	var input_settings := get_node_or_null("/root/InputSettings")
+	if input_settings != null:
+		input_settings.connect("controls_changed", Callable(self, "_on_controls_changed"))
 
 	for i in range(shop_item_buttons.size()):
 		shop_item_buttons[i].pressed.connect(_on_shop_item_pressed.bind(i))
@@ -176,7 +181,8 @@ func show_prompt(text: String) -> void:
 	if dialogue_panel.visible or shop_panel.visible or inventory_panel.visible or map_panel.visible:
 		return
 
-	prompt_label.text = _format_action_text(_tr_raw(text))
+	current_prompt_text = text
+	prompt_label.text = _format_action_text(_tr_raw(current_prompt_text))
 	_style_hint_label(prompt_label, false)
 	var viewport_size := get_viewport().get_visible_rect().size
 	_set_control_rect(prompt_label, Rect2(Vector2((viewport_size.x - 460.0) * 0.5, viewport_size.y - 96.0), Vector2(460.0, 38.0)))
@@ -294,7 +300,8 @@ func show_area_title(main_title: String, sub_title: String) -> void:
 
 
 func show_toast(text: String, duration: float = 2.0) -> void:
-	toast_label.text = _format_action_text(_tr_raw(text))
+	current_toast_text = text
+	toast_label.text = _format_action_text(_tr_raw(current_toast_text))
 	_style_hint_label(toast_label, true)
 	var viewport_size := get_viewport().get_visible_rect().size
 	var toast_width := minf(1320.0, maxf(560.0, viewport_size.x - 240.0))
@@ -817,15 +824,15 @@ func _demo_text_override(key: String) -> String:
 	var exhibition_labels := {
 		"CURRENCY_AMOUNT": ["寶特瓶：%d", "Bottles: %d"],
 		"TOAST_COIN": ["回收寶特瓶 +%d", "Recycled bottle +%d"],
-		"INVENTORY_FIRST_HINT": ["按 I 可以查看背包與回收資源。", "Press I to check your bag and recycled resources."],
-		"DIALOGUE_NEXT_HINT": ["E：繼續 / Esc：離開", "E: Continue / Esc: Leave"],
-		"DIALOGUE_SHOP_HINT": ["E：查看補給 / Esc：離開", "E: Browse supplies / Esc: Leave"],
+		"INVENTORY_FIRST_HINT": ["按 {inventory} 可以查看背包與回收資源。", "Press {inventory} to check your bag and recycled resources."],
+		"DIALOGUE_NEXT_HINT": ["{interact}：繼續 / Esc：離開", "{interact}: Continue / Esc: Leave"],
+		"DIALOGUE_SHOP_HINT": ["{interact}：查看補給 / Esc：離開", "{interact}: Browse supplies / Esc: Leave"],
 		"SHOP_TITLE": ["%s 的回收補給站", "%s's Recycling Supply"],
 		"SHOP_INVENTORY_HINT": ["用回收寶特瓶交換補給。", "Trade recycled bottles for supplies."],
 		"SHOP_OWNED": ["已取得", "Owned"],
 		"SHOP_LIMIT": ["已達上限", "Limit reached"],
 		"SHOP_ITEM_LINE": ["%s\n需要 %d 個寶特瓶 %s\n%s", "%s\nCosts %d bottles %s\n%s"],
-		"SHOP_HINT": ["點選補給購買 / I 或 Esc：關閉", "Click an item to buy / I or Esc: Close"],
+		"SHOP_HINT": ["點選補給購買 / {inventory} 或 Esc：關閉", "Click an item to buy / {inventory} or Esc: Close"],
 		"SHOP_ALREADY_HAVE": ["已經擁有：%s", "Already owned: %s"],
 		"SHOP_POTION_LIMIT": ["回復藥水已達上限。", "Potion limit reached."],
 		"SHOP_NOT_ENOUGH_MONEY": ["寶特瓶不足。", "Not enough bottles."],
@@ -856,20 +863,20 @@ func _demo_text_override(key: String) -> String:
 		"INV_SKILL_SLOT": ["技能格 %d", "Skill Slot %d"],
 		"INV_SKILL_SLOT_EMPTY": ["技能格 %d\n未裝備", "Skill Slot %d\nEmpty"],
 		"INV_SKILL_SLOT_EQUIPPED": ["技能格 %d\n%s", "Skill Slot %d\n%s"],
-		"INV_HINT": ["F 技能已安裝。I / Esc：關閉", "F skill equipped. I / Esc: Close"],
+		"INV_HINT": ["{far_attack} 技能已安裝。{inventory} / Esc：關閉", "{far_attack} skill equipped. {inventory} / Esc: Close"],
 		"INV_SELECT_ITEM": ["選擇一個項目", "Select an item"],
 		"INV_DEFAULT_DESC": ["背包物品與技能都會在這裡整理。", "Bag items and skills are managed here."],
-		"INV_SKILL_TREE": ["F 技能", "F Skill"],
+		"INV_SKILL_TREE": ["{far_attack} 技能", "{far_attack} Skill"],
 		"INV_SKILL_WATER_DASH": ["水中衝刺", "Underwater Dash"],
-		"INV_SKILL_WATER_DASH_DESC": ["按 C 可朝目前方向快速衝刺，適合穿越危險區域。", "Dash quickly underwater toward the held direction."],
+		"INV_SKILL_WATER_DASH_DESC": ["按 {dash} 可朝目前方向快速衝刺，適合穿越危險區域。", "Press {dash} to dash quickly underwater toward the held direction."],
 		"INV_SKILL_WALL_BURST": ["牆面爆發", "Wall Burst"],
-		"INV_SKILL_WALL_BURST_DESC": ["貼牆時按跳躍鍵 Z 可以借力彈開。", "Burst away while touching a wall."],
+		"INV_SKILL_WALL_BURST_DESC": ["貼牆時按跳躍鍵 {jump} 可以借力彈開。", "Press {jump} to burst away while touching a wall."],
 		"INV_SKILL_WATER_SHOT": ["水槍", "Water Shot"],
-		"INV_SKILL_WATER_SHOT_DESC": ["按 F 發射直線水彈，適合在安全距離打斷或補刀敵人。使用後需等待 3 秒冷卻。", "Press F to fire a straight water shot. It is useful for safe ranged hits and has a 3-second cooldown."],
+		"INV_SKILL_WATER_SHOT_DESC": ["按 {far_attack} 發射直線水彈，適合在安全距離打斷或補刀敵人。使用後需等待 3 秒冷卻。", "Press {far_attack} to fire a straight water shot. It is useful for safe ranged hits and has a 3-second cooldown."],
 		"INV_SKILL_QUICK_MAP": ["快速地圖", "Quick Map"],
-		"INV_SKILL_QUICK_MAP_DESC": ["按 M 可切換小地圖與完整地圖，地圖開啟時仍會更新玩家位置。", "Switch between mini map and full map."],
+		"INV_SKILL_QUICK_MAP_DESC": ["按 {map} 可切換小地圖與完整地圖，地圖開啟時仍會更新玩家位置。", "Press {map} to switch between mini map and full map."],
 		"MAP_TITLE": ["區域地圖", "Area Map"],
-		"MAP_HINT": ["M / Esc：關閉", "M / Esc: Close"],
+		"MAP_HINT": ["{map} / Esc：關閉", "{map} / Esc: Close"],
 		"MAP_EMPTY": ["這個場景還沒有地圖標記。", "This scene has no map markers yet."],
 	}
 	if clean_labels.has(key):
@@ -953,6 +960,14 @@ func _refresh_localized_texts() -> void:
 		_update_shop()
 	if map_panel.visible:
 		_rebuild_map()
+
+
+func _on_controls_changed() -> void:
+	_refresh_localized_texts()
+	if prompt_label.visible:
+		prompt_label.text = _format_action_text(_tr_raw(current_prompt_text))
+	if toast_label.visible:
+		toast_label.text = _format_action_text(_tr_raw(current_toast_text))
 
 
 func _on_map_room_changed(_scene_path: String, _room_id: String) -> void:
@@ -1224,7 +1239,7 @@ func _refresh_inventory_header() -> void:
 	inventory_currency_label.text = _t("CURRENCY_AMOUNT") % GameState.currency
 	inventory_detail_title.text = "選取中的技能介紹" if is_skill_tab else _t("INV_TAB_BAG")
 	inventory_detail_type.text = ""
-	inventory_detail_description.text = _t("INV_DEFAULT_DESC") if is_bag_tab else "目前只保留 F 的水槍技能，已安裝在技能欄位中。"
+	inventory_detail_description.text = _t("INV_DEFAULT_DESC") if is_bag_tab else _format_action_text("四個技能格分成兩組。遊戲中按 {skill_group_switch} 可切換左下角顯示的兩個技能。")
 	if inventory_detail_icon != null:
 		inventory_detail_icon.texture = null
 
@@ -1250,7 +1265,7 @@ func _refresh_equipped_skill_slots() -> void:
 		slot.toggle_mode = true
 		slot.button_pressed = i == selected_equip_slot_index
 		var skill: Dictionary = equipped_skills[i]
-		var slot_name := "F 技能"
+		var slot_name := "技能組 %d - 格 %d" % [floori(float(i) / 2.0) + 1, (i % 2) + 1]
 		if skill.is_empty():
 			slot.text = "%s\n未裝備" % slot_name
 			slot.icon = null
@@ -1494,12 +1509,12 @@ func _equip_selected_skill_to_slot(index: int) -> void:
 	if index < 0 or index >= equipped_skills.size():
 		return
 	selected_equip_slot_index = index
-	inventory_detail_title.text = "F 技能欄"
+	inventory_detail_title.text = "技能組 %d - 格 %d" % [floori(float(index) / 2.0) + 1, (index % 2) + 1]
 	inventory_detail_type.text = "已安裝"
 	if inventory_skill_meta_label != null:
 		inventory_skill_meta_label.visible = true
 		inventory_skill_meta_label.text = "分類：技能\n冷卻時間：3 秒"
-	inventory_detail_description.text = "這一格固定安裝 F 的水槍技能。按 F 發射後，遊戲內技能圖示會顯示冷卻倒數。"
+	inventory_detail_description.text = _format_action_text("選擇下方技能後會安裝到這一格。遊戲中按 {skill_group_switch} 可切換兩組技能。")
 	if inventory_detail_icon != null:
 		inventory_detail_icon.texture = null
 	_refresh_equipped_skill_slots()
@@ -1560,8 +1575,8 @@ func _entry_type(entry: Dictionary) -> String:
 
 func _entry_description(entry: Dictionary) -> String:
 	if entry.has("description_key"):
-		return _t(String(entry["description_key"]))
-	return _tr_raw(String(entry.get("description", "")))
+		return _format_action_text(_t(String(entry["description_key"])))
+	return _format_action_text(_tr_raw(String(entry.get("description", ""))))
 
 
 func _make_style(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:

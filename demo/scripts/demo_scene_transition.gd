@@ -19,7 +19,7 @@ func _ready() -> void:
 	for child in get_children():
 		if child is Label:
 			prompt_label = child
-			prompt_label.text = "按 E " + transition_label
+			_refresh_prompt_text()
 			prompt_label.add_theme_color_override("font_color", Color(0.92, 0.82, 0.62, 1.0))
 			prompt_label.add_theme_color_override("font_shadow_color", Color(0.03, 0.02, 0.01, 0.9))
 			prompt_label.add_theme_constant_override("shadow_offset_x", 3)
@@ -29,6 +29,9 @@ func _ready() -> void:
 			break
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	var input_settings := get_node_or_null("/root/InputSettings")
+	if input_settings != null:
+		input_settings.connect("controls_changed", Callable(self, "_refresh_prompt_text"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -99,3 +102,11 @@ func _load_target_scene() -> void:
 	var loader := DemoLoadingTransition.new()
 	get_tree().root.add_child(loader)
 	await loader.load_scene(target_scene, maxf(loading_time, 0.45))
+
+
+func _refresh_prompt_text() -> void:
+	if prompt_label == null:
+		return
+	var text := "按 E " + transition_label
+	var input_settings := get_node_or_null("/root/InputSettings")
+	prompt_label.text = text if input_settings == null else String(input_settings.call("format_action_text", text))

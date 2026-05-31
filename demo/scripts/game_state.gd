@@ -499,8 +499,8 @@ func get_active_skill_ids() -> Array[String]:
 	return _get_active_pair(equipped_skill_ids)
 
 
-func set_active_skill_group(_group_index: int) -> void:
-	var next_group := 0
+func set_active_skill_group(group_index: int) -> void:
+	var next_group := clampi(group_index, 0, 1)
 	if active_skill_group == next_group:
 		return
 	active_skill_group = next_group

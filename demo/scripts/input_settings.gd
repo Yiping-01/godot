@@ -43,30 +43,50 @@ func format_action_text(text: String) -> String:
 		var action := String(item["action"])
 		formatted = formatted.replace("{%s}" % action, get_label_for_action(action))
 
+	formatted = formatted.replace("A / D", "%s / %s" % [get_label_for_action("move_left"), get_label_for_action("move_right")])
+	formatted = formatted.replace("W / S", "%s / %s" % [get_label_for_action("move_up"), get_label_for_action("move_down")])
+	formatted = formatted.replace("S+X", "%s+%s" % [get_label_for_action("move_down"), get_label_for_action("attack")])
+
 	formatted = formatted.replace("按 E", "按 %s" % get_label_for_action("interact"))
 	formatted = formatted.replace("按下E", "按下%s" % get_label_for_action("interact"))
 	formatted = formatted.replace("E：", "%s：" % get_label_for_action("interact"))
+	formatted = formatted.replace("E 是互動鍵", "%s 是互動鍵" % get_label_for_action("interact"))
 
 	formatted = formatted.replace("按 I", "按 %s" % get_label_for_action("inventory"))
 	formatted = formatted.replace("I 或", "%s 或" % get_label_for_action("inventory"))
+	formatted = formatted.replace("I 開", "%s 開" % get_label_for_action("inventory"))
+	formatted = formatted.replace("I /", "%s /" % get_label_for_action("inventory"))
 
 	formatted = formatted.replace("按 M", "按 %s" % get_label_for_action("map"))
 	formatted = formatted.replace("M 或", "%s 或" % get_label_for_action("map"))
+	formatted = formatted.replace("M 開", "%s 開" % get_label_for_action("map"))
+	formatted = formatted.replace("M /", "%s /" % get_label_for_action("map"))
 
 	formatted = formatted.replace("按 Z", "按 %s" % get_label_for_action("jump"))
 	formatted = formatted.replace("按下 Z", "按下 %s" % get_label_for_action("jump"))
 	formatted = formatted.replace("按下兩下 Z", "按下兩下 %s" % get_label_for_action("jump"))
 	formatted = formatted.replace("Z是跳躍", "%s是跳躍" % get_label_for_action("jump"))
+	formatted = formatted.replace("Z 是跳躍", "%s 是跳躍" % get_label_for_action("jump"))
+	formatted = formatted.replace("Z：", "%s：" % get_label_for_action("jump"))
 
 	formatted = formatted.replace("按 X", "按 %s" % get_label_for_action("attack"))
 	formatted = formatted.replace("X是攻擊", "%s是攻擊" % get_label_for_action("attack"))
+	formatted = formatted.replace("X 是近戰攻擊", "%s 是近戰攻擊" % get_label_for_action("attack"))
+	formatted = formatted.replace("X：", "%s：" % get_label_for_action("attack"))
 
 	formatted = formatted.replace("按 C", "按 %s" % get_label_for_action("dash"))
 	formatted = formatted.replace("按下C", "按下%s" % get_label_for_action("dash"))
 	formatted = formatted.replace("C可進行衝刺", "%s可進行衝刺" % get_label_for_action("dash"))
+	formatted = formatted.replace("C 可進行衝刺", "%s 可進行衝刺" % get_label_for_action("dash"))
+	formatted = formatted.replace("C：", "%s：" % get_label_for_action("dash"))
 
 	formatted = formatted.replace("按 F", "按 %s" % get_label_for_action("far_attack"))
+	formatted = formatted.replace("F 是遠距離水波", "%s 是遠距離水波" % get_label_for_action("far_attack"))
+	formatted = formatted.replace("F 技能", "%s 技能" % get_label_for_action("far_attack"))
+	formatted = formatted.replace("F：", "%s：" % get_label_for_action("far_attack"))
 	formatted = formatted.replace("按 R", "按 %s" % get_label_for_action("skill_group_switch"))
+	formatted = formatted.replace("R 切換", "%s 切換" % get_label_for_action("skill_group_switch"))
+	formatted = formatted.replace("P 調整", "%s 調整" % get_label_for_action("audio_settings"))
 	return formatted
 
 

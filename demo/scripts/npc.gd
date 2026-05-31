@@ -23,10 +23,13 @@ var player_nearby := false
 func _ready() -> void:
 	GameState.clear_scene_health_potion_purchase()
 	_roll_shop_items()
-	prompt_label.text = prompt_text
+	_refresh_prompt_text()
 	prompt_label.hide()
 	$InteractArea.body_entered.connect(_on_body_entered)
 	$InteractArea.body_exited.connect(_on_body_exited)
+	var input_settings := get_node_or_null("/root/InputSettings")
+	if input_settings != null:
+		input_settings.connect("controls_changed", Callable(self, "_refresh_prompt_text"))
 
 
 func get_shop_items() -> Array[Dictionary]:
@@ -64,7 +67,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if ui != null:
 		if ui.has_method("set_world_prompt_active"):
 			ui.set_world_prompt_active(self, true)
-	prompt_label.text = prompt_text
+	_refresh_prompt_text()
 	prompt_label.show()
 
 
@@ -78,3 +81,8 @@ func _on_body_exited(body: Node2D) -> void:
 		if ui.has_method("set_world_prompt_active"):
 			ui.set_world_prompt_active(self, false)
 	prompt_label.hide()
+
+
+func _refresh_prompt_text() -> void:
+	var input_settings := get_node_or_null("/root/InputSettings")
+	prompt_label.text = prompt_text if input_settings == null else String(input_settings.call("format_action_text", prompt_text))

@@ -13,25 +13,25 @@ var triggered := false
 func _ready() -> void:
 	match name:
 		"MoveTutorial":
-			tutorial_text = "A / D 或方向鍵移動，Z 跳躍。短按可小跳，長按可跳得更高。"
+			tutorial_text = "{move_left} / {move_right} 或方向鍵移動，{jump} 跳躍。短按可小跳，長按可跳得更高。"
 			display_time = maxf(display_time, 4.0)
 		"JumpTutorial":
-			tutorial_text = "Z 跳躍。這版加入了跳躍緩衝，早一點按也能順利起跳。"
+			tutorial_text = "{jump} 跳躍。這版加入了跳躍緩衝，早一點按也能順利起跳。"
 			display_time = maxf(display_time, 4.2)
 		"DoubleJumpTutorial":
-			tutorial_text = "空中再按一次 Z 可二段跳。二段跳會刷新你的空中節奏，適合銜接攻擊。"
+			tutorial_text = "空中再按一次 {jump} 可二段跳。二段跳會刷新你的空中節奏，適合銜接攻擊。"
 			display_time = maxf(display_time, 4.2)
 		"WallTutorial":
-			tutorial_text = "貼住發亮牆面時按住方向可滑牆。按 Z 蹬牆跳，按 C 衝刺穿過危險空隙。"
+			tutorial_text = "貼住發亮牆面時按住方向可滑牆。按 {jump} 蹬牆跳，按 {dash} 衝刺穿過危險空隙。"
 			display_time = maxf(display_time, 4.0)
 		"WallJumpTutorial":
-			tutorial_text = "貼住牆面時按方向可滑牆。按 Z 蹬牆跳，落地前可接 C 衝刺。"
+			tutorial_text = "貼住牆面時按方向可滑牆。按 {jump} 蹬牆跳，落地前可接 {dash} 衝刺。"
 			display_time = maxf(display_time, 4.8)
 		"WaterTutorial":
-			tutorial_text = "水中可用方向鍵游動。C 水中衝刺，F 發射水波，長按 F 可釋放蓄力技能。"
+			tutorial_text = "水中可用方向鍵游動。{dash} 水中衝刺，{far_attack} 發射水波，長按 {far_attack} 可釋放蓄力技能。"
 			display_time = maxf(display_time, 4.0)
 		"CombatTutorial":
-			tutorial_text = "X 近戰攻擊。按住 W 或 S 可改變攻擊方向；空中向下攻擊命中會反彈。"
+			tutorial_text = "{attack} 近戰攻擊。按住 {move_up} 或 {move_down} 可改變攻擊方向；空中向下攻擊命中會反彈。"
 			display_time = maxf(display_time, 4.6)
 		"NormalOctopusTutorial":
 			tutorial_text = "敵人發光或壓低身體時代表準備攻擊。等牠出手後再反擊，命中會累積能量。"
@@ -46,7 +46,7 @@ func _ready() -> void:
 			tutorial_text = "Boss 戰前請在長椅補滿狀態。觀察預備動作，保留衝刺給真正危險的招式。"
 			display_time = maxf(display_time, 5.0)
 		"MapTutorial":
-			tutorial_text = "M 開啟地圖，I 開啟背包與技能。R 可切換目前裝備的技能組。"
+			tutorial_text = "{map} 開啟地圖，{inventory} 開啟背包與技能。{skill_group_switch} 可切換目前裝備的技能組。"
 			display_time = maxf(display_time, 4.2)
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)

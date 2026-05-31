@@ -25,8 +25,8 @@ const POTION_POINTS := [
 	Vector2(388.0, 84.0),
 	Vector2(498.0, 84.0),
 ]
-const ACTIVE_SKILL_SLOT_COUNT := 1
-const RESERVE_SKILL_SLOT_COUNT := 0
+const ACTIVE_SKILL_SLOT_COUNT := 2
+const RESERVE_SKILL_SLOT_COUNT := 2
 
 var hud_root: Control
 var health_fill: Polygon2D
@@ -44,6 +44,7 @@ var ultimate_fill: ColorRect
 var ultimate_charge_max := 100.0
 var ultimate_charge_current := 0.0
 var skill_swap_tween: Tween
+var skill_switch_label: Label
 
 
 func _ready() -> void:
@@ -56,6 +57,7 @@ func _ready() -> void:
 	_on_health_potions_changed(GameState.get_health_potion_count())
 	_update_active_skill_icons()
 	_on_ultimate_charge_changed(GameState.ultimate_charge, GameState.ultimate_charge_max)
+	_refresh_skill_switch_label()
 
 
 func _hide_legacy_nodes() -> void:
@@ -242,15 +244,14 @@ func _build_skill_hud() -> void:
 	switch_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	skill_hud.add_child(switch_panel)
 
-	var switch_label := Label.new()
-	switch_label.text = "R"
-	switch_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER as HorizontalAlignment
-	switch_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER as VerticalAlignment
-	switch_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	switch_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	switch_label.add_theme_font_size_override("font_size", 13)
-	switch_label.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.95))
-	switch_panel.add_child(switch_label)
+	skill_switch_label = Label.new()
+	skill_switch_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER as HorizontalAlignment
+	skill_switch_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER as VerticalAlignment
+	skill_switch_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	skill_switch_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	skill_switch_label.add_theme_font_size_override("font_size", 13)
+	skill_switch_label.add_theme_color_override("font_color", Color(0.9, 0.98, 1.0, 0.95))
+	switch_panel.add_child(skill_switch_label)
 
 
 func _connect_game_state() -> void:
@@ -262,6 +263,16 @@ func _connect_game_state() -> void:
 		GameState.active_skill_group_changed.connect(_on_active_skill_group_changed)
 	if not GameState.ultimate_charge_changed.is_connected(_on_ultimate_charge_changed):
 		GameState.ultimate_charge_changed.connect(_on_ultimate_charge_changed)
+	var input_settings := get_node_or_null("/root/InputSettings")
+	if input_settings != null and not input_settings.controls_changed.is_connected(_refresh_skill_switch_label):
+		input_settings.controls_changed.connect(_refresh_skill_switch_label)
+
+
+func _refresh_skill_switch_label() -> void:
+	if skill_switch_label == null:
+		return
+	var input_settings := get_node_or_null("/root/InputSettings")
+	skill_switch_label.text = "R" if input_settings == null else String(input_settings.call("get_label_for_action", "skill_group_switch"))
 
 
 func _connect_player() -> void:

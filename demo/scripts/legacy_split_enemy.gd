@@ -25,6 +25,10 @@ const PLAYER_BODY_COLLISION_LAYER_NUMBER := 2
 @export var coin_drop_amount := 3
 @export var coin_scene: PackedScene = preload("res://demo/scenes/coin_pickup.tscn")
 @export var monster_id: String = "WaterBlueBounceOctopus"
+@export var split_spawn_min_offset := 34.0
+@export var split_spawn_max_offset := 74.0
+@export var split_launch_speed_min := 320.0
+@export var split_launch_speed_max := 430.0
 
 @onready var anim: AnimatedSprite2D = $AnimatedSprite2D
 
@@ -167,6 +171,7 @@ func split() -> void:
 	var parent := get_parent()
 	if parent == null:
 		return
+	var split_origin := global_position
 
 	var scene := small_enemy_scene
 	if scene == null:
@@ -181,18 +186,21 @@ func split() -> void:
 		var launch_direction: int = launch_directions[i]
 		if i == 1:
 			launch_direction = -direction
-		var spawn_position := global_position + Vector2(float(launch_direction) * randf_range(34.0, 74.0), randf_range(-34.0, -12.0))
-		if small is Node2D:
-			if parent is Node2D:
-				small.position = (parent as Node2D).to_local(spawn_position)
-			else:
-				small.global_position = spawn_position
-
+		var spawn_position := split_origin + Vector2(
+			float(launch_direction) * randf_range(split_spawn_min_offset, split_spawn_max_offset),
+			randf_range(-24.0, 24.0)
+		)
 		parent.add_child(small)
+		if small is Node2D:
+			small.global_position = spawn_position
+		if small.get("bounce_min") != null and get("bounce_min") != null:
+			small.set("bounce_min", get("bounce_min"))
+		if small.get("bounce_max") != null and get("bounce_max") != null:
+			small.set("bounce_max", get("bounce_max"))
 		if small.has_method("start_spawn_protection"):
 			small.start_spawn_protection()
 		if small.has_method("launch_from_split"):
-			small.launch_from_split(launch_direction, randf_range(320.0, 430.0), 0.38)
+			small.launch_from_split(launch_direction, randf_range(split_launch_speed_min, split_launch_speed_max), 0.38)
 		elif small.has_method("set_direction"):
 			small.set_direction(launch_direction)
 

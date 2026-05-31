@@ -16,10 +16,13 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	prompt_text = "按 E 休息"
 	seated_text = "按 E 起身"
-	rest_label.text = prompt_text
+	_refresh_prompt_text()
 	rest_label.hide()
 	$InteractArea.body_entered.connect(_on_body_entered)
 	$InteractArea.body_exited.connect(_on_body_exited)
+	var input_settings := get_node_or_null("/root/InputSettings")
+	if input_settings != null:
+		input_settings.connect("controls_changed", Callable(self, "_refresh_prompt_text"))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -55,7 +58,7 @@ func _sit_down() -> void:
 	if ui != null:
 		if ui.has_method("set_world_prompt_active"):
 			ui.set_world_prompt_active(self, true)
-	rest_label.text = seated_text
+	_refresh_prompt_text()
 	rest_label.show()
 	if ui != null:
 		var localization: Node = get_node_or_null("/root/Localization")
@@ -89,7 +92,7 @@ func _on_body_entered(body: Node2D) -> void:
 	if ui != null:
 		if ui.has_method("set_world_prompt_active"):
 			ui.set_world_prompt_active(self, true)
-	rest_label.text = prompt_text
+	_refresh_prompt_text()
 	rest_label.show()
 
 
@@ -103,3 +106,9 @@ func _on_body_exited(body: Node2D) -> void:
 		if ui.has_method("set_world_prompt_active"):
 			ui.set_world_prompt_active(self, false)
 	rest_label.hide()
+
+
+func _refresh_prompt_text() -> void:
+	var text := seated_text if seated_player != null else prompt_text
+	var input_settings := get_node_or_null("/root/InputSettings")
+	rest_label.text = text if input_settings == null else String(input_settings.call("format_action_text", text))

@@ -99,6 +99,15 @@ func _get_surface_y() -> float:
 	return global_position.y
 
 
+func contains_global_point(point: Vector2) -> bool:
+	var shape_node := get_node_or_null("CollisionShape2D")
+	if not shape_node is CollisionShape2D or not shape_node.shape is RectangleShape2D:
+		return false
+	var rect_shape: RectangleShape2D = shape_node.shape
+	var local_point: Vector2 = shape_node.to_local(point)
+	return Rect2(-rect_shape.size * 0.5, rect_shape.size).has_point(local_point)
+
+
 func reapply_to_player_if_overlapping(body: Node2D) -> void:
 	if not body.is_in_group("player"):
 		return

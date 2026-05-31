@@ -1,10 +1,11 @@
 extends "res://demo/scripts/enemy.gd"
 
 @export var respawn_scene_path := "res://demo/scenes/blue_bounce_small_enemy.tscn"
-@export var bounce_velocity := Vector2(230.0, -170.0)
+@export var bounce_velocity := Vector2(118.0, -86.0)
 @export var bounce_min := Vector2(-650.0, 90.0)
 @export var bounce_max := Vector2(300.0, 370.0)
 @export var blue_modulate := Color(0.45, 0.78, 1.0, 1.0)
+@export var split_scale := 0.58
 
 
 func _ready() -> void:
@@ -62,7 +63,8 @@ func _damage_attack_target(area: Area2D) -> void:
 	receiver.call("take_damage", contact_damage, global_position)
 
 
-func launch_from_split(launch_direction: int, launch_speed := 360.0, _launch_duration := 0.35) -> void:
+func launch_from_split(launch_direction: int, launch_speed := 145.0, _launch_duration := 0.35) -> void:
+	scale *= split_scale
 	direction = launch_direction
 	var y_direction := -1.0 if randf() < 0.5 else 1.0
 	bounce_velocity = Vector2(float(launch_direction) * launch_speed, y_direction * launch_speed * 0.75)
