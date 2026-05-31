@@ -202,6 +202,10 @@ func _begin_attack() -> void:
 	state_timer = attack_windup_time
 	attack_cooldown_left = attack_cooldown
 	_set_damage_area_enabled(false)
+	var target_direction := _get_horizontal_direction_to_target()
+	if target_direction != 0:
+		direction = target_direction
+		_sync_facing()
 	_flash(Color(0.55, 0.88, 1.0), 0.08, 0.2)
 	_play_windup_tell()
 
@@ -209,11 +213,25 @@ func _begin_attack() -> void:
 func _start_dash() -> void:
 	state = &"dash"
 	state_timer = dash_time
+	var target_direction := _get_horizontal_direction_to_target()
+	var has_target_direction := target_direction != 0
+	if target_direction != 0:
+		direction = target_direction
 	dash_direction = direction
 	if dash_direction < 0 and global_position.x <= patrol_left_limit:
-		dash_direction = 1
+		if has_target_direction:
+			_enter_recovery()
+			return
+		else:
+			dash_direction = 1
 	if dash_direction > 0 and global_position.x >= patrol_right_limit:
-		dash_direction = -1
+		if has_target_direction:
+			_enter_recovery()
+			return
+		else:
+			dash_direction = -1
+	direction = dash_direction
+	_sync_facing()
 	_set_damage_area_enabled(true)
 	sprite.play("attack")
 	velocity.x = float(dash_direction) * dash_speed
@@ -284,6 +302,19 @@ func _face_target() -> void:
 
 	direction = int(new_direction)
 	_sync_facing()
+
+
+func _get_horizontal_direction_to_target() -> int:
+	var current_target := target
+	if current_target == null or not is_instance_valid(current_target):
+		current_target = _find_player()
+	if current_target == null:
+		return 0
+
+	var offset_x := current_target.global_position.x - global_position.x
+	if is_zero_approx(offset_x):
+		return 0
+	return 1 if offset_x > 0.0 else -1
 
 
 func _flip() -> void:

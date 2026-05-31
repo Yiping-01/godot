@@ -427,8 +427,8 @@ func _damage_attack_target(area: Area2D) -> void:
 	receiver.call("take_damage", contact_damage, global_position)
 
 
-func _find_damage_receiver(target: Node) -> Node:
-	var current: Node = target
+func _find_damage_receiver(target_node: Node) -> Node:
+	var current: Node = target_node
 	while current != null:
 		if current.has_method("take_damage"):
 			return current
